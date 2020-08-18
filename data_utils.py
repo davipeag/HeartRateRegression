@@ -67,7 +67,7 @@ class Pamap2Handler():
                 wget.download(url, out=dest_dir)
             else:
                 self.log("already downloaded")   
-            with zipfile.ZipFile("PAMAP2_Dataset.zip", "r") as zip_ref:
+            with zipfile.ZipFile(path_zip, "r") as zip_ref:
                 zip_ref.extractall(dest_dir)
     
     
