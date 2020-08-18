@@ -1,0 +1,17 @@
+__pycache__/
+__pycache__
+.ipynb_checkpoints
+.ipynb_checkpoints/
+.vscode
+.vscode/
+tmp/normalized
+tmp/replaced
+CNN_IMU
+CNN_IMU/
+CNN_IMU/*
+DeepConvLSTM
+DeepConvLSTM/
+PAMAP2_Dataset
+logs/
+mnist_data*
+mnist_data/*
