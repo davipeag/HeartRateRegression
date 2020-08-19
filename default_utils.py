@@ -3,6 +3,7 @@ from torch import nn
 import matplotlib.pyplot as plt
 import torch
 import numpy as np
+import copy
 
 
 def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
@@ -144,6 +145,7 @@ class TrainOurConvLSTM():
             optimizer,
             loader_tr,
             loader_val,
+            loader_ts,
             normdz,
             ztransformer,
             device
@@ -154,6 +156,7 @@ class TrainOurConvLSTM():
         self.optimizer = optimizer
         self.loader_tr = loader_tr
         self.loader_val = loader_val
+        self.loader_ts = loader_ts
         self.normdz = normdz
         self.ztransformer = ztransformer
         self.device = device
@@ -292,3 +295,50 @@ class TrainOurConvLSTM():
     def compute_mean_MAE(self, loader):
         xi, yi, xr, yr, p = self.get_data_epoch(loader)
         return self.HR_MAE(yi, yr, p)
+    
+
+
+    def train_epochs(self, n_epoch):
+        best_val_model = copy.deepcopy(self.net.state_dict()) 
+        train_losses = list()
+        train_accuracies = list()
+        validation_losses = list()
+        validation_accuracies = list()
+        test_accuracies = list()
+
+        validation_losses.append(self.compute_mean_MAE(self.loader_val))
+
+        for epoch in range(1, n_epoch+1):           
+            losses = []
+            for batch_idx, batch in enumerate(self.loader_tr):
+                losses.append(self.train(batch))
+
+            val_loss = self.compute_mean_MAE(self.loader_val) 
+            if val_loss < np.min(validation_losses):
+                print("best val epoch:", epoch)
+                best_val_model = copy.deepcopy(self.net.state_dict()) 
+
+            train_losses.append(torch.mean(torch.FloatTensor(losses)) )
+            validation_losses.append(val_loss)
+            train_accuracies.append(self.compute_mean_MAE(self.loader_tr))
+            validation_accuracies.append(val_loss)
+            test_accuracies.append(self.compute_mean_MAE(self.loader_ts))   
+            print('[%d/%d]: loss_train: %.3f loss_val %.3f loss_ts %.3f' % (
+                    (epoch), n_epoch, train_accuracies[-1],
+                    validation_accuracies[-1], test_accuracies[-1]))
+            
+            if (epoch % 10) == 0:
+                print("Test")
+                self.plot_heart_rate(self.loader_ts)
+                print("Validation")
+                self.plot_heart_rate(self.loader_val)
+                print("Train")
+                self.plot_heart_rate(self.loader_tr)
+                self.compute_mean_MAE(self.loader_ts)
+
+        return {
+            "best_val_model": best_val_model,
+            "train_mae": train_losses,
+            "validation_mae": train_accuracies,
+            "test_mae": test_accuracies
+        }
