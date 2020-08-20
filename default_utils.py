@@ -5,6 +5,28 @@ import torch
 import numpy as np
 import copy
 
+from preprocessing_utils import (
+            RecursiveHrMasker,
+            LabelCumSum,
+            LinearImputation,
+            HZMeanSubstitute,
+            DeltaHzToLabel,
+            NormalizeDZ,
+            LocalMeanReplacer,
+            ZTransformer,
+            ImputeZero,
+            ActivityIdRelabeler,
+            Downsampler,
+            FeatureLabelSplit,
+            TimeSnippetAggregator,
+            RemoveLabels,
+            SampleMaker,
+            InitialStatePredictionSplit,
+            TransformerPipeline,
+            IdentityTransformer
+        )
+
+
 
 def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
     
@@ -137,6 +159,95 @@ def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
     net.initialize_weights()
     return net
 
+
+
+
+def make_attention_transormer_model(device, total_size=162, recursive_size=160):
+    encoded_size = 127
+    ts_h_size = 32
+
+    ts_encoder = nn.Sequential(
+        nn.Conv1d(40, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Dropout(),
+        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Dropout(),
+        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Dropout(),
+        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Dropout(),
+        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Dropout(),
+        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Dropout(),
+        nn.Conv1d(ts_h_size, encoded_size, kernel_size=(2,), stride=(2,)),
+        nn.LeakyReLU(negative_slope=0.01),
+    )
+
+    class PositionalEncoding(nn.Module):
+
+        def __init__(self, time_size, device, multiplier=1):
+            super(PositionalEncoding, self).__init__()
+            self.pos = (multiplier*torch.arange(0, time_size, dtype=torch.float).reshape(-1,1,1)/(time_size**0.5)).to(device)
+            
+
+        def forward(self, x):
+            return torch.cat([x, self.pos], dim=2)
+
+
+    class ModuleTranspose(nn.Module):
+
+        def __init__(self, *args):
+            super(ModuleTranspose, self).__init__()
+            self.args = args
+        def forward(self, x):
+            return x.transpose(*self.args)
+
+
+    class MyTransformer(nn.Module):
+
+        def __init__(self, embeder, transformer, regressor, recursive_size):
+            super(MyTransformer, self).__init__()
+            self.embeder = embeder
+            self.transformer = transformer
+            self.regressor = regressor
+            self.recursive_size = recursive_size
+        
+
+
+
+        def forward(self, x):
+            p_encs = [self.embeder(xin) for xin in x]
+            p_enc = torch.cat(p_encs, dim=1)#.transpose(0,1)
+            trans = self.transformer(p_enc, p_enc[-self.recursive_size:])
+            p = self.regressor(trans)
+            #p = self.exp_smoothing(p)
+            
+            return p.transpose(0,1)
+
+
+    transformer = nn.Transformer(encoded_size+1, nhead=8, num_encoder_layers=4, num_decoder_layers=4, dim_feedforward=128*4)
+
+    m_transpose = ModuleTranspose(1,2)
+
+    pos_encoder = PositionalEncoding(total_size, device)
+
+    embed = nn.Sequential(ts_encoder, m_transpose, pos_encoder)
+
+    regressor = nn.Sequential(
+        nn.Linear(encoded_size+1, 32),nn.ReLU(),
+        nn.Linear(32,1)
+    )    
+    return MyTransformer(embed, transformer, regressor, recursive_size).to(device)
+
+
 class TrainOurConvLSTM():
     def __init__(
             self,
@@ -214,12 +325,6 @@ class TrainOurConvLSTM():
         xi, yi, xp, yp = map(lambda v: v.to(self.device), batch)
         self.plot_predictions(yi,yp, self.net(xi,yi,xp), indices)
 
-
-    def plot_single_heart_rate(self, loader, index):
-        batch = loader.__iter__().__next__()
-        self.net.eval()
-        xi, yi, xp, yp = map(lambda v: v.to(self.device), batch)
-        return self.plot_prediction(yi,yp, self.net(xi,yi,xp), index)
 
 
     def HR_MAE(self, yi,yp, predictions):
@@ -342,3 +447,238 @@ class TrainOurConvLSTM():
             "validation_mae": train_accuracies,
             "test_mae": test_accuracies
         }
+
+
+
+class DefaultPamapPreprocessing():
+    def __init__(self, ts_per_sample=162, ts_per_is=2, last_transformer = IdentityTransformer(),
+                 ts_count = 300, donwsampling_ratio = 0.3, sample_multiplier =2):
+
+
+        self.last_transformer = last_transformer
+        self.recursive_hr_masker = RecursiveHrMasker(0)
+        self.label_cum_sum = LabelCumSum()
+        self.hr_lin_imputation = LinearImputation("heart_rate")
+        self.meansub = HZMeanSubstitute()
+        self.deltahztolabel = DeltaHzToLabel()
+        self.normdz = NormalizeDZ()
+
+        self.local_mean_imputer = LocalMeanReplacer()
+        self.ztransformer = ZTransformer()
+        self.zero_imputer = ImputeZero()
+        self.activity_id_relabeler = ActivityIdRelabeler()
+        self.downsampler = Downsampler(donwsampling_ratio)
+        self.feature_label_splitter = FeatureLabelSplit(
+            feature_columns = [
+                'heart_rate', 'h_temperature', 'h_xacc16', 'h_yacc16', 'h_zacc16',
+                'h_xacc6', 'h_yacc6', 'h_zacc6', 'h_xgyr', 'h_ygyr', 'h_zgyr', 'h_xmag',
+                'h_ymag', 'h_zmag', 'c_temperature', 'c_xacc16', 'c_yacc16', 'c_zacc16',
+                'c_xacc6', 'c_yacc6', 'c_zacc6', 'c_xgyr', 'c_ygyr', 'c_zgyr', 'c_xmag',
+                'c_ymag', 'c_zmag', 'a_temperature', 'a_xacc16', 'a_yacc16', 'a_zacc16',
+                'a_xacc6', 'a_yacc6', 'a_zacc6', 'a_xgyr', 'a_ygyr', 'a_zgyr', 'a_xmag',
+                'a_ymag', 'a_zmag']
+        )
+        self.ts_aggregator = TimeSnippetAggregator(size=ts_count)
+        self.label_remover = RemoveLabels([0])
+
+
+
+        self.sample_maker = SampleMaker(ts_per_sample, ts_per_sample//sample_multiplier)
+
+        self.is_pred_split = InitialStatePredictionSplit(ts_per_sample, ts_per_is)
+
+        self.transformers = TransformerPipeline(
+            self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
+            self.activity_id_relabeler, self.feature_label_splitter,
+            self.ts_aggregator, self.meansub, self.deltahztolabel, self.normdz,
+            self.sample_maker, self.label_cum_sum, self.is_pred_split,
+            self.recursive_hr_masker, self.last_transformer)
+    
+
+
+
+
+class TrainXY():
+    def __init__(
+            self,
+            net,
+            criterion,
+            optimizer,
+            loader_tr,
+            loader_val,
+            loader_ts,
+            normdz,
+            ztransformer,
+            device,
+            get_last_y_from_x,
+            ):
+        
+        self.net = net
+        self.criterion = criterion
+        self.optimizer = optimizer
+        self.loader_tr = loader_tr
+        self.loader_val = loader_val
+        self.loader_ts = loader_ts
+        self.normdz = normdz
+        self.ztransformer = ztransformer
+        self.device = device
+        self.get_last_y_from_x = get_last_y_from_x                 
+
+    def inverse_transform_label(self, x, y):
+        _, inverse_delta_y = self.normdz.reverse_transform((None,y))
+
+        last_y = self.get_last_y_from_x(x)
+
+        ys = inverse_delta_y.reshape(inverse_delta_y.shape[:2]) + last_y
+
+        ymean = self.ztransformer.transformer.mean_[0] 
+        ystd = self.ztransformer.transformer.var_[0]**0.5
+
+        inverse_ys = (ys*ystd)+ymean
+        return inverse_ys
+
+
+    def plot_predictions(self, x, y, predictions, print_indices = [0]):
+        x = x.detach().cpu().numpy()
+        y = y.detach().cpu().numpy()
+        p = predictions.detach().cpu().numpy()
+
+        yr = self.inverse_transform_label(x,y)
+        pr = self.inverse_transform_label(x,p)
+
+        for i in print_indices:
+            plt.figure()
+            plt.plot(np.linspace(1,3*yr.shape[1]-1, yr.shape[1]), yr[i], 'b', label="label")
+            plt.plot(np.linspace(1,3*yr.shape[1]-1, yr.shape[1]), pr[i], 'k', label="predictions")
+            plt.xlabel("seconds")
+            plt.legend()
+            plt.show()
+ 
+
+    def plot_heart_rate(self, loader, indices=[0,]):
+        batch = loader.__iter__().__next__()
+        self.net.eval()
+        x,y = map(lambda v: v.to(self.device), batch)
+        self.plot_predictions(x,y, self.net(x), indices)
+
+
+
+    def HR_MAE(self, x, y, predictions):
+        x = x.detach().cpu().numpy()
+        y = y.detach().cpu().numpy()
+        p = predictions.detach().cpu().numpy()
+
+        yr = self.inverse_transform_label(x,y)
+        pr = self.inverse_transform_label(x,p)
+
+        return np.abs(yr-pr).mean()
+
+
+    def HR_RMSE(self, x, y, predictions):
+        x = x.detach().cpu().numpy()
+        y = y.detach().cpu().numpy()
+        p = predictions.detach().cpu().numpy()
+
+        yr = self.inverse_transform_label(x,y)
+        pr = self.inverse_transform_label(x,p)
+
+        return (((yr-pr)**2).mean())**0.5
+
+
+
+    def train(self, batch):
+        self.net.train()
+        x, y = map(lambda v: v.to(self.device), batch)
+        self.net.zero_grad()
+        p = self.net(x)
+        loss = self.criterion(p, y)
+        
+        loss.backward()
+        self.optimizer.step()
+        return loss.cpu().item()
+
+    def validate(self):
+        self.net.eval()
+        losses = list()
+        for batch in self.loader_val:
+            self.net.eval()
+            x,y = map(lambda v: v.to(self.device), batch)
+            p = self.net(x)
+            loss = self.criterion(p, y)
+            losses.append(loss.cpu().item())
+        
+        return torch.mean(torch.FloatTensor(losses))
+        
+
+    def get_data_epoch(self, loader):
+        self.net.eval()
+        xs, ys, ps = [], [], []
+        with torch.no_grad():
+            for batch in loader:
+                x,y = map(lambda v: v.to(self.device), batch)
+                p = self.net(x)
+                xs.append(x.detach().cpu())
+                ys.append(y.detach().cpu())
+                ps.append(p.detach().cpu())
+        
+        return torch.cat(xs), torch.cat(ys),torch.cat(ps)
+
+    def compute_batch_MAE(self, batch):
+        self.net.eval()
+        x,y = map(lambda v: v.to(self.device), batch)
+        return self.HR_MAE(x, y, self.net(x)) 
+        
+    
+    def compute_mean_MAE(self, loader):
+        x, y, p = self.get_data_epoch(loader)
+        return self.HR_MAE(x, y, p)
+    
+
+
+    def train_epochs(self, n_epoch):
+        best_val_model = copy.deepcopy(self.net.state_dict()) 
+        train_losses = list()
+        train_accuracies = list()
+        validation_losses = list()
+        validation_accuracies = list()
+        test_accuracies = list()
+
+        validation_losses.append(self.compute_mean_MAE(self.loader_val))
+
+        for epoch in range(1, n_epoch+1):           
+            losses = []
+            for batch_idx, batch in enumerate(self.loader_tr):
+                losses.append(self.train(batch))
+
+            val_loss = self.compute_mean_MAE(self.loader_val) 
+            if val_loss < np.min(validation_losses):
+                print("best val epoch:", epoch)
+                best_val_model = copy.deepcopy(self.net.state_dict()) 
+
+            train_losses.append(torch.mean(torch.FloatTensor(losses)) )
+            validation_losses.append(val_loss)
+            train_accuracies.append(self.compute_mean_MAE(self.loader_tr))
+            validation_accuracies.append(val_loss)
+            test_accuracies.append(self.compute_mean_MAE(self.loader_ts))   
+            print('[%d/%d]: loss_train: %.3f loss_val %.3f loss_ts %.3f' % (
+                    (epoch), n_epoch, train_accuracies[-1],
+                    validation_accuracies[-1], test_accuracies[-1]))
+            
+            if (epoch % 10) == 0:
+                print("Test")
+                self.plot_heart_rate(self.loader_ts)
+                print("Validation")
+                self.plot_heart_rate(self.loader_val)
+                print("Train")
+                self.plot_heart_rate(self.loader_tr)
+                self.compute_mean_MAE(self.loader_ts)
+
+        return {
+            "best_val_model": best_val_model,
+            "train_mae": train_losses,
+            "validation_mae": train_accuracies,
+            "test_mae": test_accuracies
+        }
+
+
+

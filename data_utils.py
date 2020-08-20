@@ -94,7 +94,7 @@ class Pamap2Handler():
 def cross_validation_split(dfs, transformer_tr, transformer_val, transformer_ts, idx_val, idx_ts):
     idxs_tr = list(range(len(dfs)))
 
-    for idx in [idx_val, idx_ts]:
+    for idx in sorted([idx_val, idx_ts]):
         o  =idxs_tr.index(idx)
         idxs_tr = [*idxs_tr[:o], *idxs_tr[o+1:]]
     

@@ -184,9 +184,8 @@ class Downsampler(BaseEstimator, TransformerMixin):
       return ddf
 
 
-class TransformerPipeline( BaseEstimator, TransformerMixin ):
-  def __init__(self,
-               *transformers):
+class TransformerPipeline():
+  def __init__(self, *transformers):
   
     self.transformers = transformers
 
@@ -297,7 +296,6 @@ class HZMeanSubstitute():
     #print(nx.shape, ny.shape)
     return nx, ny
 
-
 class DeltaHzToLabel():
   def __init__(self):
     pass
@@ -396,4 +394,43 @@ class RecursiveHrMasker(BaseEstimator, TransformerMixin):
       xr[:,:,0,:] = self.mask_value
       return xi,yi,xr,yr
 
+
+class OurConvLstmToCnnImuFormat(BaseEstimator, TransformerMixin):
+  def __init__(self):
+    pass
+
+  def fit(self, *arg, **kargs):
+    return self
+  
+  def transform(self, xy):
+      xi,yi,xr,yr = xy
+      x = np.concatenate([xi,xr], axis=1) 
+      x = np.concatenate([x[:, i:i+1] for i in range(x.shape[1])],axis=3)
+      x = x.transpose(0,1,3,2)
+      return x, yr
+    
+
+class OurConvLstmToAttentionFormat(BaseEstimator, TransformerMixin):
+  def __init__(self):
+    pass
+
+  def fit(self, *arg, **kargs):
+    return self
+  
+  def transform(self, xy):
+      xi,yi,xr,yr = xy
+      x = np.concatenate([xi,xr], axis=1) 
+      return x, yr
+    
+  
+class IdentityTransformer(BaseEstimator, TransformerMixin):
+  def __init__(self):
+    pass
+
+  def fit(self, *arg, **kargs):
+    return self
+  
+  def transform(self, xy):
+      return xy
+    
 

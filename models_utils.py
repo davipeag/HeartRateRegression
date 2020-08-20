@@ -34,6 +34,18 @@ class OurConvLstmDataset(torch.utils.data.Dataset):
             torch.Tensor(self.xrs[idx]), torch.tensor(self.yrs[idx]).type(torch.FloatTensor))
 
 
+class DatasetXY(torch.utils.data.Dataset):
+  def __init__(self, x,y):
+    self.x = x
+    self.y = y
+  def __len__(self):
+    return len(self.x)
+  
+  def __getitem__(self, idx):
+    return torch.FloatTensor(self.x[idx]), torch.FloatTensor(self.y[idx])
+            
+
+
 def make_loader(xys, dataset_cls, batch_size, shuffle = True, num_workers=0):
   xysn = make_set(xys, range(len(xys)))
   ds = dataset_cls(*xysn)
