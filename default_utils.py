@@ -28,6 +28,114 @@ from preprocessing_utils import (
 
 
 
+
+def make_cnn_imu2():
+    class CNN_IMU2(nn.Module):
+        def __init__(self):
+            super(CNN_IMU2, self).__init__()
+
+            inp_sizes = [1, 13, 13, 13]
+            
+            self.inp_sizes = inp_sizes
+
+            self.fcs = nn.Sequential(
+                nn.Dropout(),
+                nn.Linear(len(inp_sizes)*512,512),
+                nn.ReLU(),   
+            )
+
+            self.conv_b1 = self.conv_layers()
+            self.conv_b2 = self.conv_layers()
+            self.conv_b3 = self.conv_layers()
+            self.conv_b4 = self.conv_layers()
+
+            self.conv_nets = [
+                self.conv_b1,
+                self.conv_b2,
+                self.conv_b3,
+                self.conv_b4
+                ]
+            
+            
+            self.lin_net_b1 = self.linear_layers(1)
+            self.lin_net_b2 = self.linear_layers(13)
+            self.lin_net_b3 = self.linear_layers(13)
+            self.lin_net_b4 = self.linear_layers(13)
+
+            self.lin_nets = [
+            self.lin_net_b1,
+            self.lin_net_b2,
+            self.lin_net_b3,
+            self.lin_net_b4,
+            ]
+
+
+            self.final_fc = nn.Linear(512, 1)
+            self.initialize_weights()
+
+        def initialize_weights(self):
+            for m in self.modules():
+                if isinstance(m, nn.Conv2d):
+                    nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                    if m.bias is not None:
+                        nn.init.constant_(m.bias, 0)
+                elif isinstance(m, nn.BatchNorm2d):
+                    nn.init.constant_(m.weight, 1)
+                    nn.init.constant_(m.bias, 0)
+                elif isinstance(m, nn.BatchNorm1d):
+                    nn.init.constant_(m.weight, 1)
+                    nn.init.constant_(m.bias, 0)
+                elif isinstance(m, nn.Linear):
+                    nn.init.normal_(m.weight, 0, 0.01)
+                    nn.init.constant_(m.bias, 0)
+
+        def linear_layers(self, inp_size):
+            i = inp_size*25*64
+            return nn.Sequential(nn.Linear(i, 512),nn.ReLU())#.to(args["device"])
+
+        def conv_layers(self):
+            return nn.Sequential(
+                nn.Conv2d(1, 64, (5,1), padding=(2,0)),
+                nn.ReLU(),
+                nn.LocalResponseNorm(5), 
+                nn.Conv2d(64,64,(5,1), padding=(2,0)),
+                nn.ReLU(),
+                nn.LocalResponseNorm(5),
+                nn.MaxPool2d((2,1),(2,1)),
+                nn.Conv2d(64, 64, (5,1), padding=(2,0)),
+                nn.ReLU(),
+                nn.Conv2d(64, 64, (5,1), padding=(2,0)),
+                nn.ReLU(),
+                nn.MaxPool2d((2,1),(2,1)),
+                nn.Dropout(),
+            )
+
+        def forward(self,x):
+            ends = [sum(self.inp_sizes[0:i+1])
+                    for i in range(len(self.inp_sizes))]
+            starts = [0,*ends[:-1]]
+            
+            fs = [c(x[:,:,:, s:e]).reshape(x.shape[0], 64, -1, 25, e-s).transpose(1,2)
+                for (s,e),c in zip(zip(starts, ends), self.conv_nets)]
+            
+            ls = [l(torch.flatten(i, start_dim=2)) for i,l in zip(fs, self.lin_nets)]
+
+            joint = torch.cat(ls, dim=2)
+
+            o = self.final_fc(self.fcs(joint))[:, :RECURSIVE_SIZE].reshape(-1, RECURSIVE_SIZE)
+            torch.cumsum(o, dim=1)
+            return o
+    
+
+    net =  CNN_IMU2()
+    net.initialize_weights()
+    return net
+
+
+
+
+
+
 def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
     
     ts_h_size = 32

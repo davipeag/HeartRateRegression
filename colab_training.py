@@ -1,5 +1,29 @@
 
 #%%
+import torch
+
+args = {
+    'epoch_num': 100,     # Number of epochs.
+    'lr': 1.0e-3,           # Learning rate.
+    'weight_decay': 10e-4, # L2 penalty.
+    'momentum': 0.9,      # Momentum.
+    'batch_size': 128,     # Mini-batch size. 600
+    'batch_test': 256,     # size of test batch
+}
+
+if torch.cuda.is_available():
+    args['device'] = torch.device('cuda')
+else:
+    args['device'] = torch.device('cpu')
+
+print(args['device'])
+
+dataset_name = "PAMAP2"
+model_type = "CnnIMU"
+val_sub = 4
+ts_sub = 2
+
+
 ! pip install wget
 import os
 import torch
@@ -60,30 +84,7 @@ def git_pull():
   
 git_push()
 
-#%%
 
-args = {
-    'epoch_num': 100,     # Number of epochs.
-    'lr': 1.0e-3,           # Learning rate.
-    'weight_decay': 10e-4, # L2 penalty.
-    'momentum': 0.9,      # Momentum.
-    'batch_size': 128,     # Mini-batch size. 600
-    'batch_test': 256,     # size of test batch
-}
-
-if torch.cuda.is_available():
-    args['device'] = torch.device('cuda')
-else:
-    args['device'] = torch.device('cpu')
-
-print(args['device'])
-
-dataset_name = "PAMAP2"
-model_type = "AttentionTransformer"
-val_sub = 2#4
-ts_sub = 1#2
-
-#%%
 
 from data_utils import (
     Pamap2Handler, cross_validation_split)
@@ -143,12 +144,14 @@ loader_ts = make_loader(xy_ts, dataset_cls, batch_size=args["batch_test"], shuff
 
 #%%
 
+from default_utils import make_cnn_imu2
+
 
 net_options = {
     "OurConvLSTM": lambda : make_our_conv_lstm(40,1,False),
-    "AttentionTransformer": lambda: make_attention_transormer_model(args["device"])
+    "AttentionTransformer": lambda: make_attention_transormer_model(args["device"]),
 #    "DeepConvLSTM": DatasetXY,
-#    "CnnIMU": DatasetXY
+    "CnnIMU": lambda : make_cnn_imu2()
 }
 
 net = net_options[model_type]().to(args["device"])
@@ -177,7 +180,12 @@ trainer_options = {
     "AttentionTransformer": lambda : TrainXY(
         **basic_training_parameters,
         get_last_y_from_x = lambda x: x[:,1, 0, -1].reshape(-1,1)
-    )
+    ),
+    "CnnIMU":lambda : TrainXY(
+        **basic_training_parameters,
+        get_last_y_from_x = lambda x: np.mean(x[:,0,200:300, 0], axis=1).reshape(-1,1)
+    ), 
+
 }
 
 trainer = trainer_options[model_type]()
@@ -191,8 +199,8 @@ run_output = trainer.train_epochs(args["epoch_num"])
 #%%
 
 state_dict_name = f"trained_models/{model_type}ts_{ts_sub}_val_{val_sub}.pkl"
-torch.save(run_output["best_val_model"], state_dict_name)
+torch.save(run_output["best_val_model"], os.path.join(REPO_DIR, state_dict_name))
 
-
+git_push()
 
 # %%
