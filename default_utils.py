@@ -28,8 +28,60 @@ from preprocessing_utils import (
 
 
 
+def make_deep_conv_lstm(recursive_size = 160, total_size=162):
+    class ConvLSTM(nn.Module):
+        def __init__(self):
+            super(ConvLSTM, self).__init__()
 
-def make_cnn_imu2():
+            self.mask = [99+i*100 for i in range(total_size)][-recursive_size:]
+            
+            self.conv = nn.Sequential(
+                nn.Conv2d(1, 64, (5,1), padding=(2,0)),
+                nn.LeakyReLU(),
+                nn.Dropout(0.5),
+                nn.Conv2d(64, 64, (5,1), padding=(2,0)),
+                nn.LeakyReLU(),
+                nn.Dropout(0.5),
+                nn.Conv2d(64, 64, (5,1), padding=(2,0)),
+                nn.ReLU(),
+                nn.Dropout(0.5),
+                nn.Conv2d(64, 64, (5,1), padding=(2,0)),
+                nn.ReLU(),
+            )
+
+            self.lstm = nn.LSTM(64*40, 128, batch_first=True, num_layers=2, dropout=0.5)
+
+            self.lin = nn.Sequential(
+                nn.Linear(128, 1)
+            )
+            
+            self.initialize_weights()
+
+        def initialize_weights(self):
+            for m in self.modules():
+                if isinstance(m, nn.Conv2d):
+                    nn.init.orthogonal_(m.weight)
+                    #nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                    if m.bias is not None:
+                        nn.init.constant_(m.bias, 0)
+                elif isinstance(m, nn.BatchNorm2d):
+                    nn.init.orthogonal_(m.weight)
+                    nn.init.constant_(m.bias, 0)
+                elif isinstance(m, nn.BatchNorm1d):
+                    nn.init.constant_(m.weight, 1)
+                    nn.init.constant_(m.bias, 0)
+                elif isinstance(m, nn.Linear):
+                    nn.init.orthogonal_(m.weight)
+                    nn.init.constant_(m.bias, 0)
+
+
+        def forward(self, x):
+            l = self.lstm(torch.flatten(self.conv(x).transpose(2,1),start_dim=2))[0]
+            return self.lin(l[:, self.mask, :])#[:, -RECURSIVE_SIZE:, :])
+  
+
+
+def make_cnn_imu2(recursive_size=160, total_size=162):
     class CNN_IMU2(nn.Module):
         def __init__(self):
             super(CNN_IMU2, self).__init__()
@@ -122,7 +174,7 @@ def make_cnn_imu2():
 
             joint = torch.cat(ls, dim=2)
 
-            o = self.final_fc(self.fcs(joint))[:, :RECURSIVE_SIZE].reshape(-1, RECURSIVE_SIZE)
+            o = self.final_fc(self.fcs(joint))[:, :recursive_size].reshape(-1, recursive_size)
             torch.cumsum(o, dim=1)
             return o
     
