@@ -123,7 +123,7 @@ preprocessor =preprocessing_options[model_type]
 #%%
 
 preprocessor.transformers.fit(df_full)
-xy_tr, xy_val, xy_ts = cross_validation_split(dfs, preprocessor.transformers, preprocessor.transformers, preprocessor.transformers, val_sub, ts_sub)
+xy_tr, xy_val, xy_ts = cross_validation_split(dfs, preprocessor.transformers, preprocessor.transformers_ts, preprocessor.transformers_ts, val_sub, ts_sub)
 
 #%%
 

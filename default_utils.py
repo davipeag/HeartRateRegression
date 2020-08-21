@@ -184,10 +184,6 @@ def make_cnn_imu2(recursive_size=160, total_size=162):
     return net
 
 
-
-
-
-
 def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
     
     ts_h_size = 32
@@ -318,8 +314,6 @@ def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
 
     net.initialize_weights()
     return net
-
-
 
 
 def make_attention_transormer_model(device, total_size=162, recursive_size=160):
@@ -608,8 +602,6 @@ class TrainOurConvLSTM():
             "test_mae": test_accuracies
         }
 
-
-
 class DefaultPamapPreprocessing():
     def __init__(self, ts_per_sample=162, ts_per_is=2, last_transformer = IdentityTransformer(),
                  ts_count = 300, donwsampling_ratio = 0.3, sample_multiplier =2):
@@ -641,9 +633,9 @@ class DefaultPamapPreprocessing():
         self.ts_aggregator = TimeSnippetAggregator(size=ts_count)
         self.label_remover = RemoveLabels([0])
 
-
-
         self.sample_maker = SampleMaker(ts_per_sample, ts_per_sample//sample_multiplier)
+
+        self.sample_maker_ts = SampleMaker(ts_per_sample, ts_per_sample)
 
         self.is_pred_split = InitialStatePredictionSplit(ts_per_sample, ts_per_is)
 
@@ -653,11 +645,15 @@ class DefaultPamapPreprocessing():
             self.ts_aggregator, self.meansub, self.deltahztolabel, self.normdz,
             self.sample_maker, self.label_cum_sum, self.is_pred_split,
             self.recursive_hr_masker, self.last_transformer)
+        
+        self.transformers_ts = TransformerPipeline(
+            self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
+            self.activity_id_relabeler, self.feature_label_splitter,
+            self.ts_aggregator, self.meansub, self.deltahztolabel, self.normdz,
+            self.sample_maker_ts, self.label_cum_sum, self.is_pred_split,
+            self.recursive_hr_masker, self.last_transformer)
+
     
-
-
-
-
 class TrainXY():
     def __init__(
             self,
