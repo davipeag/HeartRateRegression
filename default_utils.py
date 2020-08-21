@@ -77,7 +77,10 @@ def make_deep_conv_lstm(recursive_size = 160, total_size=162):
         def forward(self, x):
             l = self.lstm(torch.flatten(self.conv(x).transpose(2,1),start_dim=2))[0]
             return self.lin(l[:, self.mask, :])#[:, -RECURSIVE_SIZE:, :])
-  
+
+    net = ConvLSTM()
+    net.initialize_weights()
+    return net
 
 def make_cnn_imu2(recursive_size=160, total_size=162):
     class CNN_IMU2(nn.Module):
