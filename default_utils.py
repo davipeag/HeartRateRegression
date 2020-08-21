@@ -27,6 +27,24 @@ from preprocessing_utils import (
         )
 
 
+def initialize_weights(model):
+    for m in model.modules():
+        if isinstance(m, nn.Conv1d):
+            nn.init.orthogonal_(m.weight)
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.BatchNorm2d):
+            nn.init.constant_(m.weight, 1)
+            nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.BatchNorm1d):
+            nn.init.constant_(m.weight, 1)
+            nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.Linear):
+            nn.init.orthogonal_(m.weight)
+            nn.init.constant_(m.bias, 0)
+    return model
+
+
 def make_deep_conv_lstm(recursive_size = 160, total_size=162):
     class ConvLSTM(nn.Module):
         def __init__(self):
@@ -383,7 +401,6 @@ def make_attention_transormer_model(device, total_size=162, recursive_size=160):
             p_enc = torch.cat(p_encs, dim=1)#.transpose(0,1)
             trans = self.transformer(p_enc, p_enc[-self.recursive_size:])
             p = self.regressor(trans)
-            #p = self.exp_smoothing(p)
             
             return p.transpose(0,1)
 
@@ -400,8 +417,10 @@ def make_attention_transormer_model(device, total_size=162, recursive_size=160):
         nn.Linear(encoded_size+1, 32),nn.ReLU(),
         nn.Linear(32,1)
     )    
-    return MyTransformer(embed, transformer, regressor, recursive_size).to(device)
-
+    net = MyTransformer(embed, transformer, regressor, recursive_size).to(device)
+    initialize_weights(net)
+    return net
+    
 
 class TrainOurConvLSTM():
     def __init__(
