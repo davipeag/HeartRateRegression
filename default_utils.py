@@ -27,7 +27,6 @@ from preprocessing_utils import (
         )
 
 
-
 def make_deep_conv_lstm(recursive_size = 160, total_size=162):
     class ConvLSTM(nn.Module):
         def __init__(self):
@@ -79,7 +78,6 @@ def make_deep_conv_lstm(recursive_size = 160, total_size=162):
             l = self.lstm(torch.flatten(self.conv(x).transpose(2,1),start_dim=2))[0]
             return self.lin(l[:, self.mask, :])#[:, -RECURSIVE_SIZE:, :])
   
-
 
 def make_cnn_imu2(recursive_size=160, total_size=162):
     class CNN_IMU2(nn.Module):
@@ -476,8 +474,9 @@ class TrainOurConvLSTM():
     def plot_heart_rate(self, loader, indices=[0,]):
         batch = loader.__iter__().__next__()
         self.net.eval()
-        xi, yi, xp, yp = map(lambda v: v.to(self.device), batch)
-        self.plot_predictions(yi,yp, self.net(xi,yi,xp), indices)
+        with torch.no_grad():
+            xi, yi, xp, yp = map(lambda v: v.to(self.device), batch)
+            self.plot_predictions(yi,yp, self.net(xi,yi,xp), indices)
 
 
 
@@ -520,11 +519,11 @@ class TrainOurConvLSTM():
         self.net.eval()
         losses = list()
         for batch in self.loader_val:
-            self.net.eval()
-            xi,yi,xr,yr = map(lambda v: v.to(self.device), batch)
-            p = self.net(xi,yi,xr)
-            loss = self.criterion(p, yr)
-            losses.append(loss.cpu().item())
+            with torch.no_grad():
+                xi,yi,xr,yr = map(lambda v: v.to(self.device), batch)
+                p = self.net(xi,yi,xr)
+                loss = self.criterion(p, yr)
+                losses.append(loss.cpu().item())
         
         return torch.mean(torch.FloatTensor(losses))
         
@@ -535,20 +534,22 @@ class TrainOurConvLSTM():
         xis, yis, xrs, yrs, ps = [],[],[],[],[]
         with torch.no_grad():
             for batch in loader:
-                xi,yi,xr,yr = map(lambda v: v.to(self.device), batch)
-                p = self.net(xi, yi, xr)
-                xis.append(xi.detach().cpu())
-                xrs.append(xr.detach().cpu())
-                yis.append(yi.detach().cpu())
-                yrs.append(yr.detach().cpu())
-                ps.append(p.detach().cpu())
+                with torch.no_grad():
+                    xi,yi,xr,yr = map(lambda v: v.to(self.device), batch)
+                    p = self.net(xi, yi, xr)
+                    xis.append(xi.detach().cpu())
+                    xrs.append(xr.detach().cpu())
+                    yis.append(yi.detach().cpu())
+                    yrs.append(yr.detach().cpu())
+                    ps.append(p.detach().cpu())
         
         return torch.cat(xis), torch.cat(yis), torch.cat(xrs), torch.cat(yrs), torch.cat(ps)
 
     def compute_batch_MAE(self, batch):
         self.net.eval()
-        xi,yi,xr,yr = map(lambda v: v.to(self.device), batch)
-        return self.HR_MAE(yi,yr, self.net(xi,yi,xr)) 
+        with torch.no_grad():
+            xi,yi,xr,yr = map(lambda v: v.to(self.device), batch)
+            return self.HR_MAE(yi,yr, self.net(xi,yi,xr)) 
         
     
     def compute_mean_MAE(self, loader):
@@ -757,11 +758,11 @@ class TrainXY():
         self.net.eval()
         losses = list()
         for batch in self.loader_val:
-            self.net.eval()
-            x,y = map(lambda v: v.to(self.device), batch)
-            p = self.net(x)
-            loss = self.criterion(p, y)
-            losses.append(loss.cpu().item())
+            with torch.no_grad():
+                x,y = map(lambda v: v.to(self.device), batch)
+                p = self.net(x)
+                loss = self.criterion(p, y)
+                losses.append(loss.cpu().item())
         
         return torch.mean(torch.FloatTensor(losses))
         
@@ -771,26 +772,26 @@ class TrainXY():
         xs, ys, ps = [], [], []
         with torch.no_grad():
             for batch in loader:
-                x,y = map(lambda v: v.to(self.device), batch)
-                p = self.net(x)
-                xs.append(x.detach().cpu())
-                ys.append(y.detach().cpu())
-                ps.append(p.detach().cpu())
+                with torch.no_grad():
+                    x,y = map(lambda v: v.to(self.device), batch)
+                    p = self.net(x)
+                    xs.append(x.detach().cpu())
+                    ys.append(y.detach().cpu())
+                    ps.append(p.detach().cpu())
         
         return torch.cat(xs), torch.cat(ys),torch.cat(ps)
 
     def compute_batch_MAE(self, batch):
         self.net.eval()
-        x,y = map(lambda v: v.to(self.device), batch)
-        return self.HR_MAE(x, y, self.net(x)) 
-        
+        with torch.no_grad():
+            x,y = map(lambda v: v.to(self.device), batch)
+            mae = self.HR_MAE(x, y, self.net(x)) 
+        return mae
     
     def compute_mean_MAE(self, loader):
         x, y, p = self.get_data_epoch(loader)
         return self.HR_MAE(x, y, p)
     
-
-
     def train_epochs(self, n_epoch):
         best_val_model = copy.deepcopy(self.net.state_dict()) 
         train_losses = list()

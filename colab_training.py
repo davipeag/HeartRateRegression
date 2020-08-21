@@ -7,8 +7,8 @@ args = {
     'lr': 1.0e-3,           # Learning rate.
     'weight_decay': 10e-4, # L2 penalty.
     'momentum': 0.9,      # Momentum.
-    'batch_size': 128,     # Mini-batch size. 600
-    'batch_test': 256,     # size of test batch
+    'batch_size': 2,     # Mini-batch size. 600
+    'batch_test': 2,     # size of test batch
 }
 
 if torch.cuda.is_available():
@@ -19,9 +19,9 @@ else:
 print(args['device'])
 
 dataset_name = "PAMAP2"
-model_type = "CnnIMU"
-val_sub = 4
-ts_sub = 2
+model_type = "CnnImu"
+val_sub = 0
+ts_sub = 1
 
 
 ! pip install wget
@@ -56,7 +56,7 @@ else:
   !chmod u=rw,g=,o= ~/.ssh/github.pem
   !echo "{ssh_config}" > ~/.ssh/config
   !chmod u=rw,g=,o= ~/.ssh/config
-  ! (cd /tmp && git clone git@github.com:davipeag/HeartRateRegression.git )
+  ! (cd /tmp && git clone git@github.com:davipeag/HeartRateRegression.git)
   ! (cd {REPO_DIR} && git pull )
   import sys
   sys.path.append(REPO_DIR)
@@ -125,8 +125,8 @@ preprocessor =preprocessing_options[model_type]
 preprocessor.transformers.fit(df_full)
 xy_tr, xy_val, xy_ts = cross_validation_split(dfs, preprocessor.transformers, preprocessor.transformers_ts, preprocessor.transformers_ts, val_sub, ts_sub)
 
-#%%
-
+del dfs
+del df_full
 
 dataset_cls_options = {
     "OurConvLSTM": OurConvLstmDataset,
@@ -145,12 +145,13 @@ loader_ts = make_loader(xy_ts, dataset_cls, batch_size=args["batch_test"], shuff
 #%%
 
 from default_utils import make_cnn_imu2
+from default_utils import make_deep_conv_lstm
 
 
 net_options = {
     "OurConvLSTM": lambda : make_our_conv_lstm(40,1,False),
     "AttentionTransformer": lambda: make_attention_transormer_model(args["device"]),
-#    "DeepConvLSTM": DatasetXY,
+    "DeepConvLSTM": lambda : make_deep_conv_lstm(),
     "CnnIMU": lambda : make_cnn_imu2()
 }
 
@@ -182,6 +183,10 @@ trainer_options = {
         get_last_y_from_x = lambda x: x[:,1, 0, -1].reshape(-1,1)
     ),
     "CnnIMU":lambda : TrainXY(
+        **basic_training_parameters,
+        get_last_y_from_x = lambda x: np.mean(x[:,0,200:300, 0], axis=1).reshape(-1,1)
+    ),
+    "DeepConvLSTM":lambda : TrainXY(
         **basic_training_parameters,
         get_last_y_from_x = lambda x: np.mean(x[:,0,200:300, 0], axis=1).reshape(-1,1)
     ), 
