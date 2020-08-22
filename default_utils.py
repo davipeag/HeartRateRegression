@@ -1,3 +1,4 @@
+#%%
 
 from torch import nn
 import matplotlib.pyplot as plt
@@ -214,15 +215,11 @@ def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
         nn.LeakyReLU(negative_slope=0.01),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
         nn.LeakyReLU(negative_slope=0.01),
-        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
+        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
         nn.LeakyReLU(negative_slope=0.01),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
         nn.LeakyReLU(negative_slope=0.01),
-        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
-        nn.LeakyReLU(negative_slope=0.01),
-        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-        nn.LeakyReLU(negative_slope=0.01),
-        nn.Conv1d(ts_h_size, 128, kernel_size=(2,), stride=(2,)),
+        nn.Conv1d(ts_h_size, 128, kernel_size=(3,), stride=(2,)),
         nn.Dropout(),
         nn.LeakyReLU(negative_slope=0.01),
     )
@@ -232,12 +229,6 @@ def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
         nn.Conv1d(129, 32, kernel_size=(3,), stride=(2,)),
         nn.LeakyReLU(negative_slope=0.01),
     )
-
-    is_encoder = nn.Sequential(
-        nn.Conv1d(129, 32, kernel_size=(2,), stride=(2,)),
-        nn.LeakyReLU(negative_slope=0.01),
-    )
-
 
     h0_fc_net = nn.Linear(in_features=32, out_features=32, bias=True)
     c0_fc_net = nn.Linear(in_features=32, out_features=32, bias=True)
@@ -342,14 +333,6 @@ def make_attention_transormer_model(device, total_size=162, recursive_size=160):
     ts_encoder = nn.Sequential(
         nn.Conv1d(40, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
         nn.LeakyReLU(negative_slope=0.01),
-        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-        nn.LeakyReLU(negative_slope=0.01),
-        nn.Dropout(),
-        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
-        nn.LeakyReLU(negative_slope=0.01),
-        nn.Dropout(),
-        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
-        nn.LeakyReLU(negative_slope=0.01),
         nn.Dropout(),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
         nn.LeakyReLU(negative_slope=0.01),
@@ -360,7 +343,10 @@ def make_attention_transormer_model(device, total_size=162, recursive_size=160):
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
         nn.LeakyReLU(negative_slope=0.01),
         nn.Dropout(),
-        nn.Conv1d(ts_h_size, encoded_size, kernel_size=(2,), stride=(2,)),
+        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Dropout(),
+        nn.Conv1d(ts_h_size, 127, kernel_size=(3,), stride=(2,)),
         nn.LeakyReLU(negative_slope=0.01),
     )
 
@@ -627,7 +613,7 @@ class TrainOurConvLSTM():
 
 class DefaultPamapPreprocessing():
     def __init__(self, ts_per_sample=162, ts_per_is=2, last_transformer = IdentityTransformer(),
-                 ts_count = 300, donwsampling_ratio = 0.3, sample_multiplier =2):
+                 ts_count = 100, donwsampling_ratio = 0.3, sample_multiplier =2):
 
 
         self.last_transformer = last_transformer
@@ -664,14 +650,14 @@ class DefaultPamapPreprocessing():
 
         self.transformers = TransformerPipeline(
             self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
-            self.activity_id_relabeler, self.feature_label_splitter,
+            self.activity_id_relabeler, self.downsampler, self.feature_label_splitter,
             self.ts_aggregator, self.meansub, self.deltahztolabel, self.normdz,
             self.sample_maker, self.label_cum_sum, self.is_pred_split,
             self.recursive_hr_masker, self.last_transformer)
         
         self.transformers_ts = TransformerPipeline(
             self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
-            self.activity_id_relabeler, self.feature_label_splitter,
+            self.activity_id_relabeler, self.downsampler, self.feature_label_splitter,
             self.ts_aggregator, self.meansub, self.deltahztolabel, self.normdz,
             self.sample_maker_ts, self.label_cum_sum, self.is_pred_split,
             self.recursive_hr_masker, self.last_transformer)

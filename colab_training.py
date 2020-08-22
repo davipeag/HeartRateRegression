@@ -19,7 +19,9 @@ else:
 print(args['device'])
 
 dataset_name = "PAMAP2"
-model_type = "CnnImu"
+model_type = "AttentionTransformer"
+#"OurConvLSTM", "AttentionTransformer", "DeepConvLSTM", "CnnIMU"
+
 val_sub = 0
 ts_sub = 1
 
@@ -108,7 +110,7 @@ reset_seeds()
 
 dataset_handler = Pamap2Handler(os.path.join(REPO_DIR, ".."))
 
-dfs = [dataset_handler.get_protocol_subject(s) for s in [1,2,3,4,5,6,7,8]]
+dfs = [dataset_handler.get_protocol_subject(s) for s in [1,2,3]]#,4,5,6,7,8]]
 df_full = pd.concat(dfs)
 
 preprocessing_options = {
@@ -142,6 +144,70 @@ loader_tr = make_loader(xy_tr, dataset_cls, batch_size=args["batch_size"], shuff
 loader_val = make_loader(xy_val, dataset_cls, batch_size=args["batch_test"],shuffle=False)
 loader_ts = make_loader(xy_ts, dataset_cls, batch_size=args["batch_test"], shuffle=False)
 
+#%%
+
+ts_h_size = 32
+
+ts_encoder = nn.Sequential(
+    nn.Conv1d(40, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+    nn.LeakyReLU(negative_slope=0.01),
+    nn.Dropout(),
+    nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+    nn.LeakyReLU(negative_slope=0.01),
+    nn.Dropout(),
+    nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
+    nn.LeakyReLU(negative_slope=0.01),
+    nn.Dropout(),
+    nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+    nn.LeakyReLU(negative_slope=0.01),
+    nn.Dropout(),
+    nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+    nn.LeakyReLU(negative_slope=0.01),
+    nn.Dropout(),
+    nn.Conv1d(ts_h_size, 128, kernel_size=(3,), stride=(2,)),
+    nn.LeakyReLU(negative_slope=0.01),
+)
+
+x,y = loader_tr.__iter__().__next__()
+
+
+net(x).shape, y.shape
+#ts_encoder(x[0]).shape, x.shape, net.embeder(x[0]).shape
+
+# p_encs = [net.embeder(xin) for xin in x]
+# p_enc = torch.cat(p_encs, dim=1)#.transpose(0,1)
+
+# p_enc.shape
+#trans = net.transformer(p_enc, p_enc[-net.recursive_size:])
+# p = net.regressor(trans)
+
+# p.transpose(0,1)
+
+
+#%%
+# import torch
+# from torch import nn
+
+# ts_h_size = 32
+
+# enc = ts_encoder = nn.Sequential(
+#         nn.Conv1d(40, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+#         nn.LeakyReLU(negative_slope=0.01),
+#         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+#         nn.LeakyReLU(negative_slope=0.01),
+#         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
+#         nn.LeakyReLU(negative_slope=0.01),
+#         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+#         nn.LeakyReLU(negative_slope=0.01),
+#         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+#         nn.LeakyReLU(negative_slope=0.01),
+#         nn.Conv1d(ts_h_size, 128, kernel_size=(3,), stride=(2,)),
+#         nn.Dropout(),
+#         nn.LeakyReLU(negative_slope=0.01),
+#     )
+
+# xin = xi.transpose(1,2).reshape(xi.shape[0], xi.shape[2],  -1)
+# enc(xin).shape, xin.shape
 #%%
 
 from default_utils import make_cnn_imu2
