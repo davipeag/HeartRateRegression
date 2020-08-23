@@ -226,7 +226,7 @@ def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
   
 
     is_encoder = nn.Sequential(
-        nn.Conv1d(129, 32, kernel_size=(3,), stride=(2,)),
+        nn.Conv1d(129, 32, kernel_size=(2,), stride=(2,)),
         nn.LeakyReLU(negative_slope=0.01),
     )
 
@@ -537,6 +537,12 @@ class TrainOurConvLSTM():
         
     #mae_criterion = nn.L1Loss()
 
+    def reverse_transformed_prediction_labels(self, loader):
+        xis, yis, xrs, yrs, ps = map(lambda v: v.detach().cpu().numpy(),
+                         self.get_data_epoch(loader))
+        yr, pr = map(lambda v: self.inverse_transform_label(yis, v), [yrs, ps])
+        return yr, pr
+
     def get_data_epoch(self, loader):
         self.net.eval()
         xis, yis, xrs, yrs, ps = [],[],[],[],[]
@@ -701,8 +707,7 @@ class TrainXY():
 
         inverse_ys = (ys*ystd)+ymean
         return inverse_ys
-
-
+    
     def plot_predictions(self, x, y, predictions, print_indices = [0]):
         x = x.detach().cpu().numpy()
         y = y.detach().cpu().numpy()
@@ -726,6 +731,13 @@ class TrainXY():
         x,y = map(lambda v: v.to(self.device), batch)
         self.plot_predictions(x,y, self.net(x), indices)
 
+
+    
+    def reverse_transformed_prediction_labels(self, loader):
+        xs, ys, ps = map(lambda v: v.detach().cpu().numpy(),
+                         self.get_data_epoch(loader))
+        yr, pr = map(lambda v: self.inverse_transform_label(xs, v), [ys, ps])
+        return yr, pr
 
 
     def HR_MAE(self, x, y, predictions):
@@ -788,6 +800,8 @@ class TrainXY():
                     ps.append(p.detach().cpu())
         
         return torch.cat(xs), torch.cat(ys),torch.cat(ps)
+
+
 
     def compute_batch_MAE(self, batch):
         self.net.eval()
