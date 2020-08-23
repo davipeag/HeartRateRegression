@@ -194,7 +194,7 @@ def make_cnn_imu2(recursive_size=160, total_size=162):
 
             joint = torch.cat(ls, dim=2)
 
-            o = self.final_fc(self.fcs(joint))[:, :recursive_size].reshape(-1, recursive_size)
+            o = self.final_fc(self.fcs(joint))[:, :recursive_size]
             torch.cumsum(o, dim=1)
             return o
     
@@ -861,3 +861,5 @@ class TrainXY():
 
 
 
+
+# %%
