@@ -19,7 +19,7 @@ else:
 print(args['device'])
 
 dataset_name = "PAMAP2"
-model_type = "AttentionTransformer"
+model_type = "OurConvLSTM"
 #"OurConvLSTM", "AttentionTransformer", "DeepConvLSTM", "CnnIMU"
 
 val_sub = 0
@@ -146,42 +146,72 @@ loader_ts = make_loader(xy_ts, dataset_cls, batch_size=args["batch_test"], shuff
 
 #%%
 
-ts_h_size = 32
+# ts_h_size = 32
 
-ts_encoder = nn.Sequential(
-    nn.Conv1d(40, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-    nn.LeakyReLU(negative_slope=0.01),
-    nn.Dropout(),
-    nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-    nn.LeakyReLU(negative_slope=0.01),
-    nn.Dropout(),
-    nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
-    nn.LeakyReLU(negative_slope=0.01),
-    nn.Dropout(),
-    nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-    nn.LeakyReLU(negative_slope=0.01),
-    nn.Dropout(),
-    nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-    nn.LeakyReLU(negative_slope=0.01),
-    nn.Dropout(),
-    nn.Conv1d(ts_h_size, 128, kernel_size=(3,), stride=(2,)),
-    nn.LeakyReLU(negative_slope=0.01),
-)
+# # ts_encoder = nn.Sequential(
+# #     nn.Conv1d(40, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+# #     nn.LeakyReLU(negative_slope=0.01),
+# #     nn.Dropout(),
+# #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+# #     nn.LeakyReLU(negative_slope=0.01),
+# #     nn.Dropout(),
+# #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
+# #     nn.LeakyReLU(negative_slope=0.01),
+# #     nn.Dropout(),
+# #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+# #     nn.LeakyReLU(negative_slope=0.01),
+# #     nn.Dropout(),
+# #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+# #     nn.LeakyReLU(negative_slope=0.01),
+# #     nn.Dropout(),
+# #     nn.Conv1d(ts_h_size, 128, kernel_size=(3,), stride=(2,)),
+# #     nn.LeakyReLU(negative_slope=0.01),
+# # )
 
-x,y = loader_tr.__iter__().__next__()
+# ts_h_size = 32
 
+# ts_encoder = nn.Sequential(
+#     nn.Conv1d(40, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+#     nn.LeakyReLU(negative_slope=0.01),
+#     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+#     nn.LeakyReLU(negative_slope=0.01),
+#     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
+#     nn.LeakyReLU(negative_slope=0.01),
+#     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+#     nn.LeakyReLU(negative_slope=0.01),
+#     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+#     nn.LeakyReLU(negative_slope=0.01),
+#     nn.Conv1d(ts_h_size, 128, kernel_size=(3,), stride=(2,)),
+#     nn.Dropout(),
+#     nn.LeakyReLU(negative_slope=0.01),
+# )
 
-net(x).shape, y.shape
-#ts_encoder(x[0]).shape, x.shape, net.embeder(x[0]).shape
+# is_encoder = nn.Sequential(
+#         nn.Conv1d(129, 32, kernel_size=(2,), stride=(2,)),
+#         nn.LeakyReLU(negative_slope=0.01),
+#     )
 
-# p_encs = [net.embeder(xin) for xin in x]
-# p_enc = torch.cat(p_encs, dim=1)#.transpose(0,1)
+# xi,yi, xr,yr = loader_tr.__iter__().__next__()
 
-# p_enc.shape
-#trans = net.transformer(p_enc, p_enc[-net.recursive_size:])
-# p = net.regressor(trans)
+# encoded_xp = torch.cat(
+#     [net.ts_encoder(b).transpose(0,2).transpose(1,2)
+#     for b in xr], dim=0)
 
-# p.transpose(0,1)
+# xin = xi.transpose(1,2).reshape(xi.shape[0], xi.shape[2],  -1)
+
+# encoded_xi = net.ts_encoder(xin)
+
+# ie = torch.cat([encoded_xi, yi.transpose(2,1)], axis=1)
+
+# i_enc = is_encoder(ie).reshape(xi.shape[0], -1)
+# h = net.h0_fc_net(i_enc)
+# c = net.c0_fc_net(i_enc)
+
+# hsf, _ = net.lstm(encoded_xp, (h.unsqueeze(0),c.unsqueeze(0)))
+# ps = net.predictor(net.fc_net(hsf))
+
+# ps.shape, yr.shape
+
 
 
 #%%
@@ -209,7 +239,6 @@ net(x).shape, y.shape
 # xin = xi.transpose(1,2).reshape(xi.shape[0], xi.shape[2],  -1)
 # enc(xin).shape, xin.shape
 #%%
-
 from default_utils import make_cnn_imu2
 from default_utils import make_deep_conv_lstm
 
