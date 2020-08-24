@@ -1,3 +1,5 @@
+#%%
+
 import numpy as np
 import pandas as pd
 import os
@@ -326,6 +328,19 @@ class NormalizeDZ():
     x,y = xy
     return x, (y*0.065)+0.000737
 
+class FakeNormalizeDZ():
+  def __init__(self):
+    pass
+
+  def fit(self, x, y=None):
+    return self
+  
+  def transform(self, xy):
+    return xy
+    
+  def reverse_transform(self, xy):
+    return xy
+
 
 class SampleMaker(BaseEstimator, TransformerMixin):
     def __init__(self,
@@ -435,3 +450,73 @@ class IdentityTransformer(BaseEstimator, TransformerMixin):
       return xy
     
 
+class SlidingWindow():
+    def __init__(self,
+        length,
+        step):
+      self.length = length
+      self.step = step
+
+    def fit(self, df, y=None):
+      return self
+
+    def transform(self, xy, y=None):
+      x,y = xy
+      st = np.arange(0, x.shape[0], self.step)
+      ed = st + self.length
+      ed = ed[ed<=x.shape[0]]
+      st =st[:len(ed)]
+      
+      xs = list()
+      ys = list()
+      for s,e in zip(st,ed):
+        xs.append(x[s:e])
+        ys.append(y[s:e])
+      return np.stack(xs), np.stack(ys).reshape(-1, self.length, 1)
+
+class SlidingWindow(BaseEstimator, TransformerMixin):
+    def __init__(self,
+        length,
+        step):
+      self.length = length
+      self.step = step
+
+    def fit(self, df, y=None):
+      return self
+
+    def transform(self, xy, y=None):
+      x,y = xy
+      st = np.arange(0, x.shape[0], self.step)
+      ed = st + self.length
+      ed = ed[ed<=x.shape[0]]
+      st =st[:len(ed)]
+      
+      xs = list()
+      ys = list()
+      for s,e in zip(st,ed):
+        xs.append(x[s:e])
+        ys.append(y[s:e])
+      return np.stack(xs), np.stack(ys).reshape(-1, self.length, 1)
+
+class FeatureMeanSubstitute():
+  def __init__(self):
+    pass
+
+  def fit(self, x, y=None):
+    return self
+  
+  def transform(self, xy):
+    x,y = xy
+
+    return np.nanmean(x.swapaxes(3,4),axis=4).reshape(*x.shape[0:2], -1), y
+  
+class OffsetLabel():
+  def __init__(self):
+    pass
+
+  def fit(self, x, y=None):
+    return self
+  
+  def transform(self, xy):
+    x,y = xy
+    return x[0:-1], y[1:]

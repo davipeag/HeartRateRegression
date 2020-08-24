@@ -24,7 +24,11 @@ from preprocessing_utils import (
             SampleMaker,
             InitialStatePredictionSplit,
             TransformerPipeline,
-            IdentityTransformer
+            IdentityTransformer,
+            OffsetLabel,
+            FeatureMeanSubstitute,
+            SlidingWindow,
+            FakeNormalizeDZ,
         )
 
 
@@ -44,7 +48,6 @@ def initialize_weights(model):
             nn.init.orthogonal_(m.weight)
             nn.init.constant_(m.bias, 0)
     return model
-
 
 def make_deep_conv_lstm(recursive_size = 160, total_size=162):
     class ConvLSTM(nn.Module):
@@ -203,7 +206,6 @@ def make_cnn_imu2(recursive_size=160, total_size=162):
     net.initialize_weights()
     return net
 
-
 def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
     
     ts_h_size = 32
@@ -325,7 +327,6 @@ def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
     net.initialize_weights()
     return net
 
-
 def make_attention_transormer_model(device, total_size=162, recursive_size=160):
     encoded_size = 127
     ts_h_size = 32
@@ -407,6 +408,37 @@ def make_attention_transormer_model(device, total_size=162, recursive_size=160):
     initialize_weights(net)
     return net
     
+def make_fcnn():
+    class FCNN(nn.Module):
+        def __init__(self):
+            super(FCNN, self).__init__()
+            self.fcs = nn.Sequential(
+                nn.Linear(4,16),
+                nn.ReLU(),
+                nn.Linear(16,16),
+                nn.ReLU(),
+                nn.Dropout(),
+                nn.Linear(16,1),   
+            )
+
+        def forward(self,x):
+            
+            # putting windows first
+            xwf = x.transpose(0,1)
+            hr0 = xwf[0,:, 0:1]            
+            pred = self.fcs(xwf[0])
+            preds = [pred]
+            csum = hr0 + pred
+            for xi in xwf[1:]:
+                inps = torch.cat([csum, xi[:,1:]], dim=1)
+                pred = self.fcs(inps)
+                csum = csum + pred
+                preds.append(pred)
+            return torch.stack(preds).transpose(0,1)
+
+    net  = FCNN()
+    initialize_weights(net)
+    return net
 
 class TrainOurConvLSTM():
     def __init__(
@@ -668,7 +700,55 @@ class DefaultPamapPreprocessing():
             self.sample_maker_ts, self.label_cum_sum, self.is_pred_split,
             self.recursive_hr_masker, self.last_transformer)
 
-    
+class FcPamapPreprocessing():
+    def __init__(self, ts_per_sample=162, ts_per_is=2, last_transformer = IdentityTransformer(),
+                 ts_count = 100, donwsampling_ratio = 0.3, sample_multiplier =2):
+
+
+        self.last_transformer = last_transformer
+        self.recursive_hr_masker = RecursiveHrMasker(0)
+        self.label_cum_sum = LabelCumSum()
+        self.hr_lin_imputation = LinearImputation("heart_rate")
+        self.meansub = HZMeanSubstitute()
+        self.deltahztolabel = DeltaHzToLabel()
+        self.normdz = FakeNormalizeDZ()
+
+        self.local_mean_imputer = LocalMeanReplacer()
+        self.ztransformer = ZTransformer()
+        self.zero_imputer = ImputeZero()
+        self.activity_id_relabeler = ActivityIdRelabeler()
+        self.downsampler = Downsampler(donwsampling_ratio)
+        self.feature_label_splitter = FeatureLabelSplit(
+            feature_columns =["heart_rate", 'h_xacc16', 'h_yacc16', 'h_zacc16']
+        )
+        self.ts_aggregator = TimeSnippetAggregator(size=ts_count)
+        self.label_remover = RemoveLabels([0])
+
+        recursive_size = ts_per_sample - ts_per_is
+        self.sliding_window = SlidingWindow(recursive_size,recursive_size//2)
+        self.sliding_window_ts = SlidingWindow(recursive_size,recursive_size)
+        self.sample_maker = SampleMaker(recursive_size, recursive_size//sample_multiplier)
+
+        self.sample_maker_ts = SampleMaker(recursive_size, recursive_size)
+
+        self.is_pred_split = InitialStatePredictionSplit(ts_per_sample, ts_per_is)
+
+        self.feature_mean_substitute = FeatureMeanSubstitute()
+
+        self.offset_label = OffsetLabel()
+
+        self.transformers = TransformerPipeline(
+            self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
+            self.activity_id_relabeler, self.downsampler, self.feature_label_splitter,
+            self.ts_aggregator, self.meansub, self.deltahztolabel, self.normdz,
+            self.sliding_window,  self.feature_mean_substitute, self.label_cum_sum)
+
+        self.transformers_ts = TransformerPipeline(
+            self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
+            self.activity_id_relabeler, self.downsampler, self.feature_label_splitter,
+            self.ts_aggregator, self.meansub, self.deltahztolabel, self.normdz,
+            self.sliding_window_ts, self.feature_mean_substitute, self.label_cum_sum)
+
 class TrainXY():
     def __init__(
             self,
