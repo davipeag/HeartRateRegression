@@ -210,8 +210,31 @@ def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
     
     ts_h_size = 32
 
+    # ts_encoder = nn.Sequential(
+    #     nn.Conv1d(40, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+    #     nn.LeakyReLU(negative_slope=0.01),
+    #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+    #     nn.LeakyReLU(negative_slope=0.01),
+    #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
+    #     nn.LeakyReLU(negative_slope=0.01),
+    #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+    #     nn.LeakyReLU(negative_slope=0.01),
+    #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+    #     nn.LeakyReLU(negative_slope=0.01),
+    #     nn.Conv1d(ts_h_size, 128, kernel_size=(3,), stride=(2,)),
+    #     nn.Dropout(),
+    #     nn.LeakyReLU(negative_slope=0.01),
+    # )
     ts_encoder = nn.Sequential(
         nn.Conv1d(40, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        #nn.Dropout(),
+        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        #nn.Dropout(),
+        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
         nn.LeakyReLU(negative_slope=0.01),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
         nn.LeakyReLU(negative_slope=0.01),
@@ -219,9 +242,7 @@ def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
         nn.LeakyReLU(negative_slope=0.01),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
         nn.LeakyReLU(negative_slope=0.01),
-        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-        nn.LeakyReLU(negative_slope=0.01),
-        nn.Conv1d(ts_h_size, 128, kernel_size=(3,), stride=(2,)),
+        nn.Conv1d(ts_h_size, 128, kernel_size=(2,), stride=(2,)), 
         nn.Dropout(),
         nn.LeakyReLU(negative_slope=0.01),
     )
@@ -333,23 +354,44 @@ def make_attention_transormer_model(device, total_size=162, recursive_size=160):
 
     ts_encoder = nn.Sequential(
         nn.Conv1d(40, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-        nn.LeakyReLU(negative_slope=0.01),
-        nn.Dropout(),
+        nn.LeakyReLU(negative_slope=0.01),nn.Dropout(),
+        #nn.Dropout(),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-        nn.LeakyReLU(negative_slope=0.01),
-        nn.Dropout(),
+        nn.LeakyReLU(negative_slope=0.01),nn.Dropout(),
+        #nn.Dropout(),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
-        nn.LeakyReLU(negative_slope=0.01),
-        nn.Dropout(),
+        nn.LeakyReLU(negative_slope=0.01),nn.Dropout(),
+        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
+        nn.LeakyReLU(negative_slope=0.01),nn.Dropout(),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-        nn.LeakyReLU(negative_slope=0.01),
-        nn.Dropout(),
+        nn.LeakyReLU(negative_slope=0.01),nn.Dropout(),
+        nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
+        nn.LeakyReLU(negative_slope=0.01),nn.Dropout(),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-        nn.LeakyReLU(negative_slope=0.01),
-        nn.Dropout(),
-        nn.Conv1d(ts_h_size, 127, kernel_size=(3,), stride=(2,)),
+        nn.LeakyReLU(negative_slope=0.01), nn.Dropout(),
+        nn.Conv1d(ts_h_size, encoded_size, kernel_size=(2,), stride=(2,)),  
         nn.LeakyReLU(negative_slope=0.01),
     )
+
+    # ts_encoder = nn.Sequential(
+    #     nn.Conv1d(40, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+    #     nn.LeakyReLU(negative_slope=0.01),
+    #     nn.Dropout(),
+    #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+    #     nn.LeakyReLU(negative_slope=0.01),
+    #     nn.Dropout(),
+    #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
+    #     nn.LeakyReLU(negative_slope=0.01),
+    #     nn.Dropout(),
+    #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+    #     nn.LeakyReLU(negative_slope=0.01),
+    #     nn.Dropout(),
+    #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
+    #     nn.LeakyReLU(negative_slope=0.01),
+    #     nn.Dropout(),
+    #     nn.Conv1d(ts_h_size, 127, kernel_size=(3,), stride=(2,)),
+    #     nn.LeakyReLU(negative_slope=0.01),
+    # )
 
     class PositionalEncoding(nn.Module):
 
