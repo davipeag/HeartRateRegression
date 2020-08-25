@@ -239,7 +239,7 @@ def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
         nn.LeakyReLU(negative_slope=0.01),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
-        nn.LeakyReLU(negative_slope=0.01),
+        nn.LeakyReLU(negative_slope=0.01), nn.Dropout(),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
         nn.LeakyReLU(negative_slope=0.01), nn.Dropout(),
         nn.Conv1d(ts_h_size, 128, kernel_size=(2,), stride=(2,)), 
