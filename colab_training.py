@@ -19,7 +19,7 @@ else:
 print(args['device'])
 
 dataset_name = "PAMAP2"
-model_type = "FCNN"
+model_type = "OurConvLSTM"
 #"OurConvLSTM", "AttentionTransformer", "DeepConvLSTM", "CnnIMU", FCNN
 
 val_sub = 0
@@ -111,7 +111,7 @@ reset_seeds()
 
 dataset_handler = Pamap2Handler(os.path.join(REPO_DIR, ".."))
 
-dfs = [dataset_handler.get_protocol_subject(s) for s in [1,2,3,]]#4,5,6,7,8]]
+dfs = [dataset_handler.get_protocol_subject(s) for s in [1,2,3,4,5,6,7,8]]
 df_full = pd.concat(dfs)
 
 preprocessing_options = {
@@ -210,6 +210,8 @@ trainer_options = {
 trainer = trainer_options[model_type]()
 
 
+run_output = trainer.train_epochs(args["epoch_num"])
+
 # %%
 import matplotlib.pyplot as plt
 
@@ -233,7 +235,7 @@ y.shape
 #plot_s(0)
 
 #%%
-run_output = trainer.train_epochs(args["epoch_num"])
+
 
 
 #%%
