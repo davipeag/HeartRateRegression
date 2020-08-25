@@ -15,3 +15,5 @@ PAMAP2_Dataset
 logs/
 mnist_data*
 mnist_data/*
+figures/*
+figures*

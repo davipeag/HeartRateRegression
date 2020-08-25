@@ -7,8 +7,8 @@ args = {
     'lr': 1.0e-3,           # Learning rate.
     'weight_decay': 10e-4, # L2 penalty.
     'momentum': 0.9,      # Momentum.
-    'batch_size': 5,     # Mini-batch size. 600
-    'batch_test': 5,     # size of test batch
+    'batch_size': 1024,     # Mini-batch size. 600
+    'batch_test': 1024,     # size of test batch
 }
 
 if torch.cuda.is_available():
@@ -111,12 +111,13 @@ reset_seeds()
 
 dataset_handler = Pamap2Handler(os.path.join(REPO_DIR, ".."))
 
-dfs = [dataset_handler.get_protocol_subject(s) for s in [1,2,3,4,5,6,7,8]]
+dfs = [dataset_handler.get_protocol_subject(s) for s in [1,2,3,]]#4,5,6,7,8]]
 df_full = pd.concat(dfs)
 
 preprocessing_options = {
-    "OurConvLSTM": DefaultPamapPreprocessing(),
-    "AttentionTransformer": DefaultPamapPreprocessing(last_transformer=OurConvLstmToAttentionFormat()),
+    "OurConvLSTM": DefaultPamapPreprocessing(ts_count = 300, donwsampling_ratio = 1),
+    "AttentionTransformer": DefaultPamapPreprocessing(
+      ts_count = 300, donwsampling_ratio = 1, last_transformer=OurConvLstmToAttentionFormat()),
     "DeepConvLSTM": DefaultPamapPreprocessing(last_transformer=OurConvLstmToCnnImuFormat()),
     "CnnIMU": DefaultPamapPreprocessing(last_transformer=OurConvLstmToCnnImuFormat()),
     "FCNN": FcPamapPreprocessing(),
@@ -210,7 +211,28 @@ trainer = trainer_options[model_type]()
 
 
 # %%
+import matplotlib.pyplot as plt
 
+x,y = loader_ts.__iter__().__next__()
+x.shape
+xc = torch.cat([x[:, j, :, :] for j in range(x.shape[1])],dim=2)
+
+for i in [2,3,4,5,6,7]:
+  #i = 7 
+  count = 30
+  n = 300*count + 600
+  fig, ax = plt.subplots(figsize=(60,5))
+  s = xc[0,i,600:n]
+  ax.plot(s, '-k')
+  #ax.plot(y[0,:count,0], 'ok')
+  ax.axis("off")
+  fig.savefig(f"figures/s{i}.jpg")
+#fig.savefig(f"figures/heart_rate.jpg")
+#%%
+y.shape
+#plot_s(0)
+
+#%%
 run_output = trainer.train_epochs(args["epoch_num"])
 
 
