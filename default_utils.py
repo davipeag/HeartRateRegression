@@ -475,7 +475,7 @@ def make_fcnn():
                 inps = torch.cat([csum, xi[:,1:]], dim=1)
                 pred = self.fcs(inps)
                 csum = csum + pred
-                preds.append(pred)
+                preds.append(csum - hr0)
             return torch.stack(preds).transpose(0,1)
 
     net  = FCNN()
