@@ -459,7 +459,7 @@ def make_attention_transormer_model(device, total_size=162, recursive_size=160):
 
     #pos_encoder = PositionalEncoding(total_size, device)
 
-    pos_encoder = PositionalEncoding(128)
+    pos_encoder = PositionalEncoding2(128)
 
     embed = nn.Sequential(ts_encoder, m_transpose, pos_encoder)
 
