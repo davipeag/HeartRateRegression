@@ -369,7 +369,7 @@ def make_attention_transormer_model(device, total_size=162, recursive_size=160):
         nn.LeakyReLU(negative_slope=0.01),nn.Dropout(),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
         nn.LeakyReLU(negative_slope=0.01), nn.Dropout(),
-        nn.Conv1d(ts_h_size, 128, kernel_size=(2,), stride=(2,)),  
+        nn.Conv1d(ts_h_size, encoded_size, kernel_size=(2,), stride=(2,)),  
         nn.LeakyReLU(negative_slope=0.01),
     )
 
@@ -454,13 +454,13 @@ def make_attention_transormer_model(device, total_size=162, recursive_size=160):
             return p.transpose(0,1)
 
 
-    transformer = nn.Transformer(encoded_size+1, nhead=4, num_encoder_layers=6, num_decoder_layers=6, dim_feedforward=128*4)
+    transformer = nn.Transformer(encoded_size+1, nhead=8, num_encoder_layers=6, num_decoder_layers=6, dim_feedforward=128*4)
 
     m_transpose = ModuleTranspose(1,2)
 
-    #pos_encoder = PositionalEncoding(total_size, device)
+    pos_encoder = PositionalEncoding(total_size, device)
 
-    pos_encoder = PositionalEncoding2(128)
+    #pos_encoder = PositionalEncoding2(128)
 
     embed = nn.Sequential(ts_encoder, m_transpose, pos_encoder)
 
