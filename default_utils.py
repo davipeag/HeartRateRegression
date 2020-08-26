@@ -469,7 +469,7 @@ def make_attention_transormer_model(device, total_size=162, recursive_size=160):
         nn.Linear(32,1)
     )    
     net = MyTransformer(embed, transformer, regressor, recursive_size).to(device)
-    initialize_weights(net)
+    #initialize_weights(net)
     return net
     
 def make_fcnn():
