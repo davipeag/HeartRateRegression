@@ -353,17 +353,17 @@ def make_attention_transormer_model(device, total_size=162, recursive_size=160):
 
     ts_encoder = nn.Sequential(
         nn.Conv1d(40, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-        nn.LeakyReLU(negative_slope=0.01),nn.Dropout(),
+        nn.LeakyReLU(negative_slope=0.01),#nn.Dropout(),
         #nn.Dropout(),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-        nn.LeakyReLU(negative_slope=0.01),nn.Dropout(),
+        nn.LeakyReLU(negative_slope=0.01),#nn.Dropout(),
         #nn.Dropout(),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
-        nn.LeakyReLU(negative_slope=0.01),nn.Dropout(),
+        nn.LeakyReLU(negative_slope=0.01),#nn.Dropout(),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
-        nn.LeakyReLU(negative_slope=0.01),nn.Dropout(),
+        nn.LeakyReLU(negative_slope=0.01),#nn.Dropout(),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-        nn.LeakyReLU(negative_slope=0.01),nn.Dropout(),
+        nn.LeakyReLU(negative_slope=0.01),#nn.Dropout(),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
         nn.LeakyReLU(negative_slope=0.01),nn.Dropout(),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
@@ -396,7 +396,9 @@ def make_attention_transormer_model(device, total_size=162, recursive_size=160):
 
         def __init__(self, time_size, device, multiplier=1):
             super(PositionalEncoding, self).__init__()
-            self.pos = (multiplier*torch.arange(0, time_size, dtype=torch.float).reshape(-1,1,1)/(time_size**0.5)).to(device)
+            time_range  = torch.arange(0, time_size, dtype=torch.float)
+            normalized = (time_range - torch.mean(time_range))/torch.std(time_range)
+            self.pos = multiplier*normalized.to(device)
             
 
         def forward(self, x):
