@@ -398,7 +398,7 @@ def make_attention_transormer_model(device, total_size=162, recursive_size=160):
             super(PositionalEncoding, self).__init__()
             time_range  = torch.arange(0, time_size, dtype=torch.float)
             normalized = (time_range - torch.mean(time_range))/torch.std(time_range)
-            self.pos = multiplier*normalized.to(device)
+            self.pos = multiplier*normalized.reshape(-1,1,1).to(device)
             
 
         def forward(self, x):
