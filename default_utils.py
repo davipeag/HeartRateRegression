@@ -435,7 +435,7 @@ def make_attention_transormer_model(device, total_size=162, recursive_size=160):
             return p.transpose(0,1)
 
 
-    transformer = nn.Transformer(encoded_size+1, nhead=4, num_encoder_layers=6, num_decoder_layers=6, dim_feedforward=128*4)
+    transformer = nn.Transformer(encoded_size+1, nhead=8, num_encoder_layers=8, num_decoder_layers=8, dim_feedforward=128*4)
 
     m_transpose = ModuleTranspose(1,2)
 
