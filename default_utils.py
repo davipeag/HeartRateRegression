@@ -207,7 +207,7 @@ def make_cnn_imu2(recursive_size=160, total_size=162):
     net.initialize_weights()
     return net
 
-def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
+def make_our_conv_lstm(sensor_count =40, output_count=1):
     
     ts_h_size = 32
 
@@ -242,9 +242,10 @@ def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
         nn.LeakyReLU(negative_slope=0.01),
         nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-        nn.LeakyReLU(negative_slope=0.01), #nn.Dropout(),
-        nn.Conv1d(ts_h_size, 128, kernel_size=(2,), stride=(2,)), 
-        nn.LeakyReLU(negative_slope=0.01), nn.Dropout(),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Conv1d(ts_h_size, 128, kernel_size=(2,), stride=(2,)),
+        nn.Dropout(),
+        nn.LeakyReLU(negative_slope=0.01),
     )
   
 
@@ -267,8 +268,6 @@ def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
     predictor = nn.Linear(in_features=32, out_features=output_count)
 
     lstm = nn.LSTM(128, 32, batch_first=True)
-
-    multiplier = 0 if mask_hidden == True else 1 
 
     class HiddenInitializationConvLSTMAssembler(nn.Module):
         def __init__(self, ts_encoder, is_encoder, h0_fc_net, c0_fc_net,
@@ -303,32 +302,22 @@ def make_our_conv_lstm(sensor_count =40, output_count=1, mask_hidden=False):
                     #nn.init.normal_(m.weight, 0, 0.01)
                     nn.init.constant_(m.bias, 0)        
             
-        def encode_initial(self, encoded_xi, yi):
-            yi = yi.reshape(*yi.shape[0:2],1)
-            enc_initial = torch.cat([encoded_xi, yi],axis=2).transpose(2,1)
-            return self.is_encoder(enc_initial).reshape(
-                yi.shape[0],-1)
-        
-        def calc_h0c0(self, encoded_xi, yi):
-            i_enc = self.encode_initial(encoded_xi, yi)
-            h0,c0 = self.h0_fc_net(i_enc), self.c0_fc_net(i_enc)
-            return h0, c0
         
         def forward(self,xi, yi, xp):
             
             encoded_xp = torch.cat(
-                [self.ts_encoder(b).transpose(0,2).transpose(1,2)
-                for b in xp], dim=0)
+            [self.ts_encoder(b).transpose(0,2).transpose(1,2)
+             for b in xp], dim=0)
 
-            xin = xi.transpose(1,2).reshape(xi.shape[0], xi.shape[2],  -1)
+            xin = xi.transpose(1,2).reshape(xi.shape[0], xi.shape[2],  -1)#.shape #reshape(*xis.shape[:2], -1).shape, xis.shape
 
             encoded_xi = ts_encoder(xin)
 
             ie = torch.cat([encoded_xi, yi.transpose(2,1)], axis=1)
             
             i_enc = is_encoder(ie).reshape(xi.shape[0], -1)
-            h = self.h0_fc_net(i_enc)*multiplier
-            c = self.c0_fc_net(i_enc)*multiplier
+            h = self.h0_fc_net(i_enc)
+            c = self.c0_fc_net(i_enc)
             
             hsf, _ = self.lstm(encoded_xp, (h.unsqueeze(0),c.unsqueeze(0)))
             ps = self.predictor(self.fc_net(hsf))
