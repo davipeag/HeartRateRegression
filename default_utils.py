@@ -742,7 +742,7 @@ class DefaultPamapPreprocessing():
 
         self.transformers = TransformerPipeline(
             self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
-            self.activity_id_relabeler,# self.downsampler, 
+            self.activity_id_relabeler, self.downsampler, 
             self.feature_label_splitter,
             self.ts_aggregator, self.meansub, self.deltahztolabel, self.normdz,
             self.sample_maker, self.label_cum_sum, self.is_pred_split,
@@ -750,7 +750,7 @@ class DefaultPamapPreprocessing():
         
         self.transformers_ts = TransformerPipeline(
             self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
-            self.activity_id_relabeler,# self.downsampler,
+            self.activity_id_relabeler, self.downsampler,
             self.feature_label_splitter,
             self.ts_aggregator, self.meansub, self.deltahztolabel, self.normdz,
             self.sample_maker_ts, self.label_cum_sum, self.is_pred_split,
