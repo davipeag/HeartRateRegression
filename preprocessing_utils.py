@@ -348,18 +348,19 @@ class DeltaHzToLabel():
 
 class NormalizeDZ():
   def __init__(self):
-    pass
+    self.mean = 0.000737
+    self.std = 0.065
 
   def fit(self, x, y=None):
     return self
   
   def transform(self, xy):
     x,y  = xy
-    return x, (y-0.000737)/0.065
+    return x, (y-self.mean)/self.std
   
   def reverse_transform(self, xy):
     x,y = xy
-    return x, (y*0.065)+0.000737
+    return x, (y*self.std)+self.mean
 
 class FakeNormalizeDZ():
   def __init__(self):
