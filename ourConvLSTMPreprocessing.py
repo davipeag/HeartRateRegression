@@ -486,7 +486,7 @@ def get_transformers(ts_per_sample=162, ts_per_is=2):
 
     return OurConvLSTMTransformers(transformers, transformers_ts)
 
-preprocessor = get_transformers()
+#preprocessor = get_transformers()
 # #transformers.fit(df_full_train)
 # # xys_protocol_t = [transformers.transform(df) for df in dfs_train[:-1]]
 # #xys_optional_t= [transformers.transform(df) for df in dfs_test]
