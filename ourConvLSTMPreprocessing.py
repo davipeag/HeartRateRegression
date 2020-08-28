@@ -465,8 +465,6 @@ class OurConvLSTMTransformers():
 
 
 def get_transformers(ts_per_sample=162, ts_per_is=2):
-    ts_per_sample = 162
-    ts_per_is = 2
 
     sample_maker = SampleMaker(ts_per_sample, ts_per_sample//2)
 
