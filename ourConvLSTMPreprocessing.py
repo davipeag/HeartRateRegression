@@ -457,9 +457,11 @@ ts_aggregator = TimeSnippetAggregator(size=300)
 label_remover = RemoveLabels([0])
 
 class OurConvLSTMTransformers():
-    def __init__(self, transformers, transformers_ts):
+    def __init__(self, transformers, transformers_ts, normdz, ztransformer):
         self.transformers = transformers
         self.transformers_ts = transformers_ts
+        self.normdz = normdz
+        self.ztransformer = ztransformer
 
 
 def get_transformers(ts_per_sample=162, ts_per_is=2):
@@ -484,7 +486,7 @@ def get_transformers(ts_per_sample=162, ts_per_is=2):
                                     ts_aggregator, meansub, deltahztolabel, normdz,
                                     sample_maker_ts, label_cum_sum, is_pred_split,recursive_hr_masker)
 
-    return OurConvLSTMTransformers(transformers, transformers_ts)
+    return OurConvLSTMTransformers(transformers, transformers_ts, normdz, ztransformer)
 
 #preprocessor = get_transformers()
 # #transformers.fit(df_full_train)
