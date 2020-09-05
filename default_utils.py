@@ -354,10 +354,10 @@ def make_attention_transormer_model(device, total_size=162, recursive_size=160):
         #nn.Dropout(),
         nn.LeakyReLU(negative_slope=0.01),
         nn.Conv1d(32, 32, kernel_size=(3,), stride=(2,), padding=(1,)),
-        nn.Dropout(),
+        #nn.Dropout(),
         nn.LeakyReLU(negative_slope=0.01),
         nn.Conv1d(32, encoded_size, kernel_size=(3,), stride=(2,)),
-        nn.Dropout(),
+        #nn.Dropout(),
         nn.LeakyReLU(negative_slope=0.01),
     )
 
