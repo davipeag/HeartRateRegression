@@ -1,7 +1,7 @@
 
 
 #%%
-
+import numpy as np
 from default_utils import (
     DefaultPamapPreprocessing,
     FcPamapPreprocessing,
