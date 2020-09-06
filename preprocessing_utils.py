@@ -137,6 +137,8 @@ class ZTransformer( BaseEstimator, TransformerMixin ):
         16.1190996 , 19.92196213,  1.18436304,  5.71159398,  6.83934918,
         3.55699737,  5.346378  ,  6.38219302,  3.19114986,  1.07355547,
         0.59660246,  1.84255171, 18.87860076, 21.61180986, 20.30858045])
+    
+    self.transformer.n_features_in_ = 40
   
   def fit(self, df, y=None):
     # arr = df[self.column_names].to_numpy()
