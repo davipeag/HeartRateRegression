@@ -45,11 +45,11 @@ class HiddenInitializationConvLSTMAssembler(nn.Module):
 
         xin = xi.transpose(1,2).reshape(xi.shape[0], xi.shape[2],  -1)#.shape #reshape(*xis.shape[:2], -1).shape, xis.shape
 
-        encoded_xi = ts_encoder(xin)
+        encoded_xi = self.ts_encoder(xin)
 
         ie = torch.cat([encoded_xi, yi.transpose(2,1)], axis=1)
         
-        i_enc = is_encoder(ie).reshape(xi.shape[0], -1)
+        i_enc = self.is_encoder(ie).reshape(xi.shape[0], -1)
         h = self.h0_fc_net(i_enc)
         c = self.c0_fc_net(i_enc)
         
@@ -86,7 +86,7 @@ class LSTMISHiddenInitializationConvLSTMAssembler(HiddenInitializationConvLSTMAs
         """
         initial_points: number of datapoints in initial baseline (yi.shape[1])
         """
-        super(NoISHiddenInitializationConvLSTMAssembler, self).__init__(
+        super(LSTMISHiddenInitializationConvLSTMAssembler, self).__init__(
             ts_encoder, is_encoder, h0_fc_net, c0_fc_net,
             lstm, fc_net, predictor
         )
