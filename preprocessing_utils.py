@@ -508,30 +508,6 @@ class SlidingWindow():
         ys.append(y[s:e])
       return np.stack(xs), np.stack(ys).reshape(-1, self.length, 1)
 
-class SlidingWindow(BaseEstimator, TransformerMixin):
-    def __init__(self,
-        length,
-        step):
-      self.length = length
-      self.step = step
-
-    def fit(self, df, y=None):
-      return self
-
-    def transform(self, xy, y=None):
-      x,y = xy
-      st = np.arange(0, x.shape[0], self.step)
-      ed = st + self.length
-      ed = ed[ed<=x.shape[0]]
-      st =st[:len(ed)]
-      
-      xs = list()
-      ys = list()
-      for s,e in zip(st,ed):
-        xs.append(x[s:e])
-        ys.append(y[s:e])
-      return np.stack(xs), np.stack(ys).reshape(-1, self.length, 1)
-
 class FeatureMeanSubstitute():
   def __init__(self):
     pass
@@ -554,3 +530,21 @@ class OffsetLabel():
   def transform(self, xy):
     x,y = xy
     return x[0:-1], y[1:]
+
+
+class ShuffleIS(BaseEstimator, TransformerMixin):
+    def __init__(self, seed=None):
+      if seed is not None:
+        np.random.seed(seed)
+        
+    def fit(self, df, y=None):
+      return self
+
+    def transform(self, xy):
+      xi,yi, xr, yr = xy
+      idxs = np.random.permutation(len(xi))
+      xin = xi[idxs]
+      yin = yi[idxs]
+      return xin, yin, xr, yr
+
+

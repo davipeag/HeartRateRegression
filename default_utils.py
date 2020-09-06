@@ -30,7 +30,15 @@ from preprocessing_utils import (
             FeatureMeanSubstitute,
             SlidingWindow,
             FakeNormalizeDZ,
+            ShuffleIS
         )
+
+import default_models
+from default_models import (
+    HiddenInitializationConvLSTMAssembler,
+    NoISHiddenInitializationConvLSTMAssembler,
+    LSTMISHiddenInitializationConvLSTMAssembler
+)
 
 
 def initialize_weights(model):
@@ -207,25 +215,16 @@ def make_cnn_imu2(recursive_size=160, total_size=162):
     net.initialize_weights()
     return net
 
-def make_our_conv_lstm(sensor_count =40, output_count=1):
+def make_our_conv_lstm(sensor_count =40, output_count=1, model_type="regular"):
+
+    class_mapping = {
+        "regular": HiddenInitializationConvLSTMAssembler,
+        "nois": NoISHiddenInitializationConvLSTMAssembler,
+        "lstmis": LSTMISHiddenInitializationConvLSTMAssembler
+    }
     
     ts_h_size = 32
 
-    # ts_encoder = nn.Sequential(
-    #     nn.Conv1d(40, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-    #     nn.LeakyReLU(negative_slope=0.01),
-    #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-    #     nn.LeakyReLU(negative_slope=0.01),
-    #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,)),
-    #     nn.LeakyReLU(negative_slope=0.01),
-    #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-    #     nn.LeakyReLU(negative_slope=0.01),
-    #     nn.Conv1d(ts_h_size, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
-    #     nn.LeakyReLU(negative_slope=0.01),
-    #     nn.Conv1d(ts_h_size, 128, kernel_size=(3,), stride=(2,)),
-    #     nn.Dropout(),
-    #     nn.LeakyReLU(negative_slope=0.01),
-    # )
     ts_encoder = nn.Sequential(
         nn.Conv1d(40, ts_h_size, kernel_size=(3,), stride=(2,), padding=(1,)),
         nn.LeakyReLU(negative_slope=0.01),
@@ -248,7 +247,6 @@ def make_our_conv_lstm(sensor_count =40, output_count=1):
         nn.LeakyReLU(negative_slope=0.01),
     )
   
-
     is_encoder = nn.Sequential(
         nn.Conv1d(129, 32, kernel_size=(2,), stride=(2,)),
         nn.LeakyReLU(negative_slope=0.01),
@@ -269,62 +267,7 @@ def make_our_conv_lstm(sensor_count =40, output_count=1):
 
     lstm = nn.LSTM(128, 32, batch_first=True)
 
-    class HiddenInitializationConvLSTMAssembler(nn.Module):
-        def __init__(self, ts_encoder, is_encoder, h0_fc_net, c0_fc_net,
-                    lstm, fc_net, predictor):
-            """
-            initial_points: number of datapoints in initial baseline (yi.shape[1])
-            """
-            super(HiddenInitializationConvLSTMAssembler, self).__init__()
-
-            self.ts_encoder = ts_encoder
-            self.is_encoder = is_encoder
-            self.h0_fc_net = h0_fc_net
-            self.c0_fc_net = c0_fc_net
-            self.lstm = lstm
-            self.fc_net = fc_net
-            self.predictor = predictor
-
-        def initialize_weights(self):
-            for m in self.modules():
-                if isinstance(m, nn.Conv1d):
-                    nn.init.orthogonal_(m.weight)
-                    if m.bias is not None:
-                        nn.init.constant_(m.bias, 0)
-                elif isinstance(m, nn.BatchNorm2d):
-                    nn.init.constant_(m.weight, 1)
-                    nn.init.constant_(m.bias, 0)
-                elif isinstance(m, nn.BatchNorm1d):
-                    nn.init.constant_(m.weight, 1)
-                    nn.init.constant_(m.bias, 0)
-                elif isinstance(m, nn.Linear):
-                    nn.init.orthogonal_(m.weight)
-                    #nn.init.normal_(m.weight, 0, 0.01)
-                    nn.init.constant_(m.bias, 0)        
-            
-        
-        def forward(self,xi, yi, xp):
-            
-            encoded_xp = torch.cat(
-            [self.ts_encoder(b).transpose(0,2).transpose(1,2)
-             for b in xp], dim=0)
-
-            xin = xi.transpose(1,2).reshape(xi.shape[0], xi.shape[2],  -1)#.shape #reshape(*xis.shape[:2], -1).shape, xis.shape
-
-            encoded_xi = ts_encoder(xin)
-
-            ie = torch.cat([encoded_xi, yi.transpose(2,1)], axis=1)
-            
-            i_enc = is_encoder(ie).reshape(xi.shape[0], -1)
-            h = self.h0_fc_net(i_enc)
-            c = self.c0_fc_net(i_enc)
-            
-            hsf, _ = self.lstm(encoded_xp, (h.unsqueeze(0),c.unsqueeze(0)))
-            ps = self.predictor(self.fc_net(hsf))
-            
-            return ps  
-
-    net = HiddenInitializationConvLSTMAssembler(
+    net = class_mapping[model_type](
         ts_encoder= ts_encoder,
         is_encoder = is_encoder,
         h0_fc_net = h0_fc_net,
@@ -332,7 +275,7 @@ def make_our_conv_lstm(sensor_count =40, output_count=1):
         lstm= lstm,
         fc_net = fc_net,
         predictor = predictor
-        )
+    )
 
     net.initialize_weights()
     return net
