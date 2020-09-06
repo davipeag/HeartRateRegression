@@ -27,17 +27,19 @@ from models_utils import (
 
 
 preprocessing_options = {
-      "OurConvLSTM": DefaultPamapPreprocessing(ts_count = 300, donwsampling_ratio = 1),
-      "AttentionTransformer": DefaultPamapPreprocessing(
-        ts_count = 300, donwsampling_ratio = 1, last_transformer=OurConvLstmToAttentionFormat()),
-      "DeepConvLSTM": DefaultPamapPreprocessing(last_transformer=OurConvLstmToCnnImuFormat()),
-      "CnnIMU": DefaultPamapPreprocessing(last_transformer=OurConvLstmToCnnImuFormat()),
-      "FCNN": FcPamapPreprocessing(),
-      "NoISOurConvLSTM": DefaultPamapPreprocessing(ts_count = 300, donwsampling_ratio = 1),
-      "ShuffleISOurConvLSTM": DefaultPamapPreprocessing(ts_count = 300, donwsampling_ratio = 1, last_transformer=ShuffleIS),
-      "LstmISOurConvLSTM": DefaultPamapPreprocessing(ts_count = 300, donwsampling_ratio = 1)
+      "OurConvLSTM": lambda ts_per_sample = 162:  DefaultPamapPreprocessing(
+          ts_per_sample=ts_per_sample, ts_count = 300, donwsampling_ratio = 1),
+      "AttentionTransformer": lambda ts_per_sample = 162: DefaultPamapPreprocessing(
+        ts_per_sample=ts_per_sample, ts_count = 300, donwsampling_ratio = 1, last_transformer=OurConvLstmToAttentionFormat()),
+      "DeepConvLSTM": lambda ts_per_sample = 162: DefaultPamapPreprocessing(
+          ts_per_sample=ts_per_sample, last_transformer=OurConvLstmToCnnImuFormat()),
+      "CnnIMU": lambda ts_per_sample = 162: DefaultPamapPreprocessing(
+          ts_per_sample=ts_per_sample, last_transformer=OurConvLstmToCnnImuFormat()),
+      "FCNN": lambda ts_per_sample = 162: FcPamapPreprocessing(ts_per_sample=ts_per_sample,),
+      "NoISOurConvLSTM": lambda ts_per_sample = 162: DefaultPamapPreprocessing(ts_per_sample=ts_per_sample,ts_count = 300, donwsampling_ratio = 1),
+      "ShuffleISOurConvLSTM": lambda ts_per_sample = 162: DefaultPamapPreprocessing(ts_per_sample=ts_per_sample,ts_count = 300, donwsampling_ratio = 1, last_transformer=ShuffleIS),
+      "LstmISOurConvLSTM": lambda ts_per_sample = 162: DefaultPamapPreprocessing(ts_per_sample=ts_per_sample, ts_count = 300, donwsampling_ratio = 1)
 }
-
 
 dataset_cls_options = {
       "OurConvLSTM": OurConvLstmDataset,
