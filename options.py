@@ -54,14 +54,14 @@ dataset_cls_options = {
 
 
 net_options = {
-      "OurConvLSTM": lambda t=162,r=160 : make_our_conv_lstm(40,1),
-      "AttentionTransformer": lambda t=162,r=160: make_attention_transormer_model(args["device"]),
-      "DeepConvLSTM": lambda t=162,r=160 : make_deep_conv_lstm(total_size=t, recursive_size=r),
-      "CnnIMU": lambda t=162,r=160 : make_cnn_imu2(total_size=t, recursive_size=r),
-      "FCNN": lambda t=162,r=160 : make_fcnn(),
-      "NoISOurConvLSTM":lambda t=162,r=160: make_our_conv_lstm(40,1,"nois"),
-      "ShuffleISOurConvLSTM": lambda t=162,r=160 : make_our_conv_lstm(40,1,"regular"),
-      "LstmISOurConvLSTM": lambda t=162,r=160: make_our_conv_lstm(40,1, "lstmis"),
+      "OurConvLSTM": lambda t=162,r=160, d="cpu" : make_our_conv_lstm(40,1),
+      "AttentionTransformer": lambda t=162,r=160, d="cpu": make_attention_transormer_model(d),
+      "DeepConvLSTM": lambda t=162,r=160, d="cpu" : make_deep_conv_lstm(total_size=t, recursive_size=r),
+      "CnnIMU": lambda t=162,r=160, d="cpu": make_cnn_imu2(total_size=t, recursive_size=r),
+      "FCNN": lambda t=162,r=160, d="cpu" : make_fcnn(),
+      "NoISOurConvLSTM": lambda t=162,r=160, d="cpu": make_our_conv_lstm(40,1,"nois"),
+      "ShuffleISOurConvLSTM": lambda t=162,r=160, d="cpu" : make_our_conv_lstm(40,1,"regular"),
+      "LstmISOurConvLSTM": lambda t=162,r=160, d="cpu": make_our_conv_lstm(40,1, "lstmis"),
   }
 
 
