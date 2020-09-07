@@ -732,7 +732,7 @@ class FcPamapPreprocessing():
         self.activity_id_relabeler = ActivityIdRelabeler()
         self.downsampler = Downsampler(donwsampling_ratio)
         self.feature_label_splitter = FeatureLabelSplit(
-            label_column="heart_rate"
+            label_column="heart_rate",
             feature_columns =["heart_rate", 'h_xacc16', 'h_yacc16', 'h_zacc16']
         )
         self.ts_aggregator = TimeSnippetAggregator(
