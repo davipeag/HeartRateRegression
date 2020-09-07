@@ -759,7 +759,7 @@ class FcPamapPreprocessing():
             self.ts_aggregator,  self.deltahztolabel, #self.normdz,
             self.sliding_window,  self.feature_mean_substitute, self.label_cum_sum)        
 
-        self.transformers = TransformerPipeline(
+        self.transformers_ts = TransformerPipeline(
             self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
             self.downsampler, self.feature_label_splitter,
             self.ts_aggregator,  self.deltahztolabel, #self.normdz,
