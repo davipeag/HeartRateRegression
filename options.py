@@ -30,7 +30,7 @@ preprocessing_options = {
       "OurConvLSTM": lambda ts_per_sample = 162:  DefaultPamapPreprocessing(
           ts_per_sample=ts_per_sample, ts_count = 300, donwsampling_ratio = 1),
       "AttentionTransformer": lambda ts_per_sample = 162: DefaultPamapPreprocessing(
-        ts_per_sample=ts_per_sample, ts_count = 300, donwsampling_ratio = 1, last_transformer=OurConvLstmToAttentionFormat()),
+        ts_per_sample=ts_per_sample, last_transformer=OurConvLstmToAttentionFormat()),
       "DeepConvLSTM": lambda ts_per_sample = 162: DefaultPamapPreprocessing(
           ts_per_sample=ts_per_sample, last_transformer=OurConvLstmToCnnImuFormat()),
       "CnnIMU": lambda ts_per_sample = 162: DefaultPamapPreprocessing(
