@@ -732,9 +732,12 @@ class FcPamapPreprocessing():
         self.activity_id_relabeler = ActivityIdRelabeler()
         self.downsampler = Downsampler(donwsampling_ratio)
         self.feature_label_splitter = FeatureLabelSplit(
+            label_column="heart_rate"
             feature_columns =["heart_rate", 'h_xacc16', 'h_yacc16', 'h_zacc16']
         )
-        self.ts_aggregator = TimeSnippetAggregator(size=ts_count)
+        self.ts_aggregator = TimeSnippetAggregator(
+            size=ts_count,
+            label_collapser_function= lambda v: np.mean(v, axis=1))
         self.label_remover = RemoveLabels([0])
 
         recursive_size = ts_per_sample - ts_per_is
@@ -752,15 +755,21 @@ class FcPamapPreprocessing():
 
         self.transformers = TransformerPipeline(
             self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
-            self.activity_id_relabeler, self.downsampler, self.feature_label_splitter,
-            self.ts_aggregator, self.meansub, self.deltahztolabel, self.normdz,
-            self.sliding_window,  self.feature_mean_substitute, self.label_cum_sum)
+            self.downsampler, self.feature_label_splitter,
+            self.ts_aggregator,  self.deltahztolabel, #self.normdz,
+            self.sliding_window,  self.feature_mean_substitute, self.label_cum_sum)        
 
-        self.transformers_ts = TransformerPipeline(
+        self.transformers = TransformerPipeline(
             self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
-            self.activity_id_relabeler, self.downsampler, self.feature_label_splitter,
-            self.ts_aggregator, self.meansub, self.deltahztolabel, self.normdz,
-            self.sliding_window_ts, self.feature_mean_substitute, self.label_cum_sum)
+            self.downsampler, self.feature_label_splitter,
+            self.ts_aggregator,  self.deltahztolabel, #self.normdz,
+            self.sliding_window_ts,  self.feature_mean_substitute, self.label_cum_sum)
+
+        # self.transformers_ts = TransformerPipeline(
+        #     self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
+        #     self.activity_id_relabeler, self.downsampler, self.feature_label_splitter,
+        #     self.ts_aggregator, self.meansub, self.deltahztolabel, self.normdz,
+        #     self.sliding_window_ts, self.feature_mean_substitute, self.label_cum_sum)
 
 class TrainXY():
     def __init__(
