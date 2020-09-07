@@ -696,7 +696,7 @@ class DefaultPamapPreprocessing():
             self.sample_maker, self.is_pred_split, self.normdz,
             self.recursive_hr_masker, self.last_transformer)
         
-        self.transformers = TransformerPipeline(
+        self.transformers_ts = TransformerPipeline(
             self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
             self.activity_id_relabeler, self.downsampler, 
             self.feature_label_splitter,
