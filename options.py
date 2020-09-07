@@ -73,11 +73,11 @@ trainer_options = {
       ),
       "CnnIMU":lambda pars: TrainXY(
           **pars,
-          get_last_y_from_x = lambda x: np.mean(x[:,0,200:300, 0], axis=1).reshape(-1,1)
+          get_last_y_from_x = lambda x: np.mean(x[:,0,100:200, 0], axis=1).reshape(-1,1)
       ),
       "DeepConvLSTM":lambda pars : TrainXY(
           **pars,
-          get_last_y_from_x = lambda x: np.mean(x[:,0,200:300, 0], axis=1).reshape(-1,1)
+          get_last_y_from_x = lambda x: np.mean(x[:,0,100:200, 0], axis=1).reshape(-1,1)
       ),
       "FCNN":lambda pars: TrainXY(
           **pars,
