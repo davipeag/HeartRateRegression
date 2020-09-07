@@ -37,7 +37,7 @@ preprocessing_options = {
           ts_per_sample=ts_per_sample, last_transformer=OurConvLstmToCnnImuFormat()),
       "FCNN": lambda ts_per_sample = 162: FcPamapPreprocessing(ts_per_sample=ts_per_sample,),
       "NoISOurConvLSTM": lambda ts_per_sample = 162: DefaultPamapPreprocessing(ts_per_sample=ts_per_sample,ts_count = 300, donwsampling_ratio = 1),
-      "ShuffleISOurConvLSTM": lambda ts_per_sample = 162: DefaultPamapPreprocessing(ts_per_sample=ts_per_sample,ts_count = 300, donwsampling_ratio = 1, last_transformer=ShuffleIS),
+      "ShuffleISOurConvLSTM": lambda ts_per_sample = 162: DefaultPamapPreprocessing(ts_per_sample=ts_per_sample,ts_count = 300, donwsampling_ratio = 1, last_transformer=ShuffleIS()),
       "LstmISOurConvLSTM": lambda ts_per_sample = 162: DefaultPamapPreprocessing(ts_per_sample=ts_per_sample, ts_count = 300, donwsampling_ratio = 1)
 }
 
