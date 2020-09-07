@@ -373,12 +373,10 @@ class IsSplitNormalizeDZ():
     return self
   
   def transform(self, xy):
-    xi,yi,xr,yr = xy
-    return xi, yi, xr, (yr-self.mean)/self.std
+    return (*xy[:-1], (xy[-1]-self.mean)/self.std) 
   
   def reverse_transform(self, xy):
-    xi, yi, xr, yr = xy
-    return xi, yi, xr, (yr*self.std)+self.mean
+    return (*xy[:-1], xy[-1]*self.std+self.mean)
 
 class FakeNormalizeDZ():
   def __init__(self):

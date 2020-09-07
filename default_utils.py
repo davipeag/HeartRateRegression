@@ -462,7 +462,7 @@ class TrainOurConvLSTM():
                  
 
     def inverse_transform_label(self, yis, yrs):
-        _, inverse_delta_y = self.normdz.reverse_transform((None,yrs))
+        inverse_delta_y = self.normdz.reverse_transform((None,yrs))[-1]
 
         last_y = yis[:, -1]
 
@@ -789,7 +789,7 @@ class TrainXY():
         self.get_last_y_from_x = get_last_y_from_x                 
 
     def inverse_transform_label(self, x, y):
-        _, inverse_delta_y = self.normdz.reverse_transform((None,y))
+        inverse_delta_y = self.normdz.reverse_transform((None,y))[-1]
 
         last_y = self.get_last_y_from_x(x)
 
