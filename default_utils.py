@@ -30,7 +30,8 @@ from preprocessing_utils import (
             FeatureMeanSubstitute,
             SlidingWindow,
             FakeNormalizeDZ,
-            ShuffleIS
+            ShuffleIS,
+            IsSplitNormalizeDZ
         )
 
 import default_models
@@ -655,7 +656,7 @@ class DefaultPamapPreprocessing():
         self.hr_lin_imputation = LinearImputation("heart_rate")
         self.meansub = HZMeanSubstitute()
         self.deltahztolabel = DeltaHzToLabel()
-        self.normdz = NormalizeDZ()
+        self.normdz = IsSplitNormalizeDZ()
 
         self.local_mean_imputer = LocalMeanReplacer()
         self.ztransformer = ZTransformer()
@@ -663,6 +664,7 @@ class DefaultPamapPreprocessing():
         self.activity_id_relabeler = ActivityIdRelabeler()
         self.downsampler = Downsampler(donwsampling_ratio)
         self.feature_label_splitter = FeatureLabelSplit(
+            label_column="heart_rate",
             feature_columns = [
                 'heart_rate', 'h_temperature', 'h_xacc16', 'h_yacc16', 'h_zacc16',
                 'h_xacc6', 'h_yacc6', 'h_zacc6', 'h_xgyr', 'h_ygyr', 'h_zgyr', 'h_xmag',
@@ -670,9 +672,14 @@ class DefaultPamapPreprocessing():
                 'c_xacc6', 'c_yacc6', 'c_zacc6', 'c_xgyr', 'c_ygyr', 'c_zgyr', 'c_xmag',
                 'c_ymag', 'c_zmag', 'a_temperature', 'a_xacc16', 'a_yacc16', 'a_zacc16',
                 'a_xacc6', 'a_yacc6', 'a_zacc6', 'a_xgyr', 'a_ygyr', 'a_zgyr', 'a_xmag',
-                'a_ymag', 'a_zmag']
+                'a_ymag', 'a_zmag'
+            ]
         )
-        self.ts_aggregator = TimeSnippetAggregator(size=ts_count)
+        self.ts_aggregator = TimeSnippetAggregator(
+            size=ts_count,
+            label_collapser_function= lambda v: np.mean(v, axis=1)
+        )
+
         self.label_remover = RemoveLabels([0])
 
         self.sample_maker = SampleMaker(ts_per_sample, ts_per_sample//sample_multiplier)
@@ -685,17 +692,26 @@ class DefaultPamapPreprocessing():
             self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
             self.activity_id_relabeler, self.downsampler, 
             self.feature_label_splitter,
-            self.ts_aggregator, self.meansub, self.deltahztolabel, self.normdz,
-            self.sample_maker, self.label_cum_sum, self.is_pred_split,
+            self.ts_aggregator, #self.meansub, self.deltahztolabel, self.normdz,
+            self.sample_maker, self.is_pred_split, self.normdz,
             self.recursive_hr_masker, self.last_transformer)
         
-        self.transformers_ts = TransformerPipeline(
+        self.transformers = TransformerPipeline(
             self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
-            self.activity_id_relabeler, self.downsampler,
+            self.activity_id_relabeler, self.downsampler, 
             self.feature_label_splitter,
-            self.ts_aggregator, self.meansub, self.deltahztolabel, self.normdz,
-            self.sample_maker_ts, self.label_cum_sum, self.is_pred_split,
+            self.ts_aggregator, #self.meansub, self.deltahztolabel, self.normdz,
+            self.sample_maker_ts, self.is_pred_split, self.normdz,
             self.recursive_hr_masker, self.last_transformer)
+        
+
+        # self.transformers_ts = TransformerPipeline(
+        #     self.ztransformer, self.hr_lin_imputation, self.local_mean_imputer,
+        #     self.activity_id_relabeler, self.downsampler,
+        #     self.feature_label_splitter,
+        #     self.ts_aggregator, self.meansub, self.deltahztolabel, self.normdz,
+        #     self.sample_maker_ts, self.label_cum_sum, self.is_pred_split,
+        #     self.recursive_hr_masker, self.last_transformer)
 
 class FcPamapPreprocessing():
     def __init__(self, ts_per_sample=162, ts_per_is=2, last_transformer = IdentityTransformer(),

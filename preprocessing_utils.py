@@ -364,6 +364,22 @@ class NormalizeDZ():
     x,y = xy
     return x, (y*self.std)+self.mean
 
+class IsSplitNormalizeDZ():
+  def __init__(self):
+    self.mean = 0.000737
+    self.std = 0.065
+
+  def fit(self, x, y=None):
+    return self
+  
+  def transform(self, xy):
+    xi,yi,xr,yr = xy
+    return xi, yi, xr, (yr-self.mean)/self.std
+  
+  def reverse_transform(self, xy):
+    xi, yi, xr, yr = xy
+    return xi, yi, xr, (yr*self.std)+self.mean
+
 class FakeNormalizeDZ():
   def __init__(self):
     pass
@@ -427,7 +443,6 @@ class InitialStatePredictionSplit(BaseEstimator, TransformerMixin):
       x,y = xy
       xn = x.reshape([x.shape[0], self.total_window, x.shape[2]//self.total_window, x.shape[3]])
       yn = y.reshape([y.shape[0], self.total_window, y.shape[1]//self.total_window])
-      prediction_window = self.total_window - self.initial_window
       xi,yi = xn[:,:self.initial_window, :, :], xn[:,:self.initial_window, :, 0:1]
       yp = yn[:,self.initial_window:] - yn[:,self.initial_window-1:self.initial_window] 
       xp = xn[:, self.initial_window:, :, :]
