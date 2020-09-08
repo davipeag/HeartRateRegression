@@ -741,8 +741,8 @@ class FcPamapPreprocessing():
         self.label_remover = RemoveLabels([0])
 
         recursive_size = ts_per_sample - ts_per_is
-        self.sliding_window = SlidingWindow(recursive_size,recursive_size//2)
-        self.sliding_window_ts = SlidingWindow(recursive_size,recursive_size)
+        self.sliding_window = SlidingWindow(ts_per_sample, ts_per_sample//2, ts_per_is- 1, 1)
+        self.sliding_window_ts = SlidingWindow(ts_per_sample, ts_per_sample, ts_per_is- 1, 1)
         self.sample_maker = SampleMaker(recursive_size, recursive_size//sample_multiplier)
 
         self.sample_maker_ts = SampleMaker(recursive_size, recursive_size)

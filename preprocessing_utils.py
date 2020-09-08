@@ -502,10 +502,13 @@ class IdentityTransformer(BaseEstimator, TransformerMixin):
 class SlidingWindow():
     def __init__(self,
         length,
-        step):
+        step,
+        start_offset =0,
+        end_offset = 0):
       self.length = length
       self.step = step
-
+      self.start_offset = start_offset
+      self.end_offset = end_offset
     def fit(self, df, y=None):
       return self
 
@@ -519,9 +522,11 @@ class SlidingWindow():
       xs = list()
       ys = list()
       for s,e in zip(st,ed):
-        xs.append(x[s:e])
-        ys.append(y[s:e])
-      return np.stack(xs), np.stack(ys).reshape(-1, self.length, 1)
+        b = s + self.start_offset
+        f = e - self.end_offset
+        xs.append(x[b:f])
+        ys.append(y[b:f])
+      return np.stack(xs), np.stack(ys).reshape(-1, self.length-self.start_offset-self.end_offset, 1)
 
 class FeatureMeanSubstitute():
   def __init__(self):
