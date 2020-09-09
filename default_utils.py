@@ -436,6 +436,36 @@ def make_fcnn():
     initialize_weights(net)
     return net
 
+def make_fcnn_v2():
+    class FCNNv2(nn.Module):
+        def __init__(self):
+            super(FCNNv2, self).__init__()
+            self.fcs = nn.Sequential(
+                nn.Linear(4,16),
+                nn.ReLU(),
+                nn.Linear(16,16),
+                nn.ReLU(),
+                nn.Dropout(),
+                nn.Linear(16,1),   
+            )
+
+        def forward(self,x):
+            
+            # putting windows first
+            xwf = x.transpose(0,1)
+            hr0 = xwf[0,:, 0:1]            
+            pred = self.fcs(xwf[0])
+            dpreds = [pred-hr0]
+            for xi in xwf[1:]:
+                inps = torch.cat([pred, xi[:,1:]], dim=1)
+                pred = self.fcs(inps)
+                dpreds.append(pred - hr0)
+            return torch.stack(preds).transpose(0,1)
+
+    net  = FCNNv2()
+    initialize_weights(net)
+    return net
+
 class TrainOurConvLSTM():
     def __init__(
             self,
