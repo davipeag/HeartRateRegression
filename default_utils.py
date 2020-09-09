@@ -460,7 +460,7 @@ def make_fcnn_v2():
                 inps = torch.cat([pred, xi[:,1:]], dim=1)
                 pred = self.fcs(inps)
                 dpreds.append(pred - hr0)
-            return torch.stack(preds).transpose(0,1)
+            return torch.stack(dpreds).transpose(0,1)
 
     net  = FCNNv2()
     initialize_weights(net)
