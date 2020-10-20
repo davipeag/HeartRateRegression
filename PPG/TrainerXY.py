@@ -65,8 +65,8 @@ class EpochTrainerXY():
 
 
 class MetricsComputerXY():
-    def __init__(self, ztransformer, epoch_trainer: EpochTrainer):
-        self.ztransformer
+    def __init__(self, ztransformer):
+        self.ztransformer = ztransformer
 
     def inverse_transform_label(self, y):
 
@@ -118,17 +118,15 @@ class TrainHelperXY():
         self.loader_val = loader_val
         self.display_criterion = display_criterion
 
-    def train(self, nepoch):
-        loader_tr, loader_val, loader_ts = make_loaders(ts_sub, val_sub)
-
+ 
     def compute_metric(self, loader):
         x,y,p = self.trainer.evaluate(loader)
         return self.display_criterion(y,p)
     
-    def train(nepoch):
+    def train(self, nepoch):
         best_val_model = copy.deepcopy(self.trainer.model.state_dict())
         train_metrics = []
-        validation_metrics, test_metrics = [[self.compute_metric(l)] for l in [loader_val, loader_ts]] 
+        validation_metrics, test_metrics = [[self.compute_metric(l)] for l in [self.loader_val, self.loader_ts]] 
     
     
         for epoch in range(1, n_epoch+1):
