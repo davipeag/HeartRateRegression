@@ -44,7 +44,7 @@ class SnippetConvolutionalTransformer(nn.Module):
             lin_dropout = 0
             ):
 
-        super(OurConvTransformer, self).__init__()
+        super(SnippetConvolutionalTransformer, self).__init__()
 
         t_size = nfeatures*conv_filters  # transformer input size
 
@@ -66,7 +66,7 @@ class SnippetConvolutionalTransformer(nn.Module):
     
     def make_lin_layer(self, input_size, output_size, dropout_rate):
         return nn.Sequential(
-            nn.Linear(input_size, output_size)
+            nn.Linear(input_size, output_size),
             nn.LeakyReLU(),
             nn.Dropout(dropout_rate)
         )
