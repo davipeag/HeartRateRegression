@@ -1,2 +1,2 @@
-import .AttentionDefaults as AttentionDefaults
-import .UtilitiesDataXY as UtilitiesDataXY
+from . import AttentionDefaults
+from . import UtilitiesDataXY
