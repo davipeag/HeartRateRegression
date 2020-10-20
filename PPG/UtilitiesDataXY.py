@@ -46,9 +46,9 @@ class DataLoaderFactory():
         xy_val = [self.transformers_ts.transform(self.dfs[i]) for i in [val_sub]]
         xy_ts = [self.transformers_ts.transform(self.dfs[i]) for i in [ts_sub]]
         
-        loader_tr = make_loader(xy_tr, True, self.batch_size_tr)
-        loader_val = make_loader(xy_val, False, self.batch_size_ts)
-        loader_ts = make_loader(xy_ts, False, self.batch_size_ts)
+        loader_tr = self.make_loader(xy_tr, True, self.batch_size_tr)
+        loader_val = self.make_loader(xy_val, False, self.batch_size_ts)
+        loader_ts = self.make_loader(xy_ts, False, self.batch_size_ts)
         
         return loader_tr, loader_val, loader_ts
     
