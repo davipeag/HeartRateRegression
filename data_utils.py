@@ -127,6 +127,8 @@ class PpgDaliaExtractor():
                     data = pickle.load(f, encoding="iso-8859-1")
             except FileNotFoundError:
                 self.unzip_subject(subject)
+            else:
+                return data
 
         return data
 
