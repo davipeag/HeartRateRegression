@@ -123,7 +123,7 @@ class TrainHelperXY():
         x,y,p = self.trainer.evaluate(loader)
         return self.display_criterion(y,p)
     
-    def train(self, nepoch):
+    def train(self, n_epoch):
         best_val_model = copy.deepcopy(self.trainer.model.state_dict())
         train_metrics = []
         validation_metrics, test_metrics = [[self.compute_metric(l)] for l in [self.loader_val, self.loader_ts]] 
@@ -135,7 +135,7 @@ class TrainHelperXY():
             loss_val = self.compute_metric(self.loader_val)
             loss_ts = self.compute_metric(self.loader_ts)
             
-            if val_loss < np.min(validation_metrics):
+            if loss_val < np.min(validation_metrics):
                 print("best val epoch:", epoch)
                 best_val_model = copy.deepcopy(net.state_dict())
             print('[%d/%d]: loss_train: %.3f loss_val %.3f loss_ts %.3f' % (
