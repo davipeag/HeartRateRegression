@@ -17,3 +17,5 @@ mnist_data*
 mnist_data/*
 figures/*
 figures*
+repo*
+repo/*
