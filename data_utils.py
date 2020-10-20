@@ -110,7 +110,8 @@ class PpgDaliaExtractor():
 
         if (not os.path.exists(dst_path)) or force:
             self.download()
-            with zipfile.ZipFile("data.zip", "r") as zip_ref:
+
+            with zipfile.ZipFile(self.zip_path, "r") as zip_ref:
                 zip_ref.extract(src_path, self.folder)
 
     def download(self, force=False):
