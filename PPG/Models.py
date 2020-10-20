@@ -51,7 +51,7 @@ class SnippetConvolutionalTransformer(nn.Module):
         self.transformer = nn.Transformer(
             t_size, nhead=nhead, num_encoder_layers=nenc_layers,
             num_decoder_layers=ndec_layers,
-            dim_feedforward=int(self.feedforward_expandsion*t_size))
+            dim_feedforward=int(feedforward_expandsion*t_size))
 
         self.conv_net = self.make_conv_net(1, conv_filters, conv_filters, nconv_layers, conv_dropout)
 
