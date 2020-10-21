@@ -137,7 +137,7 @@ class TrainHelperXY():
             
             if loss_val < np.min(validation_metrics):
                 print("best val epoch:", epoch)
-                best_val_model = copy.deepcopy(net.state_dict())
+                best_val_model = copy.deepcopy(self.trainer.model.state_dict())
             print('[%d/%d]: loss_train: %.3f loss_val %.3f loss_ts %.3f' % (
                   (epoch), n_epoch, loss_ts, loss_val, loss_ts))
 
@@ -147,9 +147,7 @@ class TrainHelperXY():
         
         self.trainer.model.load_state_dict(best_val_model)
         idx = validation_metrics.index(np.min(validation_metrics)) 
+        print(f"Final: {test_metrics[idx]}")
         return test_metrics[idx]
             
             
-
-        print(f"Final: {val_sub}-{ts_sub}:{compute_mean_MAE(loader_ts_long)}\n####")
-
