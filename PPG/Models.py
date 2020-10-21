@@ -62,7 +62,7 @@ class SnippetConvolutionalTransformer(nn.Module):
         return nn.Sequential(
             nn.Conv2d(input_channels, output_channels, (5,1), padding=(2,0)),
             nn.LeakyReLU(),
-            nn.Dropout2d(dropout_rate)
+            nn.Dropout(dropout_rate)
         )
     
     def make_lin_layer(self, input_size, output_size, dropout_rate):
