@@ -46,8 +46,11 @@ class SnippetConvolutionalTransformer(nn.Module):
             ):
 
         super(SnippetConvolutionalTransformer, self).__init__()
-
-        t_size = nfeatures*conv_filters  # transformer input size
+        
+        if nconv_layers == 0:
+            t_size = nfeatures
+        else:
+            t_size = nfeatures*conv_filters  # transformer input size
 
         self.transformer = nn.Transformer(
             t_size, nhead=nhead, num_encoder_layers=nenc_layers,
