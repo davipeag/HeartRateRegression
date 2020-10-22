@@ -13,10 +13,23 @@ class XYDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         return (torch.Tensor(self.x[idx]), torch.tensor([self.y[idx]]).type(torch.FloatTensor))
 
+class ISDataset(torch.utils.data.Dataset):
+    def __init__(self, xi, yi, xr, yr):
+        self.xis = xis
+        self.yis = yis
+        self.xrs = xrs
+        self.yrs = yrs
+
+    def __len__(self):
+        return len(self.yis)
+  
+    def __getitem__(self, idx):
+        return (torch.Tensor(self.xis[idx]), torch.tensor(self.yis[idx]).type(torch.FloatTensor),
+                torch.Tensor(self.xrs[idx]), torch.tensor(self.yrs[idx]).type(torch.FloatTensor))
 
 class DataLoaderFactory():
     
-    def __init__(self, transformers, dfs, transformers_ts = None, batch_size_tr=128, batch_size_ts=10**3, dataset_cls=XYDataset):
+    def __init__(self, transformers, dfs, transformers_val=None, transformers_ts=None, batch_size_tr=128, batch_size_ts=10**3, dataset_cls=XYDataset):
         self.transformers = transformers
         self.dfs = dfs
         self.dataset_cls = dataset_cls
@@ -26,6 +39,10 @@ class DataLoaderFactory():
             self.transformers_ts = transformers
         else:
             self.transformers_ts = transformers_ts
+        if transformers_val is None:
+            self.transformers_val = transformers
+        else:
+            self.transformers_val = transformers_val
     
     def make_set(self, xys, idxs):
         members = [xys[i] for i in idxs]
