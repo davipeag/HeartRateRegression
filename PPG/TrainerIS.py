@@ -21,8 +21,8 @@ class BatchTraninerIS():
     def train(self, batch):
         self.net.train()
         self.net.zero_grad()
-        xi, yi, xr, xr, p = self.compute(batch)
-        loss = self.criterion(p, y)
+        xi, yi, xr, yr, p = self.compute(batch)
+        loss = self.criterion(p, yr)
         loss.backward()
         self.optimizer.step()
         return loss.cpu().item()
