@@ -146,7 +146,7 @@ class MakeOurConvLSTM():
     lstm= self.make_lstm(),
     fc_net = self.make_fc_net(),
     predictor = self.make_hr_predictor()
-    ).to(args["device"])
+    )
     return net
 
 
