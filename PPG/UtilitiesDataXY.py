@@ -15,10 +15,10 @@ class XYDataset(torch.utils.data.Dataset):
 
 class ISDataset(torch.utils.data.Dataset):
     def __init__(self, xi, yi, xr, yr):
-        self.xis = xis
-        self.yis = yis
-        self.xrs = xrs
-        self.yrs = yrs
+        self.xis = xi
+        self.yis = yi
+        self.xrs = xr
+        self.yrs = yr
 
     def __len__(self):
         return len(self.yis)
