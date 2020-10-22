@@ -8,7 +8,7 @@ from PPG import UtilitiesDataXY
 
 from PPG.Models import (SnippetConvolutionalTransformer, initialize_weights)
 from PPG.TrainerXY import (EpochTrainerXY, MetricsComputerXY, TrainHelperXY)
-from PPG.TrainerXY import (EpochTrainerIS, MetricsComputerIS, TrainHelperIS)
+from PPG.TrainerIS import (EpochTrainerIS, MetricsComputerIS, TrainHelperIS)
 from preprocessing_utils import ZTransformer2
 
 
