@@ -125,29 +125,29 @@ class TrainHelperXY():
     
     def train(self, n_epoch):
         best_val_model = copy.deepcopy(self.trainer.model.state_dict())
-        train_metrics = []
-        validation_metrics, test_metrics = [[self.compute_metric(l)] for l in [self.loader_val, self.loader_ts]] 
-    
+        #train_metrics = []
+        validation_metrics = [self.compute_metric(self.loader_val)] 
+        test_metric = self.compute_metric(self.loader_ts) 
     
         for epoch in range(1, n_epoch+1):
             self.trainer.train(self.loader_tr)
-            loss_tr = self.compute_metric(self.loader_tr)
             loss_val = self.compute_metric(self.loader_val)
-            loss_ts = self.compute_metric(self.loader_ts)
-            
+
             if loss_val < np.min(validation_metrics):
                 print("best val epoch:", epoch)
+                loss_tr = self.compute_metric(self.loader_tr)
+                loss_ts = self.compute_metric(self.loader_ts)
+                test_metric = loss_ts 
                 best_val_model = copy.deepcopy(self.trainer.model.state_dict())
-            print('[%d/%d]: loss_train: %.3f loss_val %.3f loss_ts %.3f' % (
-                  (epoch), n_epoch, loss_ts, loss_val, loss_ts))
+                print('[%d/%d]: loss_train: %.3f loss_val %.3f loss_ts %.3f' % (
+                    (epoch), n_epoch, loss_tr, loss_val, loss_ts))
 
-            train_metrics.append(loss_tr)
-            validation_metrics.append(loss_val)
-            test_metrics.append(loss_ts)
+            # train_metrics.append(loss_tr)
+            # validation_metrics.append(loss_val)
+            # test_metrics.append(loss_ts)
         
         self.trainer.model.load_state_dict(best_val_model)
-        idx = validation_metrics.index(np.min(validation_metrics)) 
-        print(f"Final: {test_metrics[idx]}")
-        return test_metrics[idx]
+        print(f"Final: {test_metric}")
+        return test_metric
             
             

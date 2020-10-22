@@ -71,14 +71,6 @@ class AttentionFullTrainer():
         return {
             "args": args,
             "predictions": p,
-            "metric": metric
+            "metric": metric,
+            "run_class": self.__class__.__name__
         }
-
-# #%%
-# class ATry():
-#     def __init__(self):
-#         self.a = 1
-#     def atry(self, a=2, b=3):
-#         return locals()
-
-# type(ATry().atry())
