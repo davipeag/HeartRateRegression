@@ -477,6 +477,30 @@ class InitialStatePredictionSplit(BaseEstimator, TransformerMixin):
         return np.swapaxes(xi, 2, 3), np.mean(yi, axis=2), np.swapaxes(xp, 2, 3), yp
 
 
+class NoDiffInitialStatePredictionSplit(BaseEstimator, TransformerMixin):
+    def __init__(self,
+                 total_window,
+                 initial_window):
+        self.total_window = total_window
+        self.initial_window = initial_window
+
+    def fit(self, df, y=None):
+        return self
+
+    def transform(self, xy):
+        x, y = xy
+        xn = x.reshape([x.shape[0], self.total_window,
+                        x.shape[2]//self.total_window, x.shape[3]])
+        yn = y.reshape([y.shape[0], self.total_window,
+                        y.shape[1]//self.total_window])
+        xi, yi = xn[:, :self.initial_window, :,
+                    :], xn[:, :self.initial_window, :, 0:1]
+        # - yn[:,self.initial_window-1]:self.initial_window]
+        yp = yn[:, self.initial_window:]
+        xp = xn[:, self.initial_window:, :, :]
+        return np.swapaxes(xi, 2, 3), np.mean(yi, axis=2), np.swapaxes(xp, 2, 3), yp
+
+
 class RecursiveHrMasker(BaseEstimator, TransformerMixin):
     def __init__(self, mask_constant=0):
         self.mask_value = mask_constant
@@ -575,6 +599,24 @@ class FFTXY():
         #xr[:, :, self.sensor_idxes, :] = np.absolute(np.fft.fft(xr[:, :, self.sensor_idxes, :]))
 
         return x, y
+
+
+class FFT(BaseEstimator, TransformerMixin):
+    def __init__(self, sensors_idxes):
+        self.sensor_idxes = sensors_idxes
+
+    def fit(self, df, y=None):
+        return self
+
+    def transform(self, xy):
+        xi, yi, xr, yr = xy
+
+        xi[:, :, self.sensor_idxes, :] = np.absolute(
+            np.fft.fft(xi[:, :, self.sensor_idxes, :]))
+        xr[:, :, self.sensor_idxes, :] = np.absolute(
+            np.fft.fft(xr[:, :, self.sensor_idxes, :]))
+
+        return xi, yi, xr, yr
 
 
 class FeatureMeanSubstitute():

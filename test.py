@@ -33,6 +33,9 @@ samps = [
     [{'val_sub': 4, 'ts_sub': 0, 'batch_size': 256, 'weight_decay': 0.0001, 'lr': 0.001, 'lin_dropout': 0.25, 'lin_size': 32, 'nlin_layers': 1, 'feedforward_expansion': 4, 'nhead': 4, 'ndec_layers': 2, 'nenc_layers': 4, 'conv_dropout': 0.25, 'nconv_layers': 2, 'conv_filters': 64, 'nfeatures': 4}, 9.857917],
     [{'val_sub': 4, 'ts_sub': 0, 'batch_size': 128, 'weight_decay': 0.0001, 'lr': 0.0001, 'lin_dropout': 0.25, 'lin_size': 64, 'nlin_layers': 2, 'feedforward_expansion': 2, 'nhead': 2, 'ndec_layers': 4, 'nenc_layers': 2, 'conv_dropout': 0.5, 'nconv_layers': 0, 'conv_filters': 32, 'nfeatures': 4}, 12.066545],
     [{'val_sub': 4, 'ts_sub': 0, 'batch_size': 128, 'weight_decay': 0.0001, 'lr': 0.001, 'lin_dropout': 0.5, 'lin_size': 64, 'nlin_layers': 2, 'feedforward_expansion': 1, 'nhead': 1, 'ndec_layers': 1, 'nenc_layers': 2, 'conv_dropout': 0, 'nconv_layers': 0, 'conv_filters': 64, 'nfeatures': 4}, 10.610379],
+    [{'val_sub': 4, 'ts_sub': 0, 'batch_size': 128, 'weight_decay': 0, 'lr': 0.001, 'lin_dropout': 0, 'lin_size': 32, 'nlin_layers': 2, 'feedforward_expansion': 1, 'nhead': 4, 'ndec_layers': 4, 'nenc_layers': 1, 'conv_dropout': 0, 'nconv_layers': 1, 'conv_filters': 64, 'nfeatures': 4} 5.861301
+],
+
 ]
 
 ssamps = sorted(samps, key=lambda x: x[1])
