@@ -60,6 +60,8 @@ class SnippetConvolutionalTransformer(nn.Module):
         self.conv_net = self.make_conv_net(1, conv_filters, conv_filters, nconv_layers, conv_dropout)
 
         self.regressor = self.make_lin_net(t_size, lin_size, 1, nlin_layers, lin_dropout)
+
+        initialize_weights(self)
     
     def make_conv_layer(self, input_channels, output_channels, dropout_rate):
         return nn.Sequential(
