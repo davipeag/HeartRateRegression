@@ -37,7 +37,6 @@ samps = [
 
 ssamps = sorted(samps, key=lambda x: x[1])
 
-ssamps[0]
 # %%
 
 from collections import defaultdict
@@ -50,7 +49,7 @@ def used_ranges(dicts):
     return ranges
 
 a = used_ranges([s[0] for s in ssamps[0:10]])
-b = used_ranges([s[0] for s in ssamps[0:3]])
+b = used_ranges([s[0] for s in ssamps[0:5]])
 
 a, b
 #ssamps[19]
