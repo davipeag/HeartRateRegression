@@ -141,6 +141,7 @@ class TrainHelperXY():
                 best_val_model = copy.deepcopy(self.trainer.model.state_dict())
                 print('[%d/%d]: loss_train: %.3f loss_val %.3f loss_ts %.3f' % (
                     (epoch), n_epoch, loss_tr, loss_val, loss_ts))
+            validation_metrics.append(loss_val)
 
             # train_metrics.append(loss_tr)
             # validation_metrics.append(loss_val)
