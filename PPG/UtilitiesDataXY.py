@@ -147,9 +147,11 @@ class JointTrValDataLoaderFactory():
     def split(self, xys, train_ratio =0.8):
         xy_tr, xy_val = [],[]
         for e in xys:
+            print(f"entry shape: {e.shape}")
             t,v = self.split_array(e, train_ratio)
             xy_tr.append(t)
             xy_val.append(v)
+            print(f"t: {t.shape}, v: {v.shape}")
         #xy_tr, xy_val = zip(*[(self.split_array(v, ratio = train_ratio)) for v in xys])
         return xy_tr, xy_val
   
