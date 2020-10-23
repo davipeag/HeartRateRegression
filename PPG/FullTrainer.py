@@ -141,7 +141,7 @@ class PceLstmFullTrainer():
 
 class NoPceLstmFullTrainer():
     def __init__(self, dfs, device, ts_sub, val_sub,
-                dataloadermaker = PPG.UtilitiesDataXY.DataLoaderFactory):
+                dataloadermaker):
         self.dfs = dfs
         self.ts_sub = ts_sub
         self.val_sub = val_sub
@@ -167,13 +167,13 @@ class NoPceLstmFullTrainer():
         [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size")]
 
         transformers_tr = PPG.PceLstmDefaults.get_preprocessing_transformer()
-        ts_per_sample = int(len(self.dfs[val_sub])/(32*8))-3
-        transformers_val = PPG.PceLstmDefaults.get_preprocessing_transformer(ts_per_sample=ts_per_sample)
+        ts_per_sample = int(len(self.dfs[ts_sub])/(32*8))-3
+        transformers_ts = PPG.PceLstmDefaults.get_preprocessing_transformer(ts_per_sample=ts_per_sample)
 
-        loader_tr, loader_val, loader_ts = UtilitiesDataXY.DataLoaderFactory(
+        loader_tr, loader_val, loader_ts = UtilitiesDataXY.JointTrValDataLoaderFactory(
             transformers_tr, dfs= self.dfs, batch_size_tr=batch_size,
-            transformers_val=transformers_val, dataset_cls=PPG.UtilitiesDataXY.ISDataset
-        ).make_loaders(ts_sub, val_sub)
+            transformers_ts=transformers_ts, dataset_cls=PPG.UtilitiesDataXY.ISDataset
+        ).make_loaders(ts_sub, 0.8)
 
         net = PPG.NoHrPceLstmModel.make_no_hr_pce_lstm(
             **net_args).to(self.device)
