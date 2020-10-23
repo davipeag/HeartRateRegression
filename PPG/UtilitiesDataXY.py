@@ -142,16 +142,22 @@ class JointTrValDataLoaderFactory():
         mask[int(ratio*len(arr)):] = False
         np.random.shuffle(mask)
         return arr[mask], arr[~mask]
-         
     
+    def array_mask(self, arr, ratio):
+        mask= np.full(len(arr), True, bool)
+        mask[int(ratio*len(arr)):] = False
+        np.random.shuffle(mask)
+        return mask
+             
     def split(self, xys, train_ratio =0.8):
         xy_tr, xy_val = [],[]
+        mask = self.array_mask(xys[0], train_ratio)
         for e in xys:
-            print(f"entry shape: {e.shape}")
-            t,v = self.split_array(e, train_ratio)
-            xy_tr.append(t)
-            xy_val.append(v)
-            print(f"t: {t.shape}, v: {v.shape}")
+            #print(f"entry shape: {e.shape}")
+            
+            xy_tr.append(e[mask])
+            xy_val.append(e[~mask])
+            #print(f"t: {t.shape}, v: {v.shape}")
         #xy_tr, xy_val = zip(*[(self.split_array(v, ratio = train_ratio)) for v in xys])
         return xy_tr, xy_val
   
