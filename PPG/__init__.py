@@ -6,3 +6,4 @@ from . import FullTrainer
 from . import PceLstmDefaults
 from . import *
 from . import PceLstmModel
+from . import NoHrPceLstmModel
