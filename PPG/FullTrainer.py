@@ -255,7 +255,7 @@ class JointValNoHrPceLstmFullTrainer():
         train_helper = TrainHelperIS(
             epoch_trainer, loader_tr, loader_val, loader_ts, metrics_comuter.mae)
 
-        metric = train_helper.train(30)
+        metric = train_helper.train(40)
 
         p = [metrics_comuter.inverse_transform_label(v)
              for v in epoch_trainer.evaluate(loader_ts)[-2:]]
