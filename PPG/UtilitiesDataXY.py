@@ -85,7 +85,7 @@ class JointTrValDataLoaderFactory():
     
     
     def make_set(self, xys, idxs=None):
-        if idxs = None:
+        if idxs is None:
             idxs = list(range(len(xys)))
         members = [xys[i] for i in idxs]
         return list(map(np.concatenate, zip(*members)))
