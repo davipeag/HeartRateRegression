@@ -140,7 +140,8 @@ class PceLstmFullTrainer():
 
 
 class NoPceLstmFullTrainer():
-    def __init__(self, dfs, device, ts_sub, val_sub):
+    def __init__(self, dfs, device, ts_sub, val_sub,
+                dataloadermaker = PPG.UtilitiesDataXY.DataLoaderFactory):
         self.dfs = dfs
         self.ts_sub = ts_sub
         self.val_sub = val_sub
