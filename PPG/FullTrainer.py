@@ -140,11 +140,8 @@ class PceLstmFullTrainer():
 
 
 class NoPceLstmFullTrainer():
-    def __init__(self, dfs, device, ts_sub, val_sub,
-                dataloadermaker):
+    def __init__(self, dfs, device):
         self.dfs = dfs
-        self.ts_sub = ts_sub
-        self.val_sub = val_sub
         self.device = device
 
     def train(
@@ -178,6 +175,7 @@ class NoPceLstmFullTrainer():
         net = PPG.NoHrPceLstmModel.make_no_hr_pce_lstm(
             **net_args).to(self.device)
         initialize_weights(net)
+    
         criterion = torch.nn.L1Loss().to(self.device)
         optimizer = torch.optim.Adam(net.parameters(), lr=lr,
                                      weight_decay=weight_decay)
