@@ -132,6 +132,12 @@ class TrainHelperIS():
         for epoch in range(1, n_epoch+1):
             self.trainer.train(self.loader_tr)
             loss_val = self.compute_metric(self.loader_val)
+            loss_tr = self.compute_metric(self.loader_tr)
+            loss_ts = self.compute_metric(self.loader_ts)
+
+            print('[%d/%d]: loss_train: %.3f loss_val %.3f loss_ts %.3f' % (
+                    (epoch), n_epoch, loss_tr, loss_val, loss_ts))
+            
 
             if loss_val < np.min(validation_metrics):
                 print("best val epoch:", epoch)
