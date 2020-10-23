@@ -3,6 +3,7 @@ import numpy as np
 
 from sklearn import model_selection
 
+
 class XYDataset(torch.utils.data.Dataset):
     def __init__(self, x, y):
         self.x = x
@@ -136,8 +137,15 @@ class JointTrValDataLoaderFactory():
         members = [xys[i] for i in idxs]
         return list(map(np.concatenate, zip(*members)))
     
+    def split_array(self, arr, ratio):
+        mask= np.full(len(arr), True, bool)
+        mask[int(ratio*len(arr)):] = False
+        np.random.shuffle(mask)
+        return arr[mask], arr[~mask]
+         
+    
     def split(self, xys, train_ratio =0.8):
-        xy_tr, xy_val = zip(*[(model_selection.train_test_split(v, train_size=train_ratio)) for v in xys])
+        xy_tr, xy_val = zip(*[(self.split_array(v, ratio = train_ratio)) for v in xys])
         return xy_tr, xy_val
   
     def make_loader(self, xys, shuffle, batch_size):
