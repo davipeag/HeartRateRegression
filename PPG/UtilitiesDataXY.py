@@ -95,7 +95,7 @@ class JointTrValDataLoaderFactory():
         return xy_tr, xy_val
   
     def make_loader(self, xys, shuffle, batch_size):
-        ds = self.dataset_cls(*xysn)
+        ds = self.dataset_cls(*xys)
         return torch.utils.data.DataLoader(
             ds, batch_size=batch_size,
             shuffle=shuffle, num_workers=0)
