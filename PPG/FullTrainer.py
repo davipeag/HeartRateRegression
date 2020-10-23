@@ -66,8 +66,8 @@ class AttentionFullTrainer():
 
         metric = train_helper.train(30)
 
-        p = metrics_comuter.inverse_transform_label(
-            epoch_trainer.evaluate(loader_ts)[-2:])
+        p = [metrics_comuter.inverse_transform_label(v)
+             for v in epoch_trainer.evaluate(loader_ts)[-2:]]
 
         return {
             "args": args,
@@ -128,8 +128,8 @@ class PceLstmFullTrainer():
 
         metric = train_helper.train(30)
 
-        p = metrics_comuter.inverse_transform_label(
-            epoch_trainer.evaluate(loader_ts)[-2:])
+        p = [metrics_comuter.inverse_transform_label(v)
+             for v in epoch_trainer.evaluate(loader_ts)[-2:]]
 
         return {
             "args": args,
@@ -257,8 +257,8 @@ class JointValNoHrPceLstmFullTrainer():
 
         metric = train_helper.train(30)
 
-        p = metrics_comuter.inverse_transform_label(
-            epoch_trainer.evaluate(loader_ts)[-2:])
+        p = [metrics_comuter.inverse_transform_label(v)
+             for v in epoch_trainer.evaluate(loader_ts)[-2:]]
 
         return {
             "args": args,
