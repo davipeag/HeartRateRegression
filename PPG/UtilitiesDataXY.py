@@ -112,7 +112,7 @@ class JointTrValDataLoaderFactory():
 
         xy_tr, xy_val = self.split(xy_tr)
 
-        loader_tr, loader_val = self.make_loader(xy_tr, True, self.batch_size_tr)
+        loader_tr = self.make_loader(xy_tr, True, self.batch_size_tr)
         loader_val = self.make_loader(xy_val, False, self.batch_size_ts)
         loader_ts = self.make_loader(xy_ts, False, self.batch_size_ts)
         
