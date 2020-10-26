@@ -1,5 +1,6 @@
 
 #%%
+import tqdm
 
 samps = [
     [{'val_sub': 4, 'ts_sub': 0, 'batch_size': 256, 'weight_decay': 0, 'lr': 0.001, 'lin_dropout': 0.25, 'lin_size': 64, 'nlin_layers': 1, 'feedforward_expansion': 1, 'nhead': 4, 'ndec_layers': 1, 'nenc_layers': 1, 'conv_dropout': 0, 'nconv_layers': 2, 'conv_filters': 128, 'nfeatures': 4}, 9.696053],
@@ -58,7 +59,7 @@ samps = [
     [{'val_sub': 4, 'ts_sub': 0, 'batch_size': 64, 'weight_decay': 1e-05, 'lr': 0.001, 'lin_dropout': 0.25, 'lin_size': 32, 'nlin_layers': 2, 'feedforward_expansion': 1, 'nhead': 2, 'ndec_layers': 3, 'nenc_layers': 2, 'conv_dropout': 0.1, 'nconv_layers': 1, 'conv_filters': 64, 'nfeatures': 4}, 8.429364],
     [{'val_sub': 4, 'ts_sub': 0, 'batch_size': 128, 'weight_decay': 0, 'lr': 0.0001, 'lin_dropout': 0, 'lin_size': 64, 'nlin_layers': 4, 'feedforward_expansion': 2, 'nhead': 1, 'ndec_layers': 2, 'nenc_layers': 4, 'conv_dropout': 0, 'nconv_layers': 2, 'conv_filters': 32, 'nfeatures': 4}, 9.673909],
     [{'val_sub': 4, 'ts_sub': 0, 'batch_size': 128, 'weight_decay': 0, 'lr': 0.0001, 'lin_dropout': 0, 'lin_size': 64, 'nlin_layers': 3, 'feedforward_expansion': 4, 'nhead': 1, 'ndec_layers': 2, 'nenc_layers': 3, 'conv_dropout': 0.25, 'nconv_layers': 1, 'conv_filters': 64, 'nfeatures': 4}, 12.041097],    
-],
+]
 
 samps_pce = [
     [{'val_sub': 4, 'ts_sub': 0, 'batch_size': 256, 'weight_decay': 0, 'lr': 0.001, 'nattrs': 5, 'bvp_count': 4, 'dropout_rate': 0.5, 'lstm_input': 64, 'lstm_size': 32, 'ts_h_size': 16} ,13.9532],
@@ -483,7 +484,7 @@ samps_pce = [
 
 
 
-ssamps = sorted(samps_pce, key=lambda x: x[1])
+ssamps = sorted(samps, key=lambda x: x[1])
 
 # %%
 
