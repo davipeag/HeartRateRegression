@@ -133,6 +133,47 @@ class PpgDaliaExtractor():
         return data
 
 
+class WesadExtractor():
+    def __init__(self, folder):
+        os.makedirs(folder, exist_ok=True)
+        self.folder = folder
+        self.url = "https://uni-siegen.sciebo.de/s/pYjSgfOVs6Ntahr/download"
+
+        self.zip_path = os.path.join(self.folder, "WESAD.zip")
+
+    def subject_path(self, subject: int):
+        return os.path.join(f"WESAD/S{subject}/S{subject}.pkl")
+
+    def unzip_subject(self, subject, force=False):
+        src_path = self.subject_path(subject)
+        dst_path = os.path.join(self.folder, self.subject_path(subject))
+
+        if (not os.path.exists(dst_path)) or force:
+            self.download()
+
+            with zipfile.ZipFile(self.zip_path, "r") as zip_ref:
+                zip_ref.extract(src_path, self.folder)
+
+    def download(self, force=False):
+        if (not os.path.exists(self.zip_path)) or force:
+            wget.download(self.url, out=self.zip_path)
+        return self
+
+    def extract_subject(self, subject):
+        path = os.path.join(self.folder, self.subject_path(subject))
+        for _ in range(2):
+            try:
+                with open(path, "rb") as f:
+                    data = pickle.load(f, encoding="iso-8859-1")
+            except FileNotFoundError:
+                self.unzip_subject(subject)
+            else:
+                return data
+
+        return data
+
+
+
 class ArraySampler():
     def __init__(self, len_final):
         self.len_final = len_final
