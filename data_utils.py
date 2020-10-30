@@ -5,6 +5,7 @@ import wget
 import zipfile
 import pickle
 import numpy as np
+import scipy.io
 
 
 class Pamap2Handler():
@@ -173,6 +174,87 @@ class WesadExtractor():
         return data
 
 
+class IeeeExtractor():
+    def __init__(self, folder):
+        os.makedirs(folder, exist_ok=True)
+        self.folder = folder
+        self.url = "https://sites.google.com/site/researchbyzhang/ieeespcup2015/competition_data.zip?attredirects=0&d=1"
+
+        self.zip_path = os.path.join(self.folder, "competition_data.zip ")
+
+    def subject_paths(self, subject: int):
+        etype = 1 if (subject == 1) else 2
+        s = f"0{subject}" if subject < 10 else subject
+        fpath = os.path.join(
+            base_path, f'Training_data/DATA_{s}_TYPE0{etype}.mat')
+        lpath = os.path.join(
+            base_path, f'Training_data/DATA_{s}_TYPE0{etype}_BPMtrace.mat')
+        return fpath, lpath
+
+    def unzip_subject(self, subject, force=False):
+        src_pathf, src_pathl = self.subject_paths(subject)
+        dst_pathf, dst_pathl = map(lambda s: os.path.join(
+            self.folder, s), self.subject_paths(subject))
+
+        for src_path, dst_path in [[src_pathf, dst_pathf], [[src_pathl, dst_pathl]]]:
+            if (not os.path.exists(dst_path)) or force:
+                self.download()
+
+                with zipfile.ZipFile(self.zip_path, "r") as zip_ref:
+                    zip_ref.extract(src_path, self.folder)
+
+    def download(self, force=False):
+        if (not os.path.exists(self.zip_path)) or force:
+            wget.download(self.url, out=self.zip_path)
+        return self
+
+    def extract_subject(self, subject):
+        pathf, pathl = map(lambda s: os.path.join(
+            self.folder, s), self.subject_paths(subject))
+        for _ in range(2):
+            try:
+                features = scipy.io.loadmat(pathf)['sig']
+                label = scipy.io.loadmat(pathl)["BPM0"]
+                acc = features[-3:]
+                bvp = features[1:3]
+
+            except FileNotFoundError:
+                self.unzip_subject(subject)
+            else:
+                return {
+                    "signal": {
+                        "wrist": {
+                            'ACC': acc.transpose(),
+                            'BVP': bvp.transpose()
+                        }
+                    },
+                    "label": label[:, 0]
+                }
+
+
+class FormatIeee():
+    def __init__(self):
+        pass
+
+    def transform(self, data):
+        sampler = ArraySampler(len(data["signal"]["wrist"]["ACC"]))
+        label = data["label"]
+        tdata = OrderedDict()
+        heart_rate = np.expand_dims(np.concatenate(
+            [np.ones(6)*label[0], label]), axis=1)
+
+        tdata["heart_rate"] = sampler.sample(heart_rate)[:, 0]
+
+        wrist_data = ['ACC', 'BVP']
+
+        for k in wrist_data:
+            value = sampler.sample(data["signal"]["wrist"][k])
+            for i in range(value.shape[1]):
+                tdata[f"wrist-{k}-{i}"] = value[:, i]
+
+        values = np.stack(tdata.values(), axis=1)
+        return pd.DataFrame(values[6*32:], columns=tdata.keys())
+
 
 class ArraySampler():
     def __init__(self, len_final):
@@ -226,9 +308,6 @@ class FormatPPGDalia():
 
         values = np.stack(tdata.values(), axis=1)
         return pd.DataFrame(values[6*32:], columns=tdata.keys())
-
-
-
 
 
 def cross_validation_split(dfs, transformer_tr, transformer_val, transformer_ts, idx_val, idx_ts):

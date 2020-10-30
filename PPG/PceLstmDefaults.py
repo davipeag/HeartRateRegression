@@ -50,3 +50,49 @@ def get_preprocessing_transformer(ts_per_sample=30, ts_per_is=2, frequency_hz=32
         recursive_hr_masker,
         fft
     )
+
+
+
+def get_preprocessing_transformer_ieee(ts_per_sample=30, ts_per_is=2, frequency_hz=32, period_s=8):
+
+    feature_columns = [
+                    'heart_rate',
+                    'wrist-ACC-0',
+                    'wrist-ACC-1',
+                    'wrist-ACC-2',
+                    'wrist-BVP-0',
+                    'wrist-BVP-1',
+                    ]
+    BVP_IDX = [feature_columns.index('wrist-BVP-0'),feature_columns.index('wrist-BVP-1')]
+  
+    meansub = HZMeanSubstitute()
+
+    ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
+                'wrist-BVP-0', 'wrist-BVP-1'], dataset= "ieee_train")
+
+    fft = FFT(BVP_IDX)
+
+    feature_label_splitter = FeatureLabelSplit(
+        label_column = "heart_rate",
+        feature_columns = feature_columns
+    )
+
+    recursive_hr_masker = RecursiveHrMasker(0)
+
+    sample_maker = SampleMaker(ts_per_sample, ts_per_sample)
+
+    is_pred_split = NoDiffInitialStatePredictionSplit(ts_per_sample, ts_per_is)
+
+    ts_aggregator = TimeSnippetAggregator(size=frequency_hz*period_s)
+
+
+    return TransformerPipeline(
+        ztransformer,
+        feature_label_splitter,
+        ts_aggregator,
+        meansub,
+        sample_maker,
+        is_pred_split,
+        recursive_hr_masker,
+        fft
+    )
