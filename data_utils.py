@@ -194,7 +194,7 @@ class IeeeExtractor():
         dst_pathf, dst_pathl = map(lambda s: os.path.join(
             self.folder, s), self.subject_paths(subject))
 
-        for src_path, dst_path in [[src_pathf, dst_pathf], [[src_pathl, dst_pathl]]]:
+        for src_path, dst_path in [[src_pathf, dst_pathf], [src_pathl, dst_pathl]]:
             if (not os.path.exists(dst_path)) or force:
                 self.download()
 
