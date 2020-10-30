@@ -39,6 +39,43 @@ def get_preprocessing_transformer(frequency_hz=32, period_s=8):
         )
 
 
+def get_preprocessing_transformer_ieee(frequency_hz=32, period_s=8):
+
+    feature_columns = [
+                'heart_rate',
+                'wrist-ACC-0',
+                'wrist-ACC-1',
+                'wrist-ACC-2',
+                'wrist-BVP-0',
+                'wrist-BVP-1'
+                ]
+
+    BVP_IDX = [feature_columns.index('wrist-BVP-0'),feature_columns.index('wrist-BVP-1')]
+  
+
+    meansub = HZMeanSubstitute()
+
+    ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
+                'wrist-BVP-0', 'wrist-BVP-1'], dataset= "ieee_train")
+
+
+    fftxy = FFTXY(BVP_IDX)
+
+    feature_label_splitter = FeatureLabelSplit(
+        label_column = "heart_rate",
+        feature_columns = feature_columns
+    )
+    ts_aggregator = TimeSnippetAggregator(size=frequency_hz*period_s)
+
+    return TransformerPipeline(
+        ztransformer,
+        feature_label_splitter,
+        ts_aggregator,
+        meansub,
+        fftxy,
+        )
+
+
 
 
 #loader_tr, loader_val, loader_ts = make_loaders(ts_sub, val_sub)
