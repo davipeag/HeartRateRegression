@@ -7,3 +7,4 @@ from . import PceLstmDefaults
 from . import *
 from . import PceLstmModel
 from . import NoHrPceLstmModel
+from . import IeeeNoHrPceLstmModel
