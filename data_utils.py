@@ -185,10 +185,8 @@ class IeeeExtractor():
     def subject_paths(self, subject: int):
         etype = 1 if (subject == 1) else 2
         s = f"0{subject}" if subject < 10 else subject
-        fpath = os.path.join(
-            base_path, f'Training_data/DATA_{s}_TYPE0{etype}.mat')
-        lpath = os.path.join(
-            base_path, f'Training_data/DATA_{s}_TYPE0{etype}_BPMtrace.mat')
+        fpath = f'Training_data/DATA_{s}_TYPE0{etype}.mat'
+        lpath = f'Training_data/DATA_{s}_TYPE0{etype}_BPMtrace.mat'
         return fpath, lpath
 
     def unzip_subject(self, subject, force=False):
