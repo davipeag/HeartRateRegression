@@ -353,7 +353,7 @@ class IeeeJointValNoHrPceLstmFullTrainer():
         args = locals()
         args.pop("self")
         net_args = copy.deepcopy(args)
-        [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size")]
+        [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size", "ts_per_sample")]
 
         transformers_tr = PPG.PceLstmDefaults.get_preprocessing_transformer_ieee(ts_per_sample=ts_per_sample)
         ts_per_sample = int(len(self.dfs[ts_sub])/(125*8))-3
