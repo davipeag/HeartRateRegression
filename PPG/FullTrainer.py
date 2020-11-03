@@ -14,7 +14,7 @@ from preprocessing_utils import ZTransformer2
 
 class AttentionFullTrainer():
     def __init__(self, dfs, device, ts_sub, val_sub):
-        self.transformers = PPG.AttentionDefaults.get_preprocessing_transformer()
+        self.transformers = PPG.AttentionDefaults.PreprocessingTransformerGetter()
         self.dfs = dfs
         self.ts_sub = ts_sub
         self.val_sub = val_sub
@@ -45,7 +45,7 @@ class AttentionFullTrainer():
         [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size")]
 
         loader_tr, loader_val, loader_ts = UtilitiesDataXY.DataLoaderFactory(
-            self.transformers, self.dfs, batch_size_tr=batch_size
+            self.transformers(), self.dfs, batch_size_tr=batch_size
         ).make_loaders(ts_sub, val_sub)
 
         net = PPG.Models.SnippetConvolutionalTransformer(
@@ -56,9 +56,7 @@ class AttentionFullTrainer():
                                      weight_decay=weight_decay)
 
         epoch_trainer = EpochTrainerXY(net, optimizer, criterion, self.device)
-        ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
-                                      'wrist-BVP-0', 'wrist-EDA-0', 'wrist-TEMP-0', 'chest-ACC-0',
-                                      'chest-ACC-1', 'chest-ACC-2', 'chest-Resp-0'])
+        ztransformer = self.transformers.ztransformer
         metrics_comuter = MetricsComputerXY(ztransformer)
 
         train_helper = TrainHelperXY(
@@ -77,7 +75,7 @@ class AttentionFullTrainer():
 
 class JointValAttentionFullTrainer():
     def __init__(self, dfs, device):
-        self.transformers = PPG.AttentionDefaults.get_preprocessing_transformer()
+        self.transformers = PPG.AttentionDefaults.PreprocessingTransformerGetter()
         self.dfs = dfs
         self.device = device
 
@@ -106,7 +104,7 @@ class JointValAttentionFullTrainer():
         [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size")]
 
         loader_tr, loader_val, loader_ts = UtilitiesDataXY.JointTrValDataLoaderFactory(
-            self.transformers, dfs = self.dfs, batch_size_tr=batch_size
+            self.transformers(), dfs = self.dfs, batch_size_tr=batch_size
         ).make_loaders(ts_sub, 0.8)
 
         net = PPG.Models.SnippetConvolutionalTransformer(
@@ -117,9 +115,7 @@ class JointValAttentionFullTrainer():
                                      weight_decay=weight_decay)
 
         epoch_trainer = EpochTrainerXY(net, optimizer, criterion, self.device)
-        ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
-                                      'wrist-BVP-0', 'wrist-EDA-0', 'wrist-TEMP-0', 'chest-ACC-0',
-                                      'chest-ACC-1', 'chest-ACC-2', 'chest-Resp-0'])
+        ztransformer = self.transformers.ztransformer
         metrics_comuter = MetricsComputerXY(ztransformer)
 
         train_helper = TrainHelperXY(
@@ -143,6 +139,7 @@ class PceLstmFullTrainer():
         self.ts_sub = ts_sub
         self.val_sub = val_sub
         self.device = device
+        self.transformers = PPG.PceLstmDefaults.PreprocessingTransformerGetter()
 
     def train(
         self,
@@ -163,9 +160,9 @@ class PceLstmFullTrainer():
         net_args = copy.deepcopy(args)
         [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size")]
 
-        transformers_tr = PPG.PceLstmDefaults.get_preprocessing_transformer()
+        transformers_tr = self.transformers()
         ts_per_sample = int(len(self.dfs[val_sub])/(32*8))-3
-        transformers_val = PPG.PceLstmDefaults.get_preprocessing_transformer(ts_per_sample=ts_per_sample)
+        transformers_val = self.transformers(ts_per_sample=ts_per_sample)
 
         loader_tr, loader_val, loader_ts = UtilitiesDataXY.DataLoaderFactory(
             transformers_tr, dfs= self.dfs, batch_size_tr=batch_size,
@@ -180,9 +177,7 @@ class PceLstmFullTrainer():
                                      weight_decay=weight_decay)
 
         epoch_trainer = EpochTrainerIS(net, optimizer, criterion, self.device)
-        ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
-                                      'wrist-BVP-0', 'wrist-EDA-0', 'wrist-TEMP-0', 'chest-ACC-0',
-                                      'chest-ACC-1', 'chest-ACC-2', 'chest-Resp-0'])
+        ztransformer = self.transformers.ztransformer
         metrics_comuter = MetricsComputerIS(ztransformer)
 
         train_helper = TrainHelperIS(
@@ -207,6 +202,7 @@ class NoHrPceLstmFullTrainer():
         self.device = device
         self.train_helper = None
         self.metrics_computer = None
+        self.transformers = PPG.PceLstmDefaults.PreprocessingTransformerGetter()        
 
     def train(
         self,
@@ -227,9 +223,9 @@ class NoHrPceLstmFullTrainer():
         net_args = copy.deepcopy(args)
         [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size")]
 
-        transformers_tr = PPG.PceLstmDefaults.get_preprocessing_transformer()
+        transformers_tr = self.transformers()
         ts_per_sample = int(len(self.dfs[ts_sub])/(32*8))-3
-        transformers_ts = PPG.PceLstmDefaults.get_preprocessing_transformer(ts_per_sample=ts_per_sample)
+        transformers_ts = self.transformers(ts_per_sample=ts_per_sample)
 
         loader_tr, loader_val, loader_ts = UtilitiesDataXY.DataLoaderFactory(
             transformers_tr, dfs= self.dfs, batch_size_tr=batch_size,
@@ -245,9 +241,9 @@ class NoHrPceLstmFullTrainer():
                                      weight_decay=weight_decay)
 
         epoch_trainer = EpochTrainerIS(net, optimizer, criterion, self.device)
-        ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
-                                      'wrist-BVP-0', 'wrist-EDA-0', 'wrist-TEMP-0', 'chest-ACC-0',
-                                      'chest-ACC-1', 'chest-ACC-2', 'chest-Resp-0'])
+        
+        ztransformer = self.transformers.ztransformer
+
         metrics_comuter = MetricsComputerIS(ztransformer)
         self.metrics_computer = metrics_comuter
         train_helper = TrainHelperIS(
@@ -271,6 +267,7 @@ class JointValNoHrPceLstmFullTrainer():
     def __init__(self, dfs, device):
         self.dfs = dfs
         self.device = device
+        self.transformers = PPG.PceLstmDefaults.PreprocessingTransformerGetter()
 
     def train(
         self,
@@ -291,9 +288,9 @@ class JointValNoHrPceLstmFullTrainer():
         net_args = copy.deepcopy(args)
         [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size")]
 
-        transformers_tr = PPG.PceLstmDefaults.get_preprocessing_transformer()
+        transformers_tr =self.transformers()
         ts_per_sample = int(len(self.dfs[ts_sub])/(32*8))-3
-        transformers_ts = PPG.PceLstmDefaults.get_preprocessing_transformer(ts_per_sample=ts_per_sample)
+        transformers_ts = self.transformers(ts_per_sample=ts_per_sample)
 
         loader_tr, loader_val, loader_ts = UtilitiesDataXY.JointTrValDataLoaderFactory(
             transformers_tr, dfs= self.dfs, batch_size_tr=batch_size,
@@ -309,9 +306,7 @@ class JointValNoHrPceLstmFullTrainer():
                                      weight_decay=weight_decay)
 
         epoch_trainer = EpochTrainerIS(net, optimizer, criterion, self.device)
-        ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
-                                      'wrist-BVP-0', 'wrist-EDA-0', 'wrist-TEMP-0', 'chest-ACC-0',
-                                      'chest-ACC-1', 'chest-ACC-2', 'chest-Resp-0'])
+        ztransformer = self.transformers.ztransformer
         metrics_comuter = MetricsComputerIS(ztransformer)
 
         train_helper = TrainHelperIS(
@@ -331,10 +326,11 @@ class JointValNoHrPceLstmFullTrainer():
 
 
 class IeeeJointValNoHrPceLstmFullTrainer():
-    def __init__(self, dfs, device):
+    def __init__(self, dfs, device, nrun = 40):
         self.dfs = dfs
         self.device = device
-
+        self.transformers = PPG.PceLstmDefaults.IeeePreprocessingTransformerGetter()
+        self.nrun = nrun
     def train(
         self,
         ts_h_size = 32,
@@ -355,9 +351,9 @@ class IeeeJointValNoHrPceLstmFullTrainer():
         net_args = copy.deepcopy(args)
         [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size", "ts_per_sample")]
 
-        transformers_tr = PPG.PceLstmDefaults.get_preprocessing_transformer_ieee(ts_per_sample=ts_per_sample)
+        transformers_tr = self.transformers(ts_per_sample=ts_per_sample)
         ts_per_sample = int(len(self.dfs[ts_sub])/(125*8))-3
-        transformers_ts = PPG.PceLstmDefaults.get_preprocessing_transformer_ieee(ts_per_sample=ts_per_sample)
+        transformers_ts = self.transformers(ts_per_sample=ts_per_sample)
 
         loader_tr, loader_val, loader_ts = UtilitiesDataXY.JointTrValDataLoaderFactory(
             transformers_tr, dfs= self.dfs, batch_size_tr=batch_size,
@@ -373,14 +369,13 @@ class IeeeJointValNoHrPceLstmFullTrainer():
                                      weight_decay=weight_decay)
 
         epoch_trainer = EpochTrainerIS(net, optimizer, criterion, self.device)
-        ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
-                                      'wrist-BVP-0', 'wrist-BVP-1'], dataset="ieee_train")
+        ztransformer = self.transformers.ztransformer
         metrics_comuter = MetricsComputerIS(ztransformer)
 
         train_helper = TrainHelperIS(
             epoch_trainer, loader_tr, loader_val, loader_ts, metrics_comuter.mae)
 
-        metric = train_helper.train(40)
+        metric = train_helper.train(self.nrun)
 
         p = [metrics_comuter.inverse_transform_label(v)
              for v in epoch_trainer.evaluate(loader_ts)[-2:]]
@@ -396,7 +391,7 @@ class IeeeJointValNoHrPceLstmFullTrainer():
 
 class IeeeJointValAttentionFullTrainer():
     def __init__(self, dfs, device):
-        self.transformers = PPG.AttentionDefaults.get_preprocessing_transformer_ieee()
+        self.transformers = PPG.AttentionDefaults.IeeePreprocessingTransformerGetter()
         self.dfs = dfs
         self.device = device
 
@@ -425,7 +420,7 @@ class IeeeJointValAttentionFullTrainer():
         [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size")]
 
         loader_tr, loader_val, loader_ts = UtilitiesDataXY.JointTrValDataLoaderFactory(
-            self.transformers, dfs = self.dfs, batch_size_tr=batch_size
+            self.transformers(), dfs = self.dfs, batch_size_tr=batch_size
         ).make_loaders(ts_sub, 0.8)
 
         net = PPG.Models.SnippetConvolutionalTransformer(
@@ -436,8 +431,8 @@ class IeeeJointValAttentionFullTrainer():
                                      weight_decay=weight_decay)
 
         epoch_trainer = EpochTrainerXY(net, optimizer, criterion, self.device)
-        ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
-                                      'wrist-BVP-0', 'wrist-BVP-1'], dataset="ieee_train")
+        ztransformer = self.transformers.ztransformer
+
         metrics_comuter = MetricsComputerXY(ztransformer)
 
         train_helper = TrainHelperXY(
