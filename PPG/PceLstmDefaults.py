@@ -3,7 +3,7 @@ from preprocessing_utils import (
     HZMeanSubstitute, ZTransformer2, FFT,
     TimeSnippetAggregator, FeatureLabelSplit,
     TransformerPipeline, SampleMaker, NoDiffInitialStatePredictionSplit,
-    RecursiveHrMasker)
+    RecursiveHrMasker, Downsampler)
 
 def get_preprocessing_transformer(ts_per_sample=30, ts_per_is=2, frequency_hz=32, period_s=8):
 
@@ -53,8 +53,9 @@ def get_preprocessing_transformer(ts_per_sample=30, ts_per_is=2, frequency_hz=32
 
 
 
-def get_preprocessing_transformer_ieee(ts_per_sample=30, ts_per_is=2, frequency_hz=32, period_s=8):
-
+def get_preprocessing_transformer_ieee(ts_per_sample=30, ts_per_is=2, frequency_hz=32,
+                                       period_s=8, donwsampling_ratio = 32/125):
+    downsampler = Downsampler(donwsampling_ratio)
     feature_columns = [
                     'heart_rate',
                     'wrist-ACC-0',
@@ -87,6 +88,7 @@ def get_preprocessing_transformer_ieee(ts_per_sample=30, ts_per_is=2, frequency_
 
 
     return TransformerPipeline(
+        downsampler,
         ztransformer,
         feature_label_splitter,
         ts_aggregator,

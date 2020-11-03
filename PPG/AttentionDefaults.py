@@ -1,7 +1,7 @@
 from preprocessing_utils import (
     HZMeanSubstitute, ZTransformer2, FFTXY,
     TimeSnippetAggregator, FeatureLabelSplit,
-    TransformerPipeline)
+    TransformerPipeline, Downsampler)
 
 def get_preprocessing_transformer(frequency_hz=32, period_s=8):
 
@@ -39,7 +39,9 @@ def get_preprocessing_transformer(frequency_hz=32, period_s=8):
         )
 
 
-def get_preprocessing_transformer_ieee(frequency_hz=32, period_s=8):
+def get_preprocessing_transformer_ieee(frequency_hz=32, period_s=8, donwsampling_ratio = 32/125):
+
+    downsampler = Downsampler(ratio=donwsampling_ratio)
 
     feature_columns = [
                 'heart_rate',
@@ -68,6 +70,7 @@ def get_preprocessing_transformer_ieee(frequency_hz=32, period_s=8):
     ts_aggregator = TimeSnippetAggregator(size=frequency_hz*period_s)
 
     return TransformerPipeline(
+        downsampler,
         ztransformer,
         feature_label_splitter,
         ts_aggregator,
