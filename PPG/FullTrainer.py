@@ -343,6 +343,7 @@ class IeeeJointValNoHrPceLstmFullTrainer():
         dropout_rate = 0,
         bvp_count=12,
         nattrs=5,
+        ts_per_sample = 30,
         lr=0.001,
         weight_decay=0.0001,
         batch_size=128,
@@ -354,7 +355,7 @@ class IeeeJointValNoHrPceLstmFullTrainer():
         net_args = copy.deepcopy(args)
         [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size")]
 
-        transformers_tr = PPG.PceLstmDefaults.get_preprocessing_transformer_ieee()
+        transformers_tr = PPG.PceLstmDefaults.get_preprocessing_transformer_ieee(ts_per_sample=ts_per_sample)
         ts_per_sample = int(len(self.dfs[ts_sub])/(32*8))-3
         transformers_ts = PPG.PceLstmDefaults.get_preprocessing_transformer_ieee(ts_per_sample=ts_per_sample)
 
