@@ -356,7 +356,7 @@ class IeeeJointValNoHrPceLstmFullTrainer():
         [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size")]
 
         transformers_tr = PPG.PceLstmDefaults.get_preprocessing_transformer_ieee(ts_per_sample=ts_per_sample)
-        ts_per_sample = int(len(self.dfs[ts_sub])/(32*8))-3
+        ts_per_sample = int(len(self.dfs[ts_sub])/(125*8))-3
         transformers_ts = PPG.PceLstmDefaults.get_preprocessing_transformer_ieee(ts_per_sample=ts_per_sample)
 
         loader_tr, loader_val, loader_ts = UtilitiesDataXY.JointTrValDataLoaderFactory(
