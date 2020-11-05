@@ -178,8 +178,8 @@ class IeeeExtractor():
     def __init__(self, folder):
         os.makedirs(folder, exist_ok=True)
         self.folder = folder
-        self.url = "https://sites.google.com/site/researchbyzhang/ieeespcup2015/competition_data.zip?attredirects=0&d=1"
-
+        #self.url = "https://sites.google.com/site/researchbyzhang/ieeespcup2015/competition_data.zip?attredirects=0&d=1"
+        self.url = "https://sites.google.com/site/researchbyzhang/ieeespcup2015/TestData.zip?attredirects=0&d=1"
         self.zip_path = os.path.join(self.folder, "competition_data.zip ")
 
     def subject_paths(self, subject: int):
