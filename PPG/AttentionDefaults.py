@@ -48,13 +48,15 @@ class IeeePreprocessingTransformerGetter():
     def __init__(self, donwsampling_ratio=32/125):
         self.ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
                 'wrist-BVP-0', 'wrist-BVP-1'], dataset= "ieee_train")
+        self.downsampling_ratio = donwsampling_ratio
         self.downsampler = Downsampler(donwsampling_ratio)
     
     def set_downsampling_ratio(self, ratio):
         self.downsampler = Downsampler(ratio)
+        self.downsampling_ratio = ratio
 
 
-    def __call__(self, frequency_hz=32, period_s=8, donwsampling_ratio = 32/125):
+    def __call__(self, frequency_hz=125, period_s=8, step_s = 2):
 
         
         feature_columns = [
@@ -68,6 +70,7 @@ class IeeePreprocessingTransformerGetter():
 
         BVP_IDX = [feature_columns.index('wrist-BVP-0'),feature_columns.index('wrist-BVP-1')]
     
+        frequency = frequency_hz*self.downsampling_ratio
 
         meansub = HZMeanSubstitute()
         
@@ -77,7 +80,8 @@ class IeeePreprocessingTransformerGetter():
             label_column = "heart_rate",
             feature_columns = feature_columns
         )
-        ts_aggregator = TimeSnippetAggregator(size=frequency_hz*period_s)
+
+        ts_aggregator = TimeSnippetAggregator(size=frequency*period_s, step=frequency*step_s)
 
         return TransformerPipeline(
             self.downsampler,

@@ -43,9 +43,11 @@ def linear_imputation(arr):
     return arr
 
 
-def extract_samples(x, y, size=100):
+def extract_samples(x, y, size=100, step=None):
+    if step == None:
+        step = size
     xs, ys = [], []
-    for i in np.arange(0, x.shape[0], size)[:-1]:
+    for i in np.arange(0, x.shape[0]-(size-step), step)[:-1]:
         xs.append(x[i:i+size])
         ys.append(y[i: i + size])
 
@@ -301,16 +303,20 @@ class FeatureLabelSplit(BaseEstimator, TransformerMixin):
 class TimeSnippetAggregator(BaseEstimator, TransformerMixin):
     def __init__(self,
                  size=100,
-                 label_collapser_function=lambda v: np.median(v, axis=1)):
+                 label_collapser_function=lambda v: np.median(v, axis=1),
+                 step = None):
         self.size = size
         self.label_collapser_function = label_collapser_function
-
+        if step is None:
+            self.step = size
+        else:
+            self.step = step
     def fit(self, df, y=None):
         return self
 
     def transform(self, xydfs, y=None):
         x, y = map(lambda v: v.to_numpy(), xydfs)
-        sx, sy = extract_samples(x, y, self.size)
+        sx, sy = extract_samples(x, y, self.size, self.step)
 
         return (np.expand_dims(sx, axis=1), self.label_collapser_function(sy))
 
