@@ -89,7 +89,7 @@ class IeeePreprocessingTransformerGetter():
 
         recursive_hr_masker = RecursiveHrMasker(0)
 
-        sample_maker = SampleMaker(ts_per_sample, ts_per_sample)
+        sample_maker = SampleMaker(ts_per_sample, ts_per_sample//2)
 
         is_pred_split = NoDiffInitialStatePredictionSplit(ts_per_sample, ts_per_is)
 
