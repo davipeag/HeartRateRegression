@@ -69,7 +69,8 @@ class IeeePreprocessingTransformerGetter():
                     ]
 
         BVP_IDX = [feature_columns.index('wrist-BVP-0'),feature_columns.index('wrist-BVP-1')]
-        FFT_IDXS = list(range(1,len(feature_columns)))
+        # FFT_IDXS = list(range(1,len(feature_columns)))
+        FFT_IDXS = BVP_IDX
 
         frequency = frequency_hz*self.downsampling_ratio
 
