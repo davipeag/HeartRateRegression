@@ -241,7 +241,7 @@ class IeeeExtractorTest():
     def subject_paths(self, subject: int):
         etype = 1 if (subject == 1) else 2
         s = f"0{subject}" if subject < 10 else subject
-        fpath = f'TestData/TEST_{s}_T0{etype}.mat'
+        fpath = f'TestData/TEST_S{s}_T0{etype}.mat'
         lpath = f'TrueBPM/True_S{s}_T0{etype}.mat'
         return fpath, lpath
 
