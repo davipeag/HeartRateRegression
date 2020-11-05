@@ -412,13 +412,17 @@ class IeeeJointValAttentionFullTrainer():
         weight_decay=0.0001,
         batch_size=128,
         ts_sub=0,
-        val_sub=4
+        val_sub=4,
+        nepoch = 100,
+        downsampling_ratio = 32/125
     ):
         args = locals()
         args.pop("self")
         net_args = copy.deepcopy(args)
-        [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size")]
-
+        [net_args.pop(v) for v in (
+            "ts_sub", "val_sub", "lr", "weight_decay", "batch_size",
+            "nepoch", "downsampling_ratio")]
+        self.transformers.set_downsampling_ratio(downsampling_ratio)
         loader_tr, loader_val, loader_ts = UtilitiesDataXY.JointTrValDataLoaderFactory(
             self.transformers(), dfs = self.dfs, batch_size_tr=batch_size
         ).make_loaders(ts_sub, 0.8)
@@ -438,7 +442,7 @@ class IeeeJointValAttentionFullTrainer():
         train_helper = TrainHelperXY(
             epoch_trainer, loader_tr, loader_val, loader_ts, metrics_comuter.mae)
 
-        metric = train_helper.train(30)
+        metric = train_helper.train(nepoch)
 
         p = [metrics_comuter.inverse_transform_label(v)
              for v in epoch_trainer.evaluate(loader_ts)[-2:]]

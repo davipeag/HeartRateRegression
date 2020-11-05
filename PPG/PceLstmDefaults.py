@@ -57,14 +57,16 @@ class PreprocessingTransformerGetter():
 
 
 class IeeePreprocessingTransformerGetter():
-    def __init__(self):
+    def __init__(self, donwsampling_ratio=32/125):
         self.ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
                 'wrist-BVP-0', 'wrist-BVP-1'], dataset= "ieee_train")
+        
+        
+        self.downsampler = Downsampler(donwsampling_ratio)
 
 
     def __call__(self, ts_per_sample=30, ts_per_is=2, frequency_hz=32,
-                                        period_s=8, donwsampling_ratio = 32/125):
-        downsampler = Downsampler(donwsampling_ratio)
+                                        period_s=8):
         feature_columns = [
                         'heart_rate',
                         'wrist-ACC-0',
@@ -95,7 +97,7 @@ class IeeePreprocessingTransformerGetter():
 
 
         return TransformerPipeline(
-            downsampler,
+            self.downsampler,
             self.ztransformer,
             feature_label_splitter,
             ts_aggregator,
