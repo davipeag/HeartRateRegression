@@ -606,6 +606,23 @@ class FFTXY():
 
         return x, y
 
+class FFTXY_KEEP():
+    def __init__(self, sensors_idxes):
+        if isinstance(sensors_idxes, int ):
+            self.sensor_idxes = [sensors_idxes]
+        else:
+            self.sensor_idxes = sensors_idxes
+
+    def fit(self, df, y=None):
+        return self
+
+    def transform(self, xy):
+        x, y = xy
+        vfft = np.absolute(np.fft.fft(x[:, :, self.sensor_idxes, :]))
+        xn = np.concatenate([x, vfft], axis=2)
+        #xr[:, :, self.sensor_idxes, :] = np.absolute(np.fft.fft(xr[:, :, self.sensor_idxes, :]))
+        return xn, y
+
 
 class FFT(BaseEstimator, TransformerMixin):
     def __init__(self, sensors_idxes):
@@ -623,6 +640,27 @@ class FFT(BaseEstimator, TransformerMixin):
             np.fft.fft(xr[:, :, self.sensor_idxes, :]))
 
         return xi, yi, xr, yr
+
+class FFT_KEEP(BaseEstimator, TransformerMixin):
+    def __init__(self, sensors_idxes):
+        if isinstance(sensors_idxes, int):
+            self.sensor_idxes = [sensors_idxes]
+        else:
+            self.sensor_idxes = sensors_idxes
+
+    def fit(self, df, y=None):
+        return self
+    
+    def compute_fft(self, x):
+        return np.absolute(np.fft.fft(x[:, :, self.sensor_idxes, :]))
+
+    def transform(self, xy):
+        xi, yi, xr, yr = xy
+
+        xin = np.concatenate([xi, self.compute_fft(xi)], axis=2)
+        xrn = np.concatenate([xr, self.compute_fft(xr)], axis=2)
+
+        return xin, yi, xrn, yr
 
 
 class FeatureMeanSubstitute():

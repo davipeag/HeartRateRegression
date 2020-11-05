@@ -3,7 +3,7 @@ from torch import nn
 
 class HiddenInitializationConvLSTMAssembler(torch.nn.Module):
     def __init__(self, ts_encoder, ts_encoder_bvp, is_encoder, h0_fc_net, c0_fc_net,
-                 lstm, fc_net, predictor, bvp_idx = [4,5]):
+                 lstm, fc_net, predictor, bvp_idx = [4,7]):
         """
         initial_points: number of datapoints in initial baseline (yi.shape[1])
         """
