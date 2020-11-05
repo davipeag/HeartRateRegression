@@ -137,15 +137,18 @@ class MakeOurConvLSTM():
     return nn.LSTM(self.lstm_input, self.lstm_size, batch_first=True)
   
   def __call__(self):
+    bvp_idx = [4,7]
+    bvp_len = (bvp_idx[-1] -bvp_idx[0]) + 1
     net = HiddenInitializationConvLSTMAssembler(
     ts_encoder= self.make_ts_encoder(self.nattrs, self.lstm_input - self.bvp_count, self.ts_h_size),
-    ts_encoder_bvp = self.make_ts_encoder(2, self.bvp_count, self.ts_h_size),
+    ts_encoder_bvp = self.make_ts_encoder(bvp_len, self.bvp_count, self.ts_h_size),
     is_encoder = self.make_is_encoder(),
     h0_fc_net = self.make_h0_fc_net(),
     c0_fc_net = self.make_c0_fc_net(),
     lstm= self.make_lstm(),
     fc_net = self.make_fc_net(),
-    predictor = self.make_hr_predictor()
+    predictor = self.make_hr_predictor(),
+    bvp_idx=bvp_idx
     )
     return net
 
