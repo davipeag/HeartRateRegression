@@ -1,5 +1,5 @@
 from preprocessing_utils import (
-    HZMeanSubstitute, ZTransformer2, FFTXY,
+    HZMeanSubstitute, ZTransformer2, FFTXY, FFTXY_KEEP,
     TimeSnippetAggregator, FeatureLabelSplit,
     TransformerPipeline, Downsampler)
 
@@ -69,12 +69,13 @@ class IeeePreprocessingTransformerGetter():
                     ]
 
         BVP_IDX = [feature_columns.index('wrist-BVP-0'),feature_columns.index('wrist-BVP-1')]
-    
+        FFT_IDXS = list(range(1,len(feature_columns)))
+
         frequency = frequency_hz*self.downsampling_ratio
 
         meansub = HZMeanSubstitute()
         
-        fftxy = FFTXY(BVP_IDX)
+        fftxy = FFTXY_KEEP(FFT_IDXS)
 
         feature_label_splitter = FeatureLabelSplit(
             label_column = "heart_rate",
