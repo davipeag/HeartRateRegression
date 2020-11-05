@@ -624,8 +624,8 @@ class FFTXY_KEEP():
 
     def transform(self, xy):
         x, y = xy
-        vfft = np.absolute(np.fft.fft(x[:, :, self.sensor_idxes, :]))
-        xn = np.concatenate([x, vfft], axis=2)
+        vfft = np.absolute(np.fft.fft(x[:, :, : , self.sensor_idxes], axis=2))
+        xn = np.concatenate([x, vfft], axis=3)
         #xr[:, :, self.sensor_idxes, :] = np.absolute(np.fft.fft(xr[:, :, self.sensor_idxes, :]))
         print(f"old_shape: {x.shape}, new: {xn.shape}, fft: {vfft.shape}, idxes: {self.sensor_idxes}")
         return xn, y
