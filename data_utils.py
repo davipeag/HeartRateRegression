@@ -178,8 +178,8 @@ class IeeeExtractor():
     def __init__(self, folder):
         os.makedirs(folder, exist_ok=True)
         self.folder = folder
-        #self.url = "https://sites.google.com/site/researchbyzhang/ieeespcup2015/competition_data.zip?attredirects=0&d=1"
-        self.url = "https://sites.google.com/site/researchbyzhang/ieeespcup2015/TestData.zip?attredirects=0&d=1"
+        self.url = "https://sites.google.com/site/researchbyzhang/ieeespcup2015/competition_data.zip?attredirects=0&d=1"
+
         self.zip_path = os.path.join(self.folder, "competition_data.zip ")
 
     def subject_paths(self, subject: int):
@@ -229,6 +229,63 @@ class IeeeExtractor():
                     "label": label[:, 0]
                 }
 
+class IeeeExtractorTest():
+    def __init__(self, folder):
+        os.makedirs(folder, exist_ok=True)
+        self.folder = folder
+        self.url = "https://sites.google.com/site/researchbyzhang/ieeespcup2015/TestData.zip?attredirects=0&d=1"
+        self.bpm_url = "https://sites.google.com/site/researchbyzhang/ieeespcup2015/TrueBPM.zip?attredirects=0&d=1"
+        self.zip_path = os.path.join(self.folder, "TestData.zip")
+        self.zip_path_bpm = os.path.join(self.folder, "TrueBPM.zip")
+
+    def subject_paths(self, subject: int):
+        etype = 1 if (subject == 1) else 2
+        s = f"0{subject}" if subject < 10 else subject
+        fpath = f'TestData/TEST_{s}_TYPE0{etype}.mat'
+        lpath = f'TrueBPM/True_S{s}_T0{etype}.mat'
+        return fpath, lpath
+
+    def unzip_subject(self, subject, force=False):
+        src_pathf, src_pathl = self.subject_paths(subject)
+        dst_pathf, dst_pathl = map(lambda s: os.path.join(
+            self.folder, s), self.subject_paths(subject))
+
+        for zpath, src_path, dst_path in [[self.zip_path, src_pathf, dst_pathf],
+                                          [self.zip_path_bpm, src_pathl, dst_pathl]]:
+            if (not os.path.exists(dst_path)) or force:
+                self.download()
+
+                with zipfile.ZipFile(zpath, "r") as zip_ref:
+                    zip_ref.extract(src_path, self.folder)
+
+    def download(self, force=False):
+        if (not os.path.exists(self.zip_path)) or force:
+            wget.download(self.bpm_url, out=self.zip_path)
+            wget.download(self.url, out=self.zip_path_bpm)
+        return self
+
+    def extract_subject(self, subject):
+        pathf, pathl = map(lambda s: os.path.join(
+            self.folder, s), self.subject_paths(subject))
+        for _ in range(2):
+            try:
+                features = scipy.io.loadmat(pathf)['sig']
+                label = scipy.io.loadmat(pathl)["BPM0"]
+                acc = features[-3:]
+                bvp = features[1:3]
+
+            except FileNotFoundError:
+                self.unzip_subject(subject)
+            else:
+                return {
+                    "signal": {
+                        "wrist": {
+                            'ACC': acc.transpose(),
+                            'BVP': bvp.transpose()
+                        }
+                    },
+                    "label": label[:, 0]
+                }
 
 class FormatIeee():
     def __init__(self):
