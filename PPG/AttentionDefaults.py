@@ -76,14 +76,14 @@ class IeeePreprocessingTransformerGetter():
 
         meansub = HZMeanSubstitute()
         
-        fftxy = FFTXY_KEEP(FFT_IDXS)
+        fftxy = FFTXY(FFT_IDXS)
 
         feature_label_splitter = FeatureLabelSplit(
             label_column = "heart_rate",
             feature_columns = feature_columns
         )
 
-        ts_aggregator = TimeSnippetAggregator(size=int(frequency*period_s), step=int(frequency*step_s))
+        ts_aggregator = TimeSnippetAggregator(size=int(frequency*period_s))#, step=int(frequency*step_s))
 
         return TransformerPipeline(
             self.downsampler,
