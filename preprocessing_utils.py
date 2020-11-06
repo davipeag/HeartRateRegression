@@ -628,6 +628,21 @@ class FFTXY_KEEP():
         xn = np.concatenate([x, vfft], axis=3)
         return xn, y
 
+class FFTXY2():
+    def __init__(self, sensors_idxes):
+        if isinstance(sensors_idxes, int ):
+            self.sensor_idxes = [sensors_idxes]
+        else:
+            self.sensor_idxes = sensors_idxes
+
+    def fit(self, df, y=None):
+        return self
+
+    def transform(self, xy):
+        x, y = xy
+        x[:, :, :, self.sensor_idxes] = np.absolute(np.fft.fft(x[:, :, : , self.sensor_idxes], axis=2))
+        return x, y
+
 
 class FFT(BaseEstimator, TransformerMixin):
     def __init__(self, sensors_idxes):

@@ -1,5 +1,5 @@
 from preprocessing_utils import (
-    HZMeanSubstitute, ZTransformer2, FFTXY, FFTXY_KEEP,
+    HZMeanSubstitute, ZTransformer2, FFTXY, FFTXY_KEEP, FFTXY2,
     TimeSnippetAggregator, FeatureLabelSplit,
     TransformerPipeline, Downsampler)
 
@@ -76,7 +76,7 @@ class IeeePreprocessingTransformerGetter():
 
         meansub = HZMeanSubstitute()
         
-        fftxy = FFTXY(FFT_IDXS)
+        fftxy = FFTXY2(FFT_IDXS)
 
         feature_label_splitter = FeatureLabelSplit(
             label_column = "heart_rate",
