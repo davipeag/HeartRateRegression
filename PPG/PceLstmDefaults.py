@@ -80,7 +80,7 @@ class IeeePreprocessingTransformerGetter():
         meansub = HZMeanSubstitute()
 
         
-        fft = FFT_KEEP(BVP_IDX)
+        fft = FFT(BVP_IDX)
 
         feature_label_splitter = FeatureLabelSplit(
             label_column = "heart_rate",
