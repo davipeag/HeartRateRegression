@@ -260,8 +260,8 @@ class IeeeExtractorTest():
 
     def download(self, force=False):
         if (not os.path.exists(self.zip_path)) or force:
-            wget.download(self.bpm_url, out=self.zip_path)
-            wget.download(self.url, out=self.zip_path_bpm)
+            wget.download(self.bpm_url, out=self.zip_path_bpm)
+            wget.download(self.url, out=self.zip_path)
         return self
 
     def extract_subject(self, subject):
