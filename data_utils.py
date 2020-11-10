@@ -336,15 +336,19 @@ class ArraySampler():
 
 
 class FormatPPGDalia():
-    def __init__(self):
-        pass
+    def __init__(self, from_ecg = False):
+        self.from_ecg = from_ecg
 
     def transform(self, data):
         sampler = ArraySampler(len(data["signal"]["wrist"]["ACC"]))
-        label = data["label"]
+        if not self.from_ecg:
+            label = data["label"]
+        else:
+            from ecg_preprocessing import wesad_ecg_preprocessing
+            label = wesad_ecg_preprocessing(data['signal']['chest']['ECG'])
         tdata = OrderedDict()
         heart_rate = np.expand_dims(np.concatenate(
-            [np.ones(6)*label[0], label]), axis=1)
+            [np.ones(3)*label[0], label]), axis=1)
 
         tdata["heart_rate"] = sampler.sample(heart_rate)[:, 0]
 
