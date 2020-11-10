@@ -74,10 +74,11 @@ class AttentionFullTrainer():
         }
 
 class JointValAttentionFullTrainer():
-    def __init__(self, dfs, device):
+    def __init__(self, dfs, device, nepoch = 30 ):
         self.transformers = PPG.AttentionDefaults.PreprocessingTransformerGetter()
         self.dfs = dfs
         self.device = device
+        self.nepoch = nepoch
 
     def train(
         self,
@@ -121,7 +122,7 @@ class JointValAttentionFullTrainer():
         train_helper = TrainHelperXY(
             epoch_trainer, loader_tr, loader_val, loader_ts, metrics_comuter.mae)
 
-        metric = train_helper.train(30)
+        metric = train_helper.train(self.nepoch)
 
         p = [metrics_comuter.inverse_transform_label(v)
              for v in epoch_trainer.evaluate(loader_ts)[-2:]]
@@ -264,10 +265,11 @@ class NoHrPceLstmFullTrainer():
 
 
 class JointValNoHrPceLstmFullTrainer():
-    def __init__(self, dfs, device):
+    def __init__(self, dfs, device, nepoch = 40):
         self.dfs = dfs
         self.device = device
         self.transformers = PPG.PceLstmDefaults.PreprocessingTransformerGetter()
+        self.nepoch = nepoch
 
     def train(
         self,
@@ -312,7 +314,7 @@ class JointValNoHrPceLstmFullTrainer():
         train_helper = TrainHelperIS(
             epoch_trainer, loader_tr, loader_val, loader_ts, metrics_comuter.mae)
 
-        metric = train_helper.train(40)
+        metric = train_helper.train(self.nepoch)
 
         p = [metrics_comuter.inverse_transform_label(v)
              for v in epoch_trainer.evaluate(loader_ts)[-2:]]
