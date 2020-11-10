@@ -111,7 +111,8 @@ class JointValAttentionFullTrainer():
         net = PPG.Models.SnippetConvolutionalTransformer(
             **net_args).to(self.device)
         # nn.L1Loss().to(args["device"]) #nn.CrossEntropyLoss().to(args["device"])
-        criterion = torch.nn.MSELoss().to(self.device)
+        criterion = torch.nn.L1Loss().to(self.device)
+        # criterion = torch.nn.MSELoss().to(self.device)
         optimizer = torch.optim.Adam(net.parameters(), lr=lr,
                                      weight_decay=weight_decay)
 
@@ -431,8 +432,8 @@ class IeeeJointValAttentionFullTrainer():
 
         net = PPG.Models.SnippetConvolutionalTransformer(
             **net_args).to(self.device)
-        # nn.L1Loss().to(args["device"]) #nn.CrossEntropyLoss().to(args["device"])
-        criterion = torch.nn.MSELoss().to(self.device)
+        criterion = torch.nn.L1Loss().to(self.device) 
+        #criterion = torch.nn.MSELoss().to(self.device)
         optimizer = torch.optim.Adam(net.parameters(), lr=lr,
                                      weight_decay=weight_decay)
 
