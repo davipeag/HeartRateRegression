@@ -27,7 +27,7 @@ class PreprocessingTransformerGetter():
 
         ztransformer=self.ztransformer        
 
-        #fftxy = FFTXY2(BVP_IDX)
+        fftxy = FFTXY(BVP_IDX)
 
         feature_label_splitter = FeatureLabelSplit(
             label_column = "heart_rate",
@@ -40,7 +40,7 @@ class PreprocessingTransformerGetter():
             feature_label_splitter,
             ts_aggregator,
             meansub,
-            #fftxy,
+            fftxy,
             )
 
 
