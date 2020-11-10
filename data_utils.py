@@ -345,7 +345,7 @@ class FormatPPGDalia():
             label = data["label"]
         else:
             from ecg_preprocessing import wesad_ecg_preprocessing
-            label = wesad_ecg_preprocessing(data['signal']['chest']['ECG'])
+            label = wesad_ecg_preprocessing(data['signal']['chest']['ECG'].reshape(-1))
         tdata = OrderedDict()
         heart_rate = np.expand_dims(np.concatenate(
             [np.ones(3)*label[0], label]), axis=1)
