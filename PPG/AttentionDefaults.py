@@ -40,7 +40,7 @@ class PreprocessingTransformerGetter():
             feature_label_splitter,
             ts_aggregator,
             meansub,
-            #fftxy,
+            fftxy,
             )
 
 
