@@ -81,29 +81,82 @@ def linear_imputation(arr):
     return arr
 
 
+class GetBPM():
+    def __init__(self, cutoff, sample_rate=700):
+        self.cutoff = cutoff
+        self.sample_rate = sample_rate
+
+    def __call__(self, signal):
+        s = signal
+        sample_rate = self.sample_rate
+        s = hp.remove_baseline_wander(s, sample_rate)
+        s = hp.filter_signal(s, cutoff=self.cutoff,
+                             sample_rate=sample_rate, filtertype='notch')
+        if not (self.cutoff == 0.5):
+            s = hp.scale_data(s, sample_rate)
+        try:
+            wd, m = hp.process(s, sample_rate)
+            v = m['bpm']
+            if (v > 35) and (v < 210):
+                return v
+            else:
+                return np.nan
+        except Exception:
+            return np.nan
+
+
+def multi_try_bpm(s, processors):
+    for proc in processors:
+        v = proc(s)
+        if not np.isnan(v):
+            return v
+    return np.nan
+
+
 def get_bpm(x, sample_rate):
-    try:
-        return hp.process(x, sample_rate, bpmmin=35, bpmmax=210)[1]['bpm']
-    except Exception:
-        return np.nan
+    return multi_try_bpm(
+        s, [GetBPM(0.01, sample_rate),
+            GetBPM(0.5, sample_rate),
+            GetBPM(0.05, sample_rate),
+            GetBPM(0.1, sample_rate)])
+    # try:
+    #     return hp.process(x, sample_rate, bpmmin=35, bpmmax=210)[1]['bpm']
+    # except Exception:
+    #     return np.nan
 
 
 def wesad_ecg_preprocessing(ecg, sample_rate=700):
     d = ecg
-    d = rescale(d, 0.8, 0.8)
-    d = hp.remove_baseline_wander(d, sample_rate)
+    # d = rescale(d, 0.8, 0.8)
+    # d = hp.remove_baseline_wander(d, sample_rate)
 
-    d = hp.scale_data(d, sample_rate)
-    d = hp.filter_signal(
-        d, cutoff=0.01, sample_rate=sample_rate, filtertype='notch')
+    # d = hp.scale_data(d, sample_rate)
+    # d = hp.filter_signal(
+    #     d, cutoff=0.01, sample_rate=sample_rate, filtertype='notch')
     c = np.array([get_bpm(v, sample_rate)
                   for v in sliding_window(d, sample_rate*8, sample_rate*2)])
+    max_diff = 10
 
-    i1 = low_diff_idxes(c, 20) & low_diff_idxes(
-        np.flip(c), 20) & (c > 35) & (c < 210)
+    i1 = low_diff_idxes(c, max_diff) &  low_diff_idxes(np.flip(c), max_diff) & (c > 35) & (c < 210)
+
     c2 = (nan_substitute(c, ~i1) + nan_substitute(np.flip(c), ~i1))/2
-    i2 = nan_low_diff_idxes(c2, 20) & nan_low_diff_idxes(np.flip(c2), 20)
 
-    i = i1 & i2
+    c2 = (fore_substitute(c, ~i1) + fore_substitute(np.flip(c), ~i1))/2
+
+    i2 = nan_low_diff_idxes(c2, max_diff*3/4) &  nan_low_diff_idxes(np.flip(c2), max_diff*3/4)
+
+    c3 = (nan_substitute(c2, ~i2) + nan_substitute(np.flip(c2), ~i2))/2
+
+    c3 = (fore_substitute(c2, ~i2) + fore_substitute(np.flip(c2), ~i2))/2
+
+    i3 = nan_low_diff_idxes(c3, max_diff*2/3) &  nan_low_diff_idxes(np.flip(c3), max_diff*2/3)
+
+    i = i1 & i2 & i3    
+    # i1 = low_diff_idxes(c, 20) & low_diff_idxes(
+    #     np.flip(c), 20) & (c > 35) & (c < 210)
+    # c2 = (nan_substitute(c, ~i1) + nan_substitute(np.flip(c), ~i1))/2
+    # i2 = nan_low_diff_idxes(c2, 20) & nan_low_diff_idxes(np.flip(c2), 20)
+
+    # i = i1 & i2
 
     return linear_imputation(nan_substitute(c, ~i))
