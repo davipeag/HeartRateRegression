@@ -115,7 +115,7 @@ def multi_try_bpm(s, processors):
 
 def get_bpm(x, sample_rate):
     return multi_try_bpm(
-        s, [GetBPM(0.01, sample_rate),
+        x, [GetBPM(0.01, sample_rate),
             GetBPM(0.5, sample_rate),
             GetBPM(0.05, sample_rate),
             GetBPM(0.1, sample_rate)])
