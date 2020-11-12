@@ -74,11 +74,12 @@ class AttentionFullTrainer():
         }
 
 class JointValAttentionFullTrainer():
-    def __init__(self, dfs, device, nepoch = 30 ):
+    def __init__(self, dfs, device, nepoch = 30, criterion = torch.nn.MSELoss()):
         self.transformers = PPG.AttentionDefaults.PreprocessingTransformerGetter()
         self.dfs = dfs
         self.device = device
         self.nepoch = nepoch
+        self.criterion = criterion
 
     def train(
         self,
@@ -112,7 +113,7 @@ class JointValAttentionFullTrainer():
             **net_args).to(self.device)
         # nn.L1Loss().to(args["device"]) #nn.CrossEntropyLoss().to(args["device"])
         #criterion = torch.nn.L1Loss().to(self.device)
-        criterion = torch.nn.MSELoss().to(self.device)
+        criterion = self.criterion.to(self.device)
         optimizer = torch.optim.Adam(net.parameters(), lr=lr,
                                      weight_decay=weight_decay)
 
