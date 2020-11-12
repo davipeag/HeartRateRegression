@@ -94,7 +94,7 @@ class IeeePreprocessingTransformerGetter():
 
         is_pred_split = NoDiffInitialStatePredictionSplit(ts_per_sample, ts_per_is)
 
-        ts_aggregator = TimeSnippetAggregator(size=frequency_hz*period_s, step=frequency_hz*step_s)
+        ts_aggregator = TimeSnippetAggregator(size=int(frequency_hz*period_s), step=int(frequency_hz*step_s))
 
 
         return TransformerPipeline(
