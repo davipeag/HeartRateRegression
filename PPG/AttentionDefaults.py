@@ -10,7 +10,7 @@ class PreprocessingTransformerGetter():
                 'wrist-BVP-0', 'wrist-EDA-0', 'wrist-TEMP-0', 'chest-ACC-0',
                 'chest-ACC-1', 'chest-ACC-2', 'chest-Resp-0'])
 
-    def __call__(self, frequency_hz=32, period_s=8):
+    def __call__(self, frequency_hz=32, period_s=8, step_s=2):
 
         feature_columns = [
                     'heart_rate',
@@ -33,7 +33,7 @@ class PreprocessingTransformerGetter():
             label_column = "heart_rate",
             feature_columns = feature_columns
         )
-        ts_aggregator = TimeSnippetAggregator(size=frequency_hz*period_s)
+        ts_aggregator = TimeSnippetAggregator(size=frequency_hz*period_s, step=frequency_hz*step_s)
 
         return TransformerPipeline(
             ztransformer,
