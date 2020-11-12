@@ -238,9 +238,23 @@ class IeeeExtractorTest():
         self.zip_path = os.path.join(self.folder, "TestData.zip")
         self.zip_path_bpm = os.path.join(self.folder, "TrueBPM.zip")
 
+        self.subject_mapping = {
+            1: (1, 1),
+            2: (2, 1),
+            3: (2, 2),
+            4: (3, 2),
+            5: (4, 2),
+            6: (5, 2),
+            7: (6, 1),
+            8: (6, 2),
+            9: (7, 2),
+            10: (8, 1)
+        }
+
     def subject_paths(self, subject: int):
-        etype = 1 if ((subject == 1) or (subject == 8)) else 2
-        s = f"0{subject}" if subject < 10 else subject
+        #etype = 1 if ((subject == 1) or (subject == 8)) else 2
+        sub, etype = self.subject_mapping[subject]
+        s = f"0{sub}" if sub < 10 else sub
         fpath = f'TestData/TEST_S{s}_T0{etype}.mat'
         lpath = f'TrueBPM/True_S{s}_T0{etype}.mat'
         return fpath, lpath

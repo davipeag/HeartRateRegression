@@ -356,7 +356,9 @@ class IeeeJointValNoHrPceLstmFullTrainer():
         [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size", "ts_per_sample")]
 
         transformers_tr = self.transformers(ts_per_sample=ts_per_sample)
-        ts_per_sample = int(len(self.dfs[ts_sub])/(125*8))-3
+        step_s = 2
+        frequency_hz = 125
+        ts_per_sample = int(len(self.dfs[ts_sub])/(frequency_hz*step_s))-3 - 3
         transformers_ts = self.transformers(ts_per_sample=ts_per_sample)
 
         loader_tr, loader_val, loader_ts = UtilitiesDataXY.JointTrValDataLoaderFactory(

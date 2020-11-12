@@ -63,10 +63,11 @@ class IeeePreprocessingTransformerGetter():
         
         
         self.downsampler = Downsampler(donwsampling_ratio)
-
+        self.downsampling_ratio = donwsampling_ratio
 
     def __call__(self, ts_per_sample=30, ts_per_is=2, frequency_hz=32,
-                                        period_s=8):
+                                        period_s=8, step_s=2):
+        frequency_hz = self.downsampling_ratio * 125
         feature_columns = [
                         'heart_rate',
                         'wrist-ACC-0',
@@ -93,7 +94,7 @@ class IeeePreprocessingTransformerGetter():
 
         is_pred_split = NoDiffInitialStatePredictionSplit(ts_per_sample, ts_per_is)
 
-        ts_aggregator = TimeSnippetAggregator(size=frequency_hz*period_s)
+        ts_aggregator = TimeSnippetAggregator(size=frequency_hz*period_s, step=frequency_hz*step_s)
 
 
         return TransformerPipeline(
