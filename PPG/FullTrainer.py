@@ -293,7 +293,7 @@ class JointValNoHrPceLstmFullTrainer():
         [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size")]
 
         transformers_tr =self.transformers()
-        ts_per_sample = int(len(self.dfs[ts_sub])/(32*8))-3
+        ts_per_sample = int(len(self.dfs[ts_sub])/(32*8))-3-3
         transformers_ts = self.transformers(ts_per_sample=ts_per_sample)
 
         loader_tr, loader_val, loader_ts = UtilitiesDataXY.JointTrValDataLoaderFactory(

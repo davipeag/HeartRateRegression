@@ -12,7 +12,7 @@ class PreprocessingTransformerGetter():
                 'wrist-BVP-0', 'wrist-EDA-0', 'wrist-TEMP-0', 'chest-ACC-0',
                 'chest-ACC-1', 'chest-ACC-2', 'chest-Resp-0'])
 
-    def __call__(self, ts_per_sample=30, ts_per_is=2, frequency_hz=32, period_s=8):
+    def __call__(self, ts_per_sample=30, ts_per_is=2, frequency_hz=32, period_s=8, step_s=2):
 
         feature_columns = [
                         'heart_rate',
@@ -41,7 +41,8 @@ class PreprocessingTransformerGetter():
 
         is_pred_split = NoDiffInitialStatePredictionSplit(ts_per_sample, ts_per_is)
 
-        ts_aggregator = TimeSnippetAggregator(size=frequency_hz*period_s)
+        ts_aggregator = TimeSnippetAggregator(size=int(frequency_hz*period_s),
+                                              step=int(frequency_hz*step_s))
 
 
         return TransformerPipeline(
