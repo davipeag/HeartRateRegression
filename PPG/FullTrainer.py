@@ -80,6 +80,14 @@ class JointValAttentionFullTrainer():
         self.device = device
         self.nepoch = nepoch
         self.criterion = criterion
+        self.net = None
+
+
+    def make_net(self, net_args):
+        if self.net is None:
+            self.net = PPG.Models.SnippetConvolutionalTransformer(
+            **net_args).to(self.device)
+        return self.net
 
     def train(
         self,
@@ -109,8 +117,7 @@ class JointValAttentionFullTrainer():
             self.transformers(), dfs = self.dfs, batch_size_tr=batch_size
         ).make_loaders(ts_sub, 0.8)
 
-        net = PPG.Models.SnippetConvolutionalTransformer(
-            **net_args).to(self.device)
+        net = self.make_net(net_args)
         # nn.L1Loss().to(args["device"]) #nn.CrossEntropyLoss().to(args["device"])
         #criterion = torch.nn.L1Loss().to(self.device)
         criterion = self.criterion.to(self.device)
