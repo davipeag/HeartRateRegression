@@ -81,13 +81,26 @@ class JointValAttentionFullTrainer():
         self.nepoch = nepoch
         self.criterion = criterion
         self.net = None
+        self.transforer_lr_multiplier = 1
+        self.cnn_multiplier = 1
+        self.regressor_multiplier = 1
 
 
-    def make_net(self, net_args):
-        if self.net is None:
+    def make_net(self, net_args, force=False):
+        if ((self.net is None) or force):
             self.net = PPG.Models.SnippetConvolutionalTransformer(
             **net_args).to(self.device)
         return self.net
+    
+    def make_optimizer(self, net, lr, weight_decay):
+        
+        return torch.optim.Adam(
+            [
+                {'params': net.transformer.parameters(), 'lr': self.transforer_lr_multiplier* lr},
+                {'params': net.conv_net.parameters(), 'lr': self.cnn_multiplier*lr},
+                {'params': net.regressor.parameters(), 'lr': self.regressor_multiplier*lr}
+            ], lr=lr,
+            weight_decay=weight_decay)
 
     def train(
         self,
@@ -121,7 +134,7 @@ class JointValAttentionFullTrainer():
         # nn.L1Loss().to(args["device"]) #nn.CrossEntropyLoss().to(args["device"])
         #criterion = torch.nn.L1Loss().to(self.device)
         criterion = self.criterion.to(self.device)
-        optimizer = torch.optim.Adam(net.parameters(), lr=lr,
+        optimizer =  self.make_optimizer(net, lr=lr,
                                      weight_decay=weight_decay)
 
         epoch_trainer = EpochTrainerXY(net, optimizer, criterion, self.device)
