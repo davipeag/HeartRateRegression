@@ -3,7 +3,7 @@ from preprocessing_utils import (
     HZMeanSubstitute, ZTransformer2, FFT, FFT_KEEP,
     TimeSnippetAggregator, FeatureLabelSplit,
     TransformerPipeline, SampleMaker, NoDiffInitialStatePredictionSplit,
-    RecursiveHrMasker, Downsampler)
+    RecursiveHrMasker, Downsampler, IdentityTransformer)
 
 
 class PreprocessingTransformerGetter():
@@ -58,13 +58,14 @@ class PreprocessingTransformerGetter():
 
 
 class IeeePreprocessingTransformerGetter():
-    def __init__(self, donwsampling_ratio=32/125):
+    def __init__(self, donwsampling_ratio=32/125, do_fft = True):
         self.ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
                 'wrist-BVP-0', 'wrist-BVP-1'], dataset= "ieee_train")
         
         
         self.downsampler = Downsampler(donwsampling_ratio)
         self.downsampling_ratio = donwsampling_ratio
+        self.do_fft = do_fft
 
     def __call__(self, ts_per_sample=30, ts_per_is=2, frequency_hz=32,
                                         period_s=8, step_s=2):
@@ -81,8 +82,10 @@ class IeeePreprocessingTransformerGetter():
     
         meansub = HZMeanSubstitute()
 
-        
-        fft = FFT(BVP_IDX)
+        if do_fft:
+            fft = FFT(BVP_IDX)
+        else:
+            fft = IdentityTransformer()
 
         feature_label_splitter = FeatureLabelSplit(
             label_column = "heart_rate",

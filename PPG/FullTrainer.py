@@ -483,7 +483,7 @@ class IeeeJointValConvTransfRnnFullTrainer():
     def __init__(self, dfs, device, nrun = 40):
         self.dfs = dfs
         self.device = device
-        self.transformers = PPG.PceLstmDefaults.IeeePreprocessingTransformerGetter()
+        self.transformers = PPG.PceLstmDefaults.IeeePreprocessingTransformerGetter(downsampling_ratio=1, do_fft=False)
         self.nrun = nrun
     def train(
         self,
