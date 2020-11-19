@@ -82,7 +82,7 @@ class IeeePreprocessingTransformerGetter():
     
         meansub = HZMeanSubstitute()
 
-        if do_fft:
+        if self.do_fft:
             fft = FFT(BVP_IDX)
         else:
             fft = IdentityTransformer()
