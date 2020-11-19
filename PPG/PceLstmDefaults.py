@@ -7,10 +7,11 @@ from preprocessing_utils import (
 
 
 class PreprocessingTransformerGetter():
-    def __init__(self):
+    def __init__(self, use_fft = True):
         self.ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
                 'wrist-BVP-0', 'wrist-EDA-0', 'wrist-TEMP-0', 'chest-ACC-0',
                 'chest-ACC-1', 'chest-ACC-2', 'chest-Resp-0'])
+        self.use_fft = use_fft
 
     def __call__(self, ts_per_sample=30, ts_per_is=2, frequency_hz=32, period_s=8, step_s=2):
 
@@ -27,8 +28,10 @@ class PreprocessingTransformerGetter():
     
         meansub = HZMeanSubstitute()
 
-
-        fft = FFT(BVP_IDX)
+        if self.use_fft:
+            fft = FFT(BVP_IDX)
+        else:
+            fft = IdentityTransformer()
 
         feature_label_splitter = FeatureLabelSplit(
             label_column = "heart_rate",

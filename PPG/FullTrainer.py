@@ -544,3 +544,71 @@ class IeeeJointValConvTransfRnnFullTrainer():
             "metric": metric,
             "run_class": self.__class__.__name__
         }
+
+class NoHrConvTransfRnnFullTrainer():
+    def __init__(self, dfs, device, nepoc=40):
+        self.dfs = dfs
+        self.device = device
+        self.train_helper = None
+        self.metrics_computer = None
+        self.transformers = PPG.PceLstmDefaults.PreprocessingTransformerGetter(use_fft=False)        
+        self.nepoch = nepoc
+    def train(
+        self,
+        input_channels,
+        bvp_idx = [4],
+        nfilters=64, dropout_rate=0.1, embedding_size=128,
+        bvp_embedding_size=12, predictor_hidden_size=32, feedforward_expansion=2,
+        num_encoder_layers= 2, num_decoder_layers=2,
+        nheads=4,
+
+        lr=0.001,
+        weight_decay=0.0001,
+        batch_size=128,
+        ts_sub=0,
+        val_sub=4
+    ):
+        args = locals()
+        args.pop("self")
+        net_args = copy.deepcopy(args)
+        [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size")]
+
+        transformers_tr = self.transformers()
+        ts_per_sample = int(len(self.dfs[ts_sub])/(32*8))-3
+        transformers_ts = self.transformers(ts_per_sample=ts_per_sample)
+
+        loader_tr, loader_val, loader_ts = UtilitiesDataXY.DataLoaderFactory(
+            transformers_tr, dfs= self.dfs, batch_size_tr=batch_size,
+            transformers_ts=transformers_ts, dataset_cls=PPG.UtilitiesDataXY.ISDataset
+        ).make_loaders(ts_sub, val_sub)
+
+        net = PPG.Models.ConvTransfRNN(
+            **net_args).to(self.device)
+        initialize_weights(net)
+    
+        criterion = torch.nn.MSELoss().to(self.device)
+        optimizer = torch.optim.Adam(net.parameters(), lr=lr,
+                                     weight_decay=weight_decay)
+
+        epoch_trainer = EpochTrainerIS(net, optimizer, criterion, self.device)
+        
+        ztransformer = self.transformers.ztransformer
+
+        metrics_comuter = MetricsComputerIS(ztransformer)
+        self.metrics_computer = metrics_comuter
+        train_helper = TrainHelperIS(
+            epoch_trainer, loader_tr, loader_val, loader_ts, metrics_comuter.mae)
+        self.train_helper = train_helper
+        metric = train_helper.train(self.nepoch)
+
+        p = [metrics_comuter.inverse_transform_label(v)
+             for v in epoch_trainer.evaluate(loader_ts)[-2:]]
+
+        return {
+            "args": args,
+            "predictions": p,
+            "metric": metric,
+            "run_class": self.__class__.__name__
+        }
+
+
