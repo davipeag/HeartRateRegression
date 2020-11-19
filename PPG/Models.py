@@ -115,4 +115,89 @@ class SnippetConvolutionalTransformer(nn.Module):
         return self.regressor(t_o)[-1]
 
 
+class ConvTransfRNN(nn.Module):
+  def __init__(self, input_channels, bvp_idx, nfilters=64, dropout_rate=0.1, embedding_size=128,
+               bvp_embedding_size=12, predictor_hidden_size=32, feedforward_expansion=2,
+               num_encoder_layers= 2, num_decoder_layers=2,
+               nheads=4):
+    super(ConvTransfRNN, self).__init__()
+    if isinstance(bvp_idx, list):
+      self.bvp_idx = bvp_idx
+    else:
+      self.bvp_idx = [bvp_idx]
 
+    self.embedding_size = embedding_size
+
+    self.encoder_bvp =  nn.Sequential(
+          nn.Conv1d(len(self.bvp_idx), nfilters, kernel_size=(3,), stride=(2,), padding=1),
+          nn.LeakyReLU(negative_slope=0.01),
+          nn.Dropout(dropout_rate),
+          nn.Conv1d(nfilters, nfilters, kernel_size=(3,), stride=(2,), padding = 1),
+          nn.LeakyReLU(negative_slope=0.01),
+          nn.Dropout(dropout_rate),
+          nn.Conv1d(nfilters, nfilters, kernel_size=(3,), stride=(2,), padding = 1),
+          nn.LeakyReLU(negative_slope=0.01),
+          nn.Dropout(dropout_rate),
+          nn.Conv1d(nfilters, bvp_embedding_size, kernel_size=(3,), stride=(2,), padding = 1)
+      )
+
+    self.encoder =  nn.Sequential(
+          nn.Conv1d(input_channels, nfilters, kernel_size=(3,), stride=(2,), padding=1),
+          nn.LeakyReLU(negative_slope=0.01),
+          nn.Dropout(dropout_rate),
+          nn.Conv1d(nfilters, nfilters, kernel_size=(3,), stride=(2,), padding = 1),
+          nn.LeakyReLU(negative_slope=0.01),
+          nn.Dropout(dropout_rate),
+          nn.Conv1d(nfilters, nfilters, kernel_size=(3,), stride=(2,), padding = 1),
+          nn.LeakyReLU(negative_slope=0.01),
+          nn.Dropout(dropout_rate),
+          nn.Conv1d(nfilters, embedding_size - bvp_embedding_size, kernel_size=(3,), stride=(2,), padding = 1),
+          nn.Dropout(dropout_rate),
+          nn.LeakyReLU()
+          )
+
+    self.predictor = nn.Sequential(nn.Linear(embedding_size, predictor_hidden_size),
+                                  nn.LeakyReLU(), nn.Linear(predictor_hidden_size,1), nn.LeakyReLU())
+
+    self.initial_net = nn.Linear(embedding_size, embedding_size)
+
+    self.transformer = nn.Transformer(
+                embedding_size, nhead=nheads, num_encoder_layers=num_encoder_layers,
+                num_decoder_layers=num_decoder_layers,
+                dim_feedforward=int(feedforward_expansion*embedding_size))
+
+
+  def forward(self, xi, yi, xp):
+    xi_bvp = xi[:, : , self.bvp_idx[0]: self.bvp_idx[-1]+1, :]
+    xp_bvp = xp[:, : , self.bvp_idx[0]: self.bvp_idx[-1]+1, :]
+
+    encoded_xp_imu = torch.stack([self.encoder(b)
+              for b in xp])
+
+    encoded_xp_bvp = torch.stack([self.encoder_bvp(b)
+              for b in xp_bvp])
+
+    encoded_xp = torch.cat([encoded_xp_imu, encoded_xp_bvp], dim=2).transpose(0,1).transpose(2,3).transpose(2,1)
+
+    encoded_xi_imu = torch.stack([self.encoder(b)
+              for b in xi])
+
+    encoded_xi_bvp = torch.stack([self.encoder_bvp(b)
+              for b in xi_bvp])
+
+    encoded_xi = torch.cat([encoded_xi_imu, encoded_xi_bvp], dim=2).transpose(0,1).transpose(2,3).transpose(2,1)
+
+
+    sv = self.initial_net(torch.ones([1, xi.shape[0],self.embedding_size]).to(next(self.parameters()).device))
+
+    for x in encoded_xi:
+      sv = self.transformer(x, sv)
+      
+
+    ps = list()
+    for x in encoded_xp:
+      sv = self.transformer(x, sv)
+      ps.append(self.predictor(sv[-1:]))
+
+    p = torch.cat(ps,dim=0).transpose(0,1)
+    return p
