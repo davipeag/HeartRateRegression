@@ -480,11 +480,12 @@ class IeeeJointValAttentionFullTrainer():
         }
 
 class IeeeJointValConvTransfRnnFullTrainer():
-    def __init__(self, dfs, device, nrun = 40):
+    def __init__(self, dfs, device, nrun = 40, model_cls=PPG.Models.ConvTransfRNN):
         self.dfs = dfs
         self.device = device
         self.transformers = PPG.PceLstmDefaults.IeeePreprocessingTransformerGetter(donwsampling_ratio=1, do_fft=False)
         self.nrun = nrun
+        self.model_cls = model_cls
     def train(
         self,
 
@@ -518,7 +519,7 @@ class IeeeJointValConvTransfRnnFullTrainer():
             transformers_ts=transformers_ts, dataset_cls=PPG.UtilitiesDataXY.ISDataset
         ).make_loaders(ts_sub, 0.8)
 
-        net = PPG.Models.ConvTransfRNN(
+        net = self.model_cls(
             **net_args).to(self.device)
         initialize_weights(net)
     
