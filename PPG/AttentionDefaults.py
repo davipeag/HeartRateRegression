@@ -89,7 +89,7 @@ class IeeePreprocessingTransformerGetter():
             feature_columns = feature_columns
         )
 
-        ts_aggregator = TimeSnippetAggregator(size=int(frequency*period_s))#, step=int(frequency*step_s))
+        ts_aggregator = TimeSnippetAggregator(size=int(frequency*period_s), step=int(frequency*step_s))
 
         if sequence_length > 1:
             sequence_step = sequence_length//2
