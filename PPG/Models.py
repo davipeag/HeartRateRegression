@@ -127,6 +127,7 @@ class ConvTransfRNN(nn.Module):
       self.bvp_idx = [bvp_idx]
 
     self.embedding_size = embedding_size
+    self.dropout_rate = dropout_rate
 
     self.encoder_bvp =  nn.Sequential(
           nn.Conv1d(len(self.bvp_idx), nfilters, kernel_size=(3,), stride=(2,), padding=1),
@@ -155,11 +156,46 @@ class ConvTransfRNN(nn.Module):
           nn.Dropout(dropout_rate),
           nn.LeakyReLU()
           )
+    
+    self.iencoder = nn.Sequential(
+        self.encoder,
+        nn.Conv1d(embedding_size - bvp_embedding_size, nfilters, kernel_size=(3,), stride=(2,), padding=(1,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Dropout(self.dropout_rate),
+        nn.Conv1d(nfilters, nfilters, kernel_size=(3,), stride=(2,), padding=(1,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Dropout(self.dropout_rate),
+        nn.Conv1d(nfilters, nfilters, kernel_size=(3,), stride=(2,), padding=(1,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Conv1d(nfilters, embedding_size - bvp_embedding_size, kernel_size=(2,), stride=(2,)),
+        nn.Dropout(self.dropout_rate),
+        nn.LeakyReLU(negative_slope=0.01)
+    )
+
+    self.iencoder_bvp = nn.Sequential(
+        self.encoder_bvp,
+        nn.Conv1d(bvp_embedding_size, nfilters, kernel_size=(3,), stride=(2,), padding=(1,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Dropout(self.dropout_rate),
+        nn.Conv1d(nfilters, nfilters, kernel_size=(3,), stride=(2,), padding=(1,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Dropout(self.dropout_rate),
+        nn.Conv1d(nfilters, nfilters, kernel_size=(3,), stride=(2,), padding=(1,)),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Conv1d(nfilters, bvp_embedding_size, kernel_size=(2,), stride=(2,)),
+        nn.Dropout(self.dropout_rate),
+        nn.LeakyReLU(negative_slope=0.01)
+    )
+
+    self.is_encoder = nn.Sequential(
+        nn.Conv1d(embedding_size, embedding_size, kernel_size=(2,), stride=(2,)),
+        nn.LeakyReLU(negative_slope=0.01),
+    )
 
     self.predictor = nn.Sequential(nn.Linear(embedding_size, predictor_hidden_size),
                                   nn.LeakyReLU(), nn.Linear(predictor_hidden_size,1), nn.LeakyReLU())
 
-    self.initial_net = nn.Linear(embedding_size, embedding_size)
+    # self.initial_net = nn.Linear(embedding_size, embedding_size)
 
     self.transformer = nn.Transformer(
                 embedding_size, nhead=nheads, num_encoder_layers=num_encoder_layers,
@@ -179,19 +215,36 @@ class ConvTransfRNN(nn.Module):
 
     encoded_xp = torch.cat([encoded_xp_imu, encoded_xp_bvp], dim=2).transpose(0,1).transpose(2,3).transpose(2,1)
 
-    encoded_xi_imu = torch.stack([self.encoder(b)
-              for b in xi])
+    # encoded_xi_imu = torch.stack([self.encoder(b)
+    #           for b in xi])
 
-    encoded_xi_bvp = torch.stack([self.encoder_bvp(b)
-              for b in xi_bvp])
+    # encoded_xi_bvp = torch.stack([self.encoder_bvp(b)
+    #           for b in xi_bvp])
 
-    encoded_xi = torch.cat([encoded_xi_imu, encoded_xi_bvp], dim=2).transpose(0,1).transpose(2,3).transpose(2,1)
+    # encoded_xi = torch.cat([encoded_xi_imu, encoded_xi_bvp], dim=2).transpose(0,1).transpose(2,3).transpose(2,1)
+
+    xin = xi.transpose(1,2).reshape(xi.shape[0], xi.shape[2],  -1)
+    xin_bvp = xi_bvp.transpose(1,2).reshape(xi_bvp.shape[0], xi_bvp.shape[2],  -1)
+
+     
+
+    encoded_xi_imu = self.iencoder(xin) #self.ts_encoder(xin)
+    encoded_xi_bvp = self.iencoder_bvp(xin_bvp)# self.ts_encoder_bvp(xin_bvp)
+
+    encoded_xi = self.is_encoder(torch.cat([encoded_xi_imu, encoded_xi_bvp],dim=1))
+
+    #print(encoded_xi_imu2.shape, xin.shape)
+    #print(encoded_xi_bvp2.shape, xin_bvp.shape)
+
+    #sv = self.initial_net(torch.ones([1, xi.shape[0],self.embedding_size]).to(next(self.parameters()).device))
+    #torch.Size([50, 128, 1]) torch.Size([1, 50, 128])
+    sv = encoded_xi.permute(2,0,1)
+
+    #print(encoded_xi2.shape, sv.shape, sv2.shape)
 
 
-    sv = self.initial_net(torch.ones([1, xi.shape[0],self.embedding_size]).to(next(self.parameters()).device))
-
-    for x in encoded_xi:
-      sv = self.transformer(x, sv)
+    # for x in encoded_xi:
+    #   sv = self.transformer(x, sv)
       
 
     ps = list()
