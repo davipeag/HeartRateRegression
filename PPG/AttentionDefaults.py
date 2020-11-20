@@ -1,7 +1,7 @@
 from preprocessing_utils import (
     HZMeanSubstitute, ZTransformer2, FFTXY, FFTXY_KEEP, FFTXY2,
     TimeSnippetAggregator, FeatureLabelSplit,
-    TransformerPipeline, Downsampler)
+    TransformerPipeline, Downsampler, SlidingWindow, IdentityTransformer)
 
 
 class PreprocessingTransformerGetter():
@@ -10,7 +10,7 @@ class PreprocessingTransformerGetter():
                 'wrist-BVP-0', 'wrist-EDA-0', 'wrist-TEMP-0', 'chest-ACC-0',
                 'chest-ACC-1', 'chest-ACC-2', 'chest-Resp-0'])
 
-    def __call__(self, frequency_hz=32, period_s=8, step_s=2):
+    def __call__(self, frequency_hz=32, period_s=8, step_s=2, sequence_length = 1):
 
         feature_columns = [
                     'heart_rate',
@@ -34,6 +34,11 @@ class PreprocessingTransformerGetter():
             feature_columns = feature_columns
         )
         ts_aggregator = TimeSnippetAggregator(size=frequency_hz*period_s, step=frequency_hz*step_s)
+        if sequence_length > 1:
+            sequence_step = sequence_length//2
+            sliding_window = SlidingWindow(sequence_length, sequence_step)
+        else:
+            sliding_window = IdentityTransformer()
 
         return TransformerPipeline(
             ztransformer,
@@ -41,6 +46,7 @@ class PreprocessingTransformerGetter():
             ts_aggregator,
             meansub,
             fftxy,
+            sliding_window
             )
 
 
@@ -56,7 +62,7 @@ class IeeePreprocessingTransformerGetter():
         self.downsampling_ratio = ratio
 
 
-    def __call__(self, frequency_hz=125, period_s=8, step_s = 2):
+    def __call__(self, frequency_hz=125, period_s=8, step_s = 2, sequence_length=1):
 
         
         feature_columns = [
@@ -85,6 +91,12 @@ class IeeePreprocessingTransformerGetter():
 
         ts_aggregator = TimeSnippetAggregator(size=int(frequency*period_s))#, step=int(frequency*step_s))
 
+        if sequence_length > 1:
+            sequence_step = sequence_length//2
+            sliding_window = SlidingWindow(sequence_length, sequence_step)
+        else:
+            sliding_window = IdentityTransformer()
+
         return TransformerPipeline(
             self.downsampler,
             self.ztransformer,
@@ -92,6 +104,7 @@ class IeeePreprocessingTransformerGetter():
             ts_aggregator,
             meansub,
             fftxy,
+            sliding_window
         )
 
 
