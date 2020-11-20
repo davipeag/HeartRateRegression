@@ -546,13 +546,14 @@ class IeeeJointValConvTransfRnnFullTrainer():
         }
 
 class NoHrConvTransfRnnFullTrainer():
-    def __init__(self, dfs, device, nepoc=40):
+    def __init__(self, dfs, device, nepoc=40, model_cls =  PPG.Models.ConvTransfRNN):
         self.dfs = dfs
         self.device = device
         self.train_helper = None
         self.metrics_computer = None
         self.transformers = PPG.PceLstmDefaults.PreprocessingTransformerGetter(use_fft=True)        
         self.nepoch = nepoc
+        self.model_cls = model_cls
     def train(
         self,
         input_channels,
@@ -582,7 +583,7 @@ class NoHrConvTransfRnnFullTrainer():
             transformers_ts=transformers_ts, dataset_cls=PPG.UtilitiesDataXY.ISDataset
         ).make_loaders(ts_sub, val_sub)
 
-        net = PPG.Models.ConvTransfRNN(
+        net = self.model_cls(
             **net_args).to(self.device)
         initialize_weights(net)
     
