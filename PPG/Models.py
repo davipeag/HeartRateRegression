@@ -439,3 +439,102 @@ class ConvTransfRNN2(nn.Module):
 
         p = torch.cat(ps, dim=0).transpose(0, 1)
         return p
+
+
+class SnippetConvolutionalRNNTransformer(nn.Module):
+    def __init__(
+            self,
+            nfeatures=4,
+            conv_filters=64,
+            nconv_layers=4,
+            conv_dropout=0.5,
+            nenc_layers=2,
+            ndec_layers=2,
+            nhead=4,
+            feedforward_expansion=2,
+            nlin_layers=2,
+            lin_size=32,
+            lin_dropout=0
+    ):
+
+        super(SnippetConvolutionalRNNTransformer, self).__init__()
+
+        if nconv_layers == 0:
+            t_size = nfeatures
+        else:
+            t_size = nfeatures*conv_filters  # transformer input size
+
+        self.transformer = nn.Transformer(
+            t_size, nhead=nhead, num_encoder_layers=nenc_layers,
+            num_decoder_layers=ndec_layers,
+            dim_feedforward=int(feedforward_expansion*t_size))
+
+        self.conv_net = self.make_conv_net(
+            1, conv_filters, conv_filters, nconv_layers, conv_dropout)
+
+        self.regressor = self.make_lin_net(
+            t_size, lin_size, 1, nlin_layers, lin_dropout)
+
+        #initialize_weights(self)
+
+    def make_conv_layer(self, input_channels, output_channels, dropout_rate):
+        return nn.Sequential(
+            # , padding=(2,0)),
+            nn.Conv2d(input_channels, output_channels, (5, 1)),
+            nn.LeakyReLU(),
+            nn.Dropout(dropout_rate)
+        )
+
+    def make_lin_layer(self, input_size, output_size, dropout_rate):
+        return nn.Sequential(
+            nn.Linear(input_size, output_size),
+            nn.LeakyReLU(),
+            nn.Dropout(dropout_rate)
+        )
+
+    def make_conv_net(self, input_channels, hidden_channels, output_channels, nlayers, dropout_rate):
+        if nlayers == 0:
+            return nn.Identity()
+        elif nlayers == 1:
+            return self.make_conv_layer(input_channels, output_channels, dropout_rate)
+        return nn.Sequential(
+            self.make_conv_layer(
+                input_channels, hidden_channels, dropout_rate),
+            *[
+                self.make_conv_layer(
+                    hidden_channels, hidden_channels, dropout_rate)
+                for _ in range(nlayers - 2)
+            ],
+            self.make_conv_layer(
+                hidden_channels, output_channels, dropout_rate)
+        )
+
+    def make_lin_net(self, input_channels, hidden_channels, output_channels, nlayers, dropout_rate):
+        if nlayers == 0:
+            return nn.Identity()
+        elif nlayers == 1:
+            return self.make_lin_layer(input_channels, output_channels, dropout_rate)
+        return nn.Sequential(
+            self.make_lin_layer(input_channels, hidden_channels, dropout_rate),
+            *[
+                self.make_lin_layer(
+                    hidden_channels, hidden_channels, dropout_rate)
+                for _ in range(nlayers - 2)
+            ],
+            self.make_lin_layer(hidden_channels, output_channels, dropout_rate)
+        )
+
+    def forward(self, x):
+        xr0 = x[:, 0, ]
+        xr = x[:, :, :, :, 1:]  # disconsider heart rate, therefore begins from 1
+        # print(xr.shape, x.shape)
+        xr0 = xr[:, 0]
+        cd = torch.flatten(self.conv_net(xr0).transpose(1, 2), 2).transpose(0, 1)[-1:]
+        ps = list()
+        for i in range(x.shape[1]):
+          xri = xr[:, i] 
+          # print(self.conv_net(xri).transpose(1, 2).shape)
+          ci = torch.flatten(self.conv_net(xri).transpose(1, 2), 2).transpose(0, 1)
+          cd = self.transformer(ci, cd)
+          ps.append(self.regressor(cd)[-1])
+        return torch.stack(ps)
