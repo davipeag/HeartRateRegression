@@ -551,7 +551,7 @@ class NoHrConvTransfRnnFullTrainer():
         self.device = device
         self.train_helper = None
         self.metrics_computer = None
-        self.transformers = PPG.PceLstmDefaults.PreprocessingTransformerGetter(use_fft=False)        
+        self.transformers = PPG.PceLstmDefaults.PreprocessingTransformerGetter(use_fft=True)        
         self.nepoch = nepoc
     def train(
         self,
