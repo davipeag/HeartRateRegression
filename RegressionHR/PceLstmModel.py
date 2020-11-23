@@ -1,8 +1,7 @@
 import torch
 from torch import nn
-
 class HiddenInitializationConvLSTMAssembler(torch.nn.Module):
-    def __init__(self, ts_encoder, ts_encoder_bvp, is_encoder, h0_fc_net, c0_fc_net,
+    def __init__(self, ts_encoder, is_encoder, h0_fc_net, c0_fc_net,
                  lstm, fc_net, predictor, bvp_idx = 4):
         """
         initial_points: number of datapoints in initial baseline (yi.shape[1])
@@ -10,7 +9,6 @@ class HiddenInitializationConvLSTMAssembler(torch.nn.Module):
         super(HiddenInitializationConvLSTMAssembler, self).__init__()
 
         self.ts_encoder = ts_encoder
-        self.ts_encoder_bvp = ts_encoder_bvp
         self.is_encoder = is_encoder
         self.h0_fc_net = h0_fc_net
         self.c0_fc_net = c0_fc_net
@@ -40,27 +38,14 @@ class HiddenInitializationConvLSTMAssembler(torch.nn.Module):
         return h0, c0
       
     def forward(self,xi, yi, xp):
-
-        xi_bvp = xi[:, : , self.bvp_idx: self.bvp_idx+1, :]
-        xp_bvp = xp[:, : , self.bvp_idx: self.bvp_idx+1, :]
-
-        encoded_xp_imu = torch.cat(
-            [self.ts_encoder(b).transpose(0,2).transpose(1,2)
-             for b in xp], dim=0)
+        encoded_xp= torch.cat(
+        [self.ts_encoder(b).transpose(0,2).transpose(1,2)
+          for b in xp], dim=0)
       
-        encoded_xp_bvp = torch.cat(
-            [self.ts_encoder_bvp(b).transpose(0,2).transpose(1,2)
-             for b in xp_bvp], dim=0)
-
-        encoded_xp = torch.cat((encoded_xp_bvp, encoded_xp_imu), axis=-1)
-
         xin = xi.transpose(1,2).reshape(xi.shape[0], xi.shape[2],  -1)
-        xin_bvp = xi_bvp.transpose(1,2).reshape(xi_bvp.shape[0], xi_bvp.shape[2],  -1)
-
+        
         encoded_xi = self.ts_encoder(xin)
-        encoded_xi_bvp = self.ts_encoder_bvp(xin_bvp)
-
-        ie = torch.cat([encoded_xi, encoded_xi_bvp, yi.transpose(2,1)], axis=1)
+        ie = torch.cat([encoded_xi, yi.transpose(2,1)], axis=1)
         
         i_enc = self.is_encoder(ie).reshape(xi.shape[0], -1)
         h = self.h0_fc_net(i_enc)
@@ -73,13 +58,12 @@ class HiddenInitializationConvLSTMAssembler(torch.nn.Module):
 
 class MakeOurConvLSTM():
   def __init__(self, ts_h_size = 32, lstm_size=32, lstm_input = 128, dropout_rate = 0,
-               bvp_count=12, nattrs = 5):
+               nattrs = 5):
     self.ts_h_size = ts_h_size
     self.lstm_size = lstm_size
     self.lstm_input = lstm_input
     self.dropout_rate = dropout_rate
     self.nattrs = nattrs
-    self.bvp_count = bvp_count
 
   def make_ts_encoder(self, input_channels, output_channels, nfilters):
     return nn.Sequential(
@@ -98,10 +82,10 @@ class MakeOurConvLSTM():
       nn.Conv1d(nfilters, nfilters, kernel_size=(3,), stride=(2,), padding=(1,)),
       nn.LeakyReLU(negative_slope=0.01),
       nn.Dropout(self.dropout_rate),
-      nn.Conv1d(nfilters, nfilters, kernel_size=(3,), stride=(2,), padding=(1,)),
+      nn.Conv1d(nfilters, nfilters, kernel_size=(3,), stride=(2,)),# padding=(1,)),
       nn.LeakyReLU(negative_slope=0.01),
       nn.Dropout(self.dropout_rate),
-      nn.Conv1d(nfilters, nfilters, kernel_size=(3,), stride=(2,), padding=(1,)),
+      nn.Conv1d(nfilters, nfilters, kernel_size=(3,), stride=(2,)),#, padding=(1,)),
       nn.LeakyReLU(negative_slope=0.01),
       nn.Conv1d(nfilters, output_channels, kernel_size=(2,), stride=(2,)),
       nn.Dropout(self.dropout_rate),
@@ -138,8 +122,7 @@ class MakeOurConvLSTM():
   
   def __call__(self):
     net = HiddenInitializationConvLSTMAssembler(
-    ts_encoder= self.make_ts_encoder(self.nattrs, self.lstm_input - self.bvp_count, self.ts_h_size),
-    ts_encoder_bvp = self.make_ts_encoder(1, self.bvp_count, self.ts_h_size),
+    ts_encoder= self.make_ts_encoder(self.nattrs, self.lstm_input, self.ts_h_size),
     is_encoder = self.make_is_encoder(),
     h0_fc_net = self.make_h0_fc_net(),
     c0_fc_net = self.make_c0_fc_net(),
@@ -155,10 +138,7 @@ def make_pce_lstm(
     lstm_size=32,
     lstm_input = 128,
     dropout_rate = 0,
-    bvp_count=12,
     nattrs=5
     ):
   return MakeOurConvLSTM(ts_h_size, lstm_size, lstm_input, dropout_rate,
-                bvp_count, nattrs)()
-
-
+                nattrs)()
