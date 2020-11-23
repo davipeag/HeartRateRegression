@@ -17,7 +17,7 @@ class PamapPreprocessingTransformerGetter():
             'c_ymag', 'c_zmag', 'a_temperature', 'a_xacc16', 'a_yacc16',
             'a_zacc16', 'a_xacc6', 'a_yacc6', 'a_zacc6', 'a_xgyr',
             'a_ygyr', 'a_zgyr', 'a_xmag', 'a_ymag', 'a_zmag'
-        ])
+        ], dataset="pamap2")
         self.use_fft = use_fft
 
     def __call__(self, ts_per_sample=30, ts_per_is=2, frequency_hz=100, period_s=4, step_s=2):
