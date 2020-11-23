@@ -7,7 +7,7 @@ from preprocessing_utils import (
 
 
 class PamapPreprocessingTransformerGetter():
-    def __init__(self, use_fft = True):
+    def __init__(self):
         self.ztransformer = ZTransformer2([
             'heart_rate', 'h_temperature', 'h_xacc16', 'h_yacc16', 'h_zacc16',
             'h_xacc6', 'h_yacc6', 'h_zacc6', 'h_xgyr', 'h_ygyr',
@@ -18,7 +18,6 @@ class PamapPreprocessingTransformerGetter():
             'a_zacc16', 'a_xacc6', 'a_yacc6', 'a_zacc6', 'a_xgyr',
             'a_ygyr', 'a_zgyr', 'a_xmag', 'a_ymag', 'a_zmag'
         ], dataset="pamap2")
-        self.use_fft = use_fft
 
     def __call__(self, ts_per_sample=30, ts_per_is=2, frequency_hz=100, period_s=4, step_s=2):
 
