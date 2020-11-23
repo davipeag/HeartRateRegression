@@ -36,7 +36,7 @@ class PceLstmFullTrainer():
         args = locals()
         args.pop("self")
         net_args = copy.deepcopy(args)
-        [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size")]
+        [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size", "ts_per_samples")]
         frequency_hz = 100
         period_s = 4
         step_s = 2
