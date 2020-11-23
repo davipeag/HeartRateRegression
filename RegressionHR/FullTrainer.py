@@ -12,13 +12,13 @@ from preprocessing_utils import ZTransformer2
 
 
 class PceLstmFullTrainer():
-    def __init__(self, dfs, device, ts_sub, val_sub):
+    def __init__(self, dfs, device, ts_sub, val_sub, nepoch = 40):
         self.dfs = dfs
         self.ts_sub = ts_sub
         self.val_sub = val_sub
         self.device = device
         self.transformers = RegressionHR.PceLstmDefaults.PamapPreprocessingTransformerGetter()
-
+        self.nepoch = nepoch
     def train(
         self,
         ts_h_size = 32,
@@ -30,7 +30,8 @@ class PceLstmFullTrainer():
         weight_decay=0.0001,
         batch_size=128,
         ts_sub=5,
-        val_sub=4
+        val_sub=4,
+        ts_per_samples = [30, 60]
     ):
         args = locals()
         args.pop("self")
@@ -39,14 +40,12 @@ class PceLstmFullTrainer():
         frequency_hz = 100
         period_s = 4
         step_s = 2
-        transformers_tr = self.transformers(period_s=period_s, step_s=step_s, frequency_hz=frequency_hz)
-        ts_per_sample = int(len(self.dfs[val_sub])/(frequency_hz*step_s))-3
-        transformers_val = self.transformers(ts_per_sample=ts_per_sample)
+        
+        ldf = min(len(self.dfs[self.val_sub]), len(self.dfs[self.ts_sub]))
+        ts_per_sample_val = int(ldf/(frequency_hz*step_s))-3
+        transformers_val = self.transformers(period_s = period_s, step_s = step_s, frequency_hz = frequency_hz, ts_per_sample=ts_per_sample_val)
 
-        loader_tr, loader_val, loader_ts = UtilitiesDataXY.DataLoaderFactory(
-            transformers_tr, dfs= self.dfs, batch_size_tr=batch_size,
-            transformers_val=transformers_val, dataset_cls=PPG.UtilitiesDataXY.ISDataset
-        ).make_loaders(ts_sub, val_sub)
+        
 
         net = RegressionHR.PceLstmModel.make_pce_lstm(
             **net_args).to(self.device)
@@ -59,10 +58,19 @@ class PceLstmFullTrainer():
         ztransformer = self.transformers.ztransformer
         metrics_comuter = MetricsComputerIS(ztransformer)
 
-        train_helper = TrainHelperIS(
-            epoch_trainer, loader_tr, loader_val, loader_ts, metrics_comuter.mae)
+        for ts_per_sample in ts_per_samples:
 
-        metric = train_helper.train(30)
+            transformers_tr = self.transformers(period_s=period_s, step_s=step_s, frequency_hz=frequency_hz, ts_per_sample=ts_per_sample)
+
+            loader_tr, loader_val, loader_ts = UtilitiesDataXY.DataLoaderFactory(
+                transformers_tr, dfs= self.dfs, batch_size_tr=batch_size,
+                transformers_val=transformers_val, dataset_cls=PPG.UtilitiesDataXY.ISDataset
+            ).make_loaders(ts_sub, val_sub)
+
+            train_helper = TrainHelperIS(
+                epoch_trainer, loader_tr, loader_val, loader_ts, metrics_comuter.mae)
+
+            metric = train_helper.train(self.nepoch)
 
         p = [metrics_comuter.inverse_transform_label(v)
              for v in epoch_trainer.evaluate(loader_ts)[-2:]]
