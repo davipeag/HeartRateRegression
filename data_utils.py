@@ -14,6 +14,7 @@ class Pamap2Handler():
         cache_dir: directory where to download and extract dataset
         out: callable which receives log strings, defaults to print
         """
+        os.makedirs(cache_dir, exist_ok=True)
         self.url = "https://archive.ics.uci.edu/ml/machine-learning-databases/00231/PAMAP2_Dataset.zip"
         self.cache_dir = cache_dir
         self.log = out
