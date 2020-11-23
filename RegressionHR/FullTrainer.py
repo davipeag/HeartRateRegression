@@ -64,7 +64,7 @@ class PceLstmFullTrainer():
 
             loader_tr, loader_val, loader_ts = UtilitiesDataXY.DataLoaderFactory(
                 transformers_tr, dfs= self.dfs, batch_size_tr=batch_size,
-                transformers_val=transformers_val, dataset_cls=PPG.UtilitiesDataXY.ISDataset
+                transformers_val=transformers_val, transformers_ts=transformers_val, dataset_cls=PPG.UtilitiesDataXY.ISDataset
             ).make_loaders(ts_sub, val_sub)
 
             train_helper = TrainHelperIS(
