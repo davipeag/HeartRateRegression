@@ -196,8 +196,7 @@ class TrainHelperJoint():
                 loss_ts = self.compute_metric(self.loaders_ts)
                 test_metric = loss_ts 
                 best_val_models = self.get_state_dicts()# copy.deepcopy(self.trainer.model.state_dict())
-                print(f'[{epoch}/{n_epoch}]: loss_train: {loss_tr} loss_val {loss_val} loss_ts {loss_ts}' % (
-                    (epoch), n_epoch, loss_tr, loss_val, loss_ts))
+                print(f'[{epoch}/{n_epoch}]: loss_train: {loss_tr} loss_val {loss_val} loss_ts {loss_ts}' )
             validation_metrics.append(loss_val)
 
             # train_metrics.append(loss_tr)
