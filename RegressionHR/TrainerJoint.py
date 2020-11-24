@@ -180,7 +180,7 @@ class TrainHelperJoint():
         test_metric = self.compute_metric(self.loaders_ts) 
     
         for epoch in range(1, n_epoch+1):
-            self.trainer.train(self.loaders_tr)
+            self.trainer.train(*self.loaders_tr)
             loss_val = self.compute_metric(self.loaders_val)
             # loss_tr = self.compute_metric(self.loader_tr)
             # loss_ts = self.compute_metric(self.loader_ts)
