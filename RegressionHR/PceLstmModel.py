@@ -142,3 +142,66 @@ def make_pce_lstm(
     ):
   return MakeOurConvLSTM(ts_h_size, lstm_size, lstm_input, dropout_rate,
                 nattrs)()
+
+
+
+class Discriminator(torch.nn.Module):
+  def __init__(self, input_length, nlayers=3, layer_size=32, dropout_rate = 0, activation = torch.nn.LeakyReLU()):
+    super(Discriminator, self).__init__()
+    self.nlayers = nlayers
+    self.input_length = input_length
+    self.layer_size = layer_size
+    self.activation = activation
+    if nlayers > 0:
+      first_layer = self.make_layer(input_length, layer_size, self.activation)
+      last_layer = self.make_layer(layer_size, 1, torch.nn.Sigmoid())
+    else:
+      first_layer = torch.nn.Identity()
+      last_layer = self.make_layer(input_length, 1, torch.nn.Sigmoid())
+
+    self.discriminator =  torch.nn.Sequential(
+        first_layer,
+        *[self.make_layer(layer_size, layer_size, self.activation, dropout_rate) for _ in range(nlayers-1)],
+        last_layer)
+  
+  def make_layer(self, input_size, output_size, activation, dropout_rate=0):
+    return torch.nn.Sequential(torch.nn.Linear(input_size, output_size),
+                               torch.nn.Dropout(dropout_rate),
+                               activation)
+
+  def forward(self, x):
+    return self.discriminator(x)
+
+class PceDiscriminatorAssembler(torch.nn.Module):
+  def __init__(self, ts_encoder, is_encoder, discriminator):
+    super(PceDiscriminatorAssembler, self).__init__()
+    self.ts_encoder = ts_encoder
+    self.is_encoder = is_encoder
+    self.discriminator = discriminator
+  
+  def forward(self, x0, hr0, x1, hr1):
+    x0enc = self.ts_encoder(x0.transpose(1,2).reshape(x0.shape[0], x0.shape[2],  -1))
+    x1enc = self.ts_encoder(x1.transpose(1,2).reshape(x1.shape[0], x1.shape[2],  -1))
+
+    pce0 = self.is_encoder(torch.cat([x0enc, hr0.transpose(2,1)], axis=1)).squeeze(2)
+    pce1 = self.is_encoder(torch.cat([x1enc, hr1.transpose(2,1)], axis=1)).squeeze(2)
+  
+    return self.discriminator(torch.cat([pce0, pce1], axis=1))
+
+
+def make_pce_lstm_and_discriminator(
+    ts_h_size = 32,
+    lstm_size=32,
+    lstm_input = 128,
+    dropout_rate = 0,
+    nattrs=5,
+    disc_nlayers=3,
+    disc_layer_size=32,
+    disc_dropout_rate = 0
+    ):
+  pce_lstm = MakeOurConvLSTM(ts_h_size, lstm_size, lstm_input, dropout_rate,
+                nattrs)()
+  discriminator = Discriminator(lstm_size*2, disc_nlayers, disc_layer_size, disc_dropout_rate)
+
+  pce_discriminator = PceDiscriminatorAssembler(pce_lstm.ts_encoder, pce_lstm.is_encoder, discriminator)
+  return pce_lstm, pce_discriminator
