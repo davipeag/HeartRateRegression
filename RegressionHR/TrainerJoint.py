@@ -50,6 +50,8 @@ class BatchTraninerJoint():
     def train(self, batch1, batch2):
         model0 = self.get_model(0)
         model1 = self.get_model(1)
+        model0.train()
+        model1.train()
         model0.zero_grad()
         model1.zero_grad()
 
