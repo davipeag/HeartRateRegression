@@ -19,7 +19,7 @@ class LossComputer():
     def compute(self, batch):
         batch_d = list(map(lambda v: v.to(self.device), batch))
         p = self.net(*batch_d[:-1])
-        return batch_d + p
+        return [*batch_d, p]
 
     def compute_loss(self, batch):
         return self.criterion(*self.compute(batch)[-2:])

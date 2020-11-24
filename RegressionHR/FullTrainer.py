@@ -45,8 +45,6 @@ class PceLstmFullTrainer():
         ts_per_sample_val = int(ldf/(frequency_hz*step_s))-3
         transformers_val = self.transformers(period_s = period_s, step_s = step_s, frequency_hz = frequency_hz, ts_per_sample=ts_per_sample_val)
 
-        
-
         net = RegressionHR.PceLstmModel.make_pce_lstm(
             **net_args).to(self.device)
         initialize_weights(net)
