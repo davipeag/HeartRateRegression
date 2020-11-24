@@ -753,23 +753,31 @@ class ShuffleIS(BaseEstimator, TransformerMixin):
 
 
 class PceDecoderLoaderTransformer():
-    def __init__(self, transformers):
-        self.transformers = transformers
+  def __init__(self, transformers):
+    self.transformers = transformers
+  
+  def transform(self, df1, df2):
+   
+    min_size = min(len(df1),len(df2))
+    df1 = df1.sample(frac=1).reset_index(drop=True).iloc[0:min_size]
+    df2 = df2.sample(frac=1).reset_index(drop=True).iloc[0:min_size]
+    x0,hr0 = self.transformers.transform(df1)
+    x1,hr1 = self.transformers.transform(df2)
 
-    def transform(self, df1, df2=None):
-        if df2 is None:
-            df2 = df1.copy()
-            label = 1
-        else:
-            label = 0
-        min_size = min(len(df1), len(df2))
-        df1 = df1.sample(frac=1).reset_index(drop=True).iloc[0:min_size]
-        df2 = df2.sample(frac=1).reset_index(drop=True).iloc[0:min_size]
-        x0, hr0 = self.transformers.transform(df1)
-        x1, hr1 = self.transformers.transform(df2)
+    lab_true =  np.full([len(x0), 1], 1, np.float) 
+    lab_false = np.full([len(x1), 1], 0, np.float)
 
-        lab = np.full([len(x1), 1], label, np.float)
-        return x0, hr0, x1, hr1, lab
+    rand_idx = np.random.permutation(len(x0))
+
+    x0n = np.concatenate([x0, x0])
+    hr0n = np.concatenate([hr0, hr0])
+    x1n = np.concatenate([x0[rand_idx], x1])
+    hr1n = np.concatenate([hr0[rand_idx], hr1])
+    labn = np.concatenate([lab_true, lab_false])
+
+    shuffle_idx = np.random.permutation(len(x0n))
+
+    return [v[shuffle_idx] for v in (x0n, hr0n, x1n, hr1n, labn)]
 
 
 class ApplyTransformer():
