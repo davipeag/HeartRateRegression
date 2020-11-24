@@ -176,33 +176,33 @@ class ZTransformer2():
 
         if dataset == "ieee_train":
             self.mean_ = np.array([131.50313238,   0.40932383,   0.48126465,   0.49944447,
-                                    -0.49050205,   4.25747781])
-            self.scale_ = np.array([ 31.44549631,   0.57973198,   0.77571034,   0.73668427,
-                                96.6846285 , 162.71685669])
-        
+                                   -0.49050205,   4.25747781])
+            self.scale_ = np.array([31.44549631,   0.57973198,   0.77571034,   0.73668427,
+                                    96.6846285, 162.71685669])
+
         if dataset == "pamap2":
             self.mean_ = np.array(
-            [1.09872508e+02,  3.26525787e+01, -4.96078635e+00,  3.58775813e+00,
-             3.16841666e+00, -4.88941959e+00,  3.58426743e+00,  3.34947892e+00,
-             -3.70474442e-03,  3.21353993e-02, -6.16753052e-03,  2.11685710e+01,
-             -1.43890823e+01, -2.16445082e+01,  3.61497439e+01,  3.76375451e-01,
-             8.51220461e+00, -1.51812923e+00,  2.44862418e-01,  8.50599843e+00,
-             -1.18356330e+00,  5.53869793e-03,  8.37116240e-03, -2.10622194e-02,
-             3.57970919e+00, -3.18577260e+01,  5.51682811e+00,  3.36851338e+01,
-             9.54544754e+00, -1.23247637e-01, -2.46150312e+00,  9.52134760e+00,
-             -2.06264580e-02, -2.03983029e+00,  8.63514327e-03, -3.45012192e-02,
-             7.75203048e-03, -3.27210215e+01,  1.59330413e+00,  1.68904416e+01])
+                [1.09872508e+02,  3.26525787e+01, -4.96078635e+00,  3.58775813e+00,
+                 3.16841666e+00, -4.88941959e+00,  3.58426743e+00,  3.34947892e+00,
+                 -3.70474442e-03,  3.21353993e-02, -6.16753052e-03,  2.11685710e+01,
+                 -1.43890823e+01, -2.16445082e+01,  3.61497439e+01,  3.76375451e-01,
+                 8.51220461e+00, -1.51812923e+00,  2.44862418e-01,  8.50599843e+00,
+                 -1.18356330e+00,  5.53869793e-03,  8.37116240e-03, -2.10622194e-02,
+                 3.57970919e+00, -3.18577260e+01,  5.51682811e+00,  3.36851338e+01,
+                 9.54544754e+00, -1.23247637e-01, -2.46150312e+00,  9.52134760e+00,
+                 -2.06264580e-02, -2.03983029e+00,  8.63514327e-03, -3.45012192e-02,
+                 7.75203048e-03, -3.27210215e+01,  1.59330413e+00,  1.68904416e+01])
 
             self.scale_ = np.array(
-            [25.86998654,  1.84427376,  5.98502766,  6.2778373,  3.84392188,
-             5.99272493,  6.05574865,  3.84064903,  1.29739317,  0.88701763,
-             1.45233506, 24.02140607, 24.09441114, 20.61561665,  1.58556825,
-             1.62053145,  4.23493666,  4.17396948,  1.61947859,  4.20673929,
-             4.18815591,  0.40202854,  0.53893225,  0.29244286, 16.451776,
-             16.1190996, 19.92196213,  1.18436304,  5.71159398,  6.83934918,
-             3.55699737,  5.346378,  6.38219302,  3.19114986,  1.07355547,
-             0.59660246,  1.84255171, 18.87860076, 21.61180986, 20.30858045])
-            
+                [25.86998654,  1.84427376,  5.98502766,  6.2778373,  3.84392188,
+                 5.99272493,  6.05574865,  3.84064903,  1.29739317,  0.88701763,
+                 1.45233506, 24.02140607, 24.09441114, 20.61561665,  1.58556825,
+                 1.62053145,  4.23493666,  4.17396948,  1.61947859,  4.20673929,
+                 4.18815591,  0.40202854,  0.53893225,  0.29244286, 16.451776,
+                 16.1190996, 19.92196213,  1.18436304,  5.71159398,  6.83934918,
+                 3.55699737,  5.346378,  6.38219302,  3.19114986,  1.07355547,
+                 0.59660246,  1.84255171, 18.87860076, 21.61180986, 20.30858045])
+
     def fit(self, df, y=None):
         arr = df.to_numpy()
         self.scale_ = np.std(arr, axis=0)
@@ -327,13 +327,14 @@ class TimeSnippetAggregator(BaseEstimator, TransformerMixin):
     def __init__(self,
                  size=100,
                  label_collapser_function=lambda v: np.median(v, axis=1),
-                 step = None):
+                 step=None):
         self.size = size
         self.label_collapser_function = label_collapser_function
         if step is None:
             self.step = size
         else:
             self.step = step
+
     def fit(self, df, y=None):
         return self
 
@@ -635,9 +636,10 @@ class FFTXY():
 
         return x, y
 
+
 class FFTXY_KEEP():
     def __init__(self, sensors_idxes):
-        if isinstance(sensors_idxes, int ):
+        if isinstance(sensors_idxes, int):
             self.sensor_idxes = [sensors_idxes]
         else:
             self.sensor_idxes = sensors_idxes
@@ -647,13 +649,14 @@ class FFTXY_KEEP():
 
     def transform(self, xy):
         x, y = xy
-        vfft = np.absolute(np.fft.fft(x[:, :, : , self.sensor_idxes], axis=2))
+        vfft = np.absolute(np.fft.fft(x[:, :, :, self.sensor_idxes], axis=2))
         xn = np.concatenate([x, vfft], axis=3)
         return xn, y
 
+
 class FFTXY2():
     def __init__(self, sensors_idxes):
-        if isinstance(sensors_idxes, int ):
+        if isinstance(sensors_idxes, int):
             self.sensor_idxes = [sensors_idxes]
         else:
             self.sensor_idxes = sensors_idxes
@@ -663,7 +666,8 @@ class FFTXY2():
 
     def transform(self, xy):
         x, y = xy
-        x[:, :, :, self.sensor_idxes] = np.absolute(np.fft.fft(x[:, :, : , self.sensor_idxes], axis=2))
+        x[:, :, :, self.sensor_idxes] = np.absolute(
+            np.fft.fft(x[:, :, :, self.sensor_idxes], axis=2))
         return x, y
 
 
@@ -684,6 +688,7 @@ class FFT(BaseEstimator, TransformerMixin):
 
         return xi, yi, xr, yr
 
+
 class FFT_KEEP(BaseEstimator, TransformerMixin):
     def __init__(self, sensors_idxes):
         if isinstance(sensors_idxes, int):
@@ -693,7 +698,7 @@ class FFT_KEEP(BaseEstimator, TransformerMixin):
 
     def fit(self, df, y=None):
         return self
-    
+
     def compute_fft(self, x):
         return np.absolute(np.fft.fft(x[:, :, self.sensor_idxes, :]))
 
@@ -748,30 +753,28 @@ class ShuffleIS(BaseEstimator, TransformerMixin):
 
 
 class PceDecoderLoaderTransformer():
-  def __init__(self, transformers):
-    self.transformers = transformers
-  
-  def transform(self, df1, df2 = None):
-    if df2 is None:
-      df2 = df1.copy()
-      label = 1
-    else:
-      label = 0
-    min_size = min(len(df1),len(df2))
-    df1 = df1.sample(frac=1).reset_index(drop=True).iloc[0:min_size]
-    df2 = df2.sample(frac=1).reset_index(drop=True).iloc[0:min_size]
-    x0,hr0 = self.transformers.transform(df1)
-    x1,hr1 = self.transformers.transform(df2)
+    def __init__(self, transformers):
+        self.transformers = transformers
 
-    lab = np.full([len(x1), 1], label, np.float) 
-    return x0,hr0, x1, hr1, lab
+    def transform(self, df1, df2=None):
+        if df2 is None:
+            df2 = df1.copy()
+            label = 1
+        else:
+            label = 0
+        min_size = min(len(df1), len(df2))
+        df1 = df1.sample(frac=1).reset_index(drop=True).iloc[0:min_size]
+        df2 = df2.sample(frac=1).reset_index(drop=True).iloc[0:min_size]
+        x0, hr0 = self.transformers.transform(df1)
+        x1, hr1 = self.transformers.transform(df2)
+
+        lab = np.full([len(x1), 1], label, np.float)
+        return x0, hr0, x1, hr1, lab
 
 
 class ApplyTransformer():
-  def __init__(self, function):
-    self.function = function
+    def __init__(self, function):
+        self.function = function
 
-  def transform(self, *args, **kargs):
-    return self.function(*args, **kargs)    
-  
-
+    def transform(self, *args, **kargs):
+        return self.function(*args, **kargs)
