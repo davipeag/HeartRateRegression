@@ -775,7 +775,7 @@ class PceDecoderLoaderTransformer():
     hr1n = np.concatenate([hr0[rand_idx], hr1])
     labn = np.concatenate([lab_true, lab_false])
 
-    shuffle_idx = np.random.permutation(len(x0n))
+    shuffle_idx = np.random.permutation(len(x0n))[:len(x0)]
 
     return [v[shuffle_idx] for v in (x0n, hr0n, x1n, hr1n, labn)]
 
