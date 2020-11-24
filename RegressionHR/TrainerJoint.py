@@ -161,7 +161,7 @@ class TrainHelperJoint():
  
     def compute_metric(self, loaders):
         v1, v2 = self.trainer.evaluate(*loaders)
-        return (self.display_criterion1(v1[-2:]), self.display_criterion2(v2[-2:]))
+        return (self.display_criterion1(*v1[-2:]), self.display_criterion2(*v2[-2:]))
     
     def get_models(self):
         return [self.trainer.get_model(0), self.trainer.get_model(1)]
