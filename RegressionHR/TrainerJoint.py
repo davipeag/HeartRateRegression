@@ -22,7 +22,8 @@ class LossComputer():
         return [*batch_d, p]
 
     def compute_loss(self, batch):
-        return self.criterion(*self.compute(batch)[-2:])
+        y,p = self.compute(batch)[-2:]
+        return self.criterion(p, y)
 
     def evaluate(self, batch):
         self.net.eval()
@@ -30,7 +31,8 @@ class LossComputer():
             return [v.detach().cpu() for v in self.compute(batch)]
 
     def validate(self, batch):
-        return self.criterion(*self.evaluate(batch)[-2:]).cpu().item()
+        y, p = self.evaluate(batch)[-2:]
+        return self.criterion(p, y).cpu().item()
 
 
 class BatchTraninerJoint():
