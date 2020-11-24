@@ -16,7 +16,7 @@ class PceDiscriminatorDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         return (torch.Tensor(self.x0[idx]), torch.tensor(self.hr0[idx]).type(torch.FloatTensor),
                 torch.Tensor(self.x1[idx]), torch.tensor(self.hr1[idx]).type(torch.FloatTensor),
-                torch.tensor(self.label[idx]).type(torch.FloatTensor))
+                torch.tensor(self.label[idx]).type(torch.LongTensor))
 
 class PceDiscriminatorDataLoaderFactory():
     
