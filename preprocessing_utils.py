@@ -758,11 +758,20 @@ class PceDecoderLoaderTransformer():
   
   def transform(self, df1, df2):
    
-    min_size = min(len(df1),len(df2))
-    df1 = df1.sample(frac=1).reset_index(drop=True).iloc[0:min_size]
-    df2 = df2.sample(frac=1).reset_index(drop=True).iloc[0:min_size]
+    
+    # df1 = df1.sample(frac=1).reset_index(drop=True).iloc[0:min_size]
+    # df2 = df2.sample(frac=1).reset_index(drop=True).iloc[0:min_size]
+
     x0,hr0 = self.transformers.transform(df1)
     x1,hr1 = self.transformers.transform(df2)
+
+    min_size = min(len(x0),len(x1))
+
+    ridx0 = np.random.permutation(len(x0))[:min_size]
+    ridx1 = np.random.permutation(len(x1))[:min_size]
+
+    x0,h0 = x0[ridx0], h0[ridx0]
+    x1,h1 = x1[ridx1], h1[ridx1]
 
     lab_true =  np.full([len(x0), 1], 1, np.float) 
     lab_false = np.full([len(x1), 1], 0, np.float)
