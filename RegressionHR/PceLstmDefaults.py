@@ -55,8 +55,8 @@ class PamapPreprocessingTransformerGetter():
 
         return TransformerPipeline(
             self.ztransformer,
-            self.hr_lin_imputation,
-            self.local_mean_imputer,
+            # self.hr_lin_imputation,
+            # self.local_mean_imputer,
             feature_label_splitter,
             ts_aggregator,
             meansub,
@@ -111,8 +111,8 @@ class PamapPceDecoderPreprocessingTransformerGetter():
       
         tpipe  = TransformerPipeline(
             self.ztransformer,
-            self.hr_lin_imputation,
-            self.local_mean_imputer,
+            # self.hr_lin_imputation,
+            # self.local_mean_imputer,
             feature_label_splitter,
             ts_aggregator,
             meansub,

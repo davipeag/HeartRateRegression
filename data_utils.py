@@ -7,6 +7,8 @@ import pickle
 import numpy as np
 import scipy.io
 
+import preprocessing_utils
+
 
 class Pamap2Handler():
     def __init__(self, cache_dir, out=print):
@@ -395,3 +397,16 @@ def cross_validation_split(dfs, transformer_tr, transformer_val, transformer_ts,
     d_val = [transformer_val.transform(dfs[idx_val])]
     d_ts = [transformer_ts.transform(dfs[idx_ts])]
     return d_tr, d_val, d_ts
+
+
+class FormatPamap():
+    def __init__(self, local_mean_width = 20):
+        self.transformations = preprocessing_utils.TransformerPipeline(
+            preprocessing_utils.LinearImputation("heart_rate"),
+            preprocessing_utils.LocalMeanReplacer(mean_width=local_mean_width)
+        )
+
+    def transform(self, data):
+        return self.transformations.transform(data)
+
+
