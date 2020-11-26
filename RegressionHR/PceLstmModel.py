@@ -152,8 +152,8 @@ class Discriminator(torch.nn.Module):
     self.input_length = input_length
     self.layer_size = layer_size
     self.activation = activation
-    last_activation = torch.nn.Sigmoid()
-    # last_activation = torch.nn.Identity()
+    # last_activation = torch.nn.Sigmoid()
+    last_activation = torch.nn.Identity()
     if nlayers > 0:
       first_layer = self.make_layer(input_length, layer_size, self.activation)
       last_layer = self.make_layer(layer_size, 1, last_activation)
