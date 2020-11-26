@@ -94,7 +94,7 @@ class PamapPceDecoderPreprocessingTransformerGetter():
 
         self.hr_lin_imputation = LinearImputation("heart_rate")
 
-        self.local_mean_imputer = LocalMeanReplacer(mean_width=2*frequency_hz) 
+        self.local_mean_imputer = LocalMeanReplacer(mean_width=20) 
 
         meansub = HZMeanSubstitute()
 
