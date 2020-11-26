@@ -132,8 +132,8 @@ class PceLstmDiscriminatorFullTrainer():
         [PPG.Models.initialize_weights(net) for net in nets]
 
         criterion1 = torch.nn.L1Loss().to(self.device)
-        # criterion2 = torch.nn.BCELoss().to(self.device)
-        criterion2 = torch.nn.BCEWithLogitsLoss().to(self.device)
+        criterion2 = torch.nn.BCELoss().to(self.device)
+        # criterion2 = torch.nn.BCEWithLogitsLoss().to(self.device)
 
         optimizer = torch.optim.Adam([{"params": pce_lstm.parameters()},
                                       {"params": pce_discriminator.discriminator.parameters()}], lr=lr,
