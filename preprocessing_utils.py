@@ -770,8 +770,8 @@ class PceDecoderLoaderTransformer():
     ridx0 = np.random.permutation(len(x0))[:min_size]
     ridx1 = np.random.permutation(len(x1))[:min_size]
 
-    x0,h0 = x0[ridx0], h0[ridx0]
-    x1,h1 = x1[ridx1], h1[ridx1]
+    x0,hr0 = x0[ridx0], hr0[ridx0]
+    x1,hr1 = x1[ridx1], hr1[ridx1]
 
     lab_true =  np.full([len(x0), 1], 1, np.float) 
     lab_false = np.full([len(x1), 1], 0, np.float)
