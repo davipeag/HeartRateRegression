@@ -38,15 +38,16 @@ class PceLstmFullTrainer():
         batch_size=128,
         ts_sub=5,
         val_sub=4,
-        ts_per_samples = [30, 60]
+        ts_per_samples = [30, 60],
+        period_s = 4,
+        step_s = 2
     ):
         args = locals()
         args.pop("self")
         net_args = copy.deepcopy(args)
-        [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size", "ts_per_samples")]
+        [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size",
+                "ts_per_samples", "period_s", "step_s")]
         frequency_hz = 100
-        period_s = 4
-        step_s = 2
         
         ldf = min(len(self.dfs[self.val_sub]), len(self.dfs[self.ts_sub]))
         ts_per_sample_val = int(ldf/(frequency_hz*step_s))-3
@@ -108,15 +109,18 @@ class PceLstmDiscriminatorFullTrainer():
         ts_sub=5,
         val_sub=4,
         ts_per_samples = [40],
-        alpha = 0.8
+        alpha = 0.8,
+        period_s = 4,
+        step_s = 2,
     ):
         args = locals()
         args.pop("self")
         net_args = copy.deepcopy(args)
-        [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size", "ts_per_samples", "alpha")]
+        [net_args.pop(v) for v in (
+            "ts_sub", "val_sub", "lr", "weight_decay", "batch_size", "ts_per_samples", "alpha",
+            "period_s", "step_s")]
         frequency_hz = 100
-        period_s = 4
-        step_s = 2
+        
         
         ts_per_sample_val = int(len(self.dfs[val_sub])/(frequency_hz*step_s))-3
         transformers_val = self.transformers(period_s = period_s, step_s = step_s, frequency_hz = frequency_hz, ts_per_sample=ts_per_sample_val)
