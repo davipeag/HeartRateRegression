@@ -118,7 +118,7 @@ class PceLstmDiscriminatorFullTrainer():
         period_s = 4
         step_s = 2
         
-        ldf = min(len(self.dfs[self.val_sub]), len(self.dfs[self.ts_sub]))
+        ldf = min(len(self.dfs[val_sub]), len(self.dfs[ts_sub]))
         ts_per_sample_val = int(ldf/(frequency_hz*step_s))-3
         transformers_val = self.transformers(period_s = period_s, step_s = step_s, frequency_hz = frequency_hz, ts_per_sample=ts_per_sample_val)
 
