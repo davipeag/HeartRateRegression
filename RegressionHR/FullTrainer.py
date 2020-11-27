@@ -118,9 +118,11 @@ class PceLstmDiscriminatorFullTrainer():
         period_s = 4
         step_s = 2
         
-        ldf = min(len(self.dfs[val_sub]), len(self.dfs[ts_sub]))
-        ts_per_sample_val = int(ldf/(frequency_hz*step_s))-3
+        ts_per_sample_val = int(len(self.dfs[val_sub])/(frequency_hz*step_s))-3
         transformers_val = self.transformers(period_s = period_s, step_s = step_s, frequency_hz = frequency_hz, ts_per_sample=ts_per_sample_val)
+
+        ts_per_sample_ts = int(len(self.dfs[ts_sub])/(frequency_hz*step_s))-3
+        transformers_ts = self.transformers(period_s = period_s, step_s = step_s, frequency_hz = frequency_hz, ts_per_sample=ts_per_sample_ts)
 
         nets = list(map(lambda n: n.to(self.device), 
                                  RegressionHR.PceLstmModel.make_pce_lstm_and_discriminator(**net_args)))
@@ -157,7 +159,7 @@ class PceLstmDiscriminatorFullTrainer():
             
             loader_tr1, loader_val1, loader_ts1 = PPG.UtilitiesDataXY.DataLoaderFactory(
                 transformers_tr, dfs= self.dfs, batch_size_tr=batch_size,
-                transformers_val=transformers_val, transformers_ts=transformers_val, dataset_cls=PPG.UtilitiesDataXY.ISDataset
+                transformers_val=transformers_val, transformers_ts=transformers_ts, dataset_cls=PPG.UtilitiesDataXY.ISDataset
             ).make_loaders(ts_sub, val_sub)
 
             train_helper = RegressionHR.TrainerJoint.TrainHelperJoint(
