@@ -208,15 +208,16 @@ class PceLstmDiscriminatorFullTrainerJointValidation():
         ts_sub=5,
         val_sub=4,
         ts_per_samples = [40],
-        alpha = 0.8
+        alpha = 0.8,
+        step_s=2,
+        period_s=4
+
     ):
         args = locals()
         args.pop("self")
         net_args = copy.deepcopy(args)
-        [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size", "ts_per_samples", "alpha")]
+        [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size", "ts_per_samples", "alpha", "step_s", "period_s")]
         frequency_hz = 100
-        period_s = 4
-        step_s = 2
         
         ldf = min(len(self.dfs[val_sub]), len(self.dfs[ts_sub]))
         ts_per_sample_val = int(ldf/(frequency_hz*step_s))-3
