@@ -90,10 +90,8 @@ class PceLstmFullTrainer():
 
 
 class PceLstmDiscriminatorFullTrainer():
-    def __init__(self, dfs, device, ts_sub, val_sub, nepoch = 40):
+    def __init__(self, dfs, device, nepoch = 40):
         self.dfs = dfs
-        self.ts_sub = ts_sub
-        self.val_sub = val_sub
         self.device = device
         self.transformers = RegressionHR.PceLstmDefaults.PamapPreprocessingTransformerGetter()
         self.nepoch = nepoch
