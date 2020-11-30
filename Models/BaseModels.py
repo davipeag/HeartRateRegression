@@ -49,6 +49,7 @@ class ConstantHiddenSizeHalvingFullyConvolutionalEncoder1D(nn.Module):
                     input_channels,
                     output_channels,
                     hidden_size,
+                    dropout_rate = 0,
                     activation_function =  nn.LeakyReLU()
                ):
     super(ConstantHiddenSizeHalvingFullyConvolutionalEncoder1D,
@@ -60,13 +61,16 @@ class ConstantHiddenSizeHalvingFullyConvolutionalEncoder1D(nn.Module):
     self.output_channels = output_channels
     self.hidden_size = hidden_size
     self.activation_function = activation_function
+    self.dropout_rate = dropout_rate
 
     lengths = [input_length, *self.__fully_halve(input_length)]
     channels = [self.hidden_size for _ in lengths]
     channels[0] = self.input_channels
     channels[-1] = self.output_channels
+    dropout_rates = [dropout_rate for _ in range(len(channels)-1)]
+    dropout_rates[0] = 0
     
-    cell_inps = zip(lengths[0:-1], channels[0:-1], channels[1:])
+    cell_inps = zip(lengths[0:-1], channels[0:-1], channels[1:])#, dropout_rates)
     
     self.cells = [self.make_cell(*cell_inp)
                   for cell_inp in cell_inps]
@@ -76,12 +80,13 @@ class ConstantHiddenSizeHalvingFullyConvolutionalEncoder1D(nn.Module):
   def forward(self, x):
     return self.encoder(x)
 
-  def make_cell(self, input_length, input_channels, output_channels):      
+  def make_cell(self, input_length, input_channels, output_channels, dropout_rate = 0):      
       activation = self.activation_function
       conv = HalveConvolution1D(input_length, input_channels,
                                 output_channels, approximate_down=True)
+      dropout = nn.Dropout(dropout_rate)
 
-      return nn.Sequential(conv, norm, activation)
+      return nn.Sequential(conv, dropout, activation)
 
   def get_parameters(self):
     return {
