@@ -351,7 +351,7 @@ class PceLstmDiscriminatorFullTrainerJointValidation2():
         metrics_computer = PPG.TrainerIS.MetricsComputerIS(ztransformer)
 
         transformers2 = RegressionHR.PceLstmDefaults.PamapPceDecoderPreprocessingTransformerGetter()(
-            period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=10)
+            period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=10, ts_per_is=ts_per_is)
         
         loader_tr2, loader_val2, loader_ts2 = RegressionHR.UtilitiesData.PceDiscriminatorDataLoaderFactory(
             transformers2, self.dfs, batch_size_tr=batch_size).make_loaders(ts_sub, val_sub)
