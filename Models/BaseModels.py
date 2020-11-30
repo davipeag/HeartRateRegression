@@ -70,7 +70,7 @@ class ConstantHiddenSizeHalvingFullyConvolutionalEncoder1D(nn.Module):
     dropout_rates = [dropout_rate for _ in range(len(channels)-1)]
     dropout_rates[0] = 0
     
-    cell_inps = zip(lengths[0:-1], channels[0:-1], channels[1:])#, dropout_rates)
+    cell_inps = zip(lengths[0:-1], channels[0:-1], channels[1:], dropout_rates)
     
     self.cells = [self.make_cell(*cell_inp)
                   for cell_inp in cell_inps]
