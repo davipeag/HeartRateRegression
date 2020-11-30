@@ -356,7 +356,7 @@ class PceDiscriminatorAssembler2(torch.nn.Module):
     pce0 = self.compute_pce(x0, hr0)
     pce1 = self.compute_pce(x1, hr1)
 
-    return self.discriminator(torch.cat([pce0, pce1], dim=1)
+    return self.discriminator(torch.cat([pce0, pce1], dim=1))
 
 
 
