@@ -316,7 +316,9 @@ class PceLstmDiscriminatorFullTrainerJointValidation2():
         period_s=4,
         ts_per_is = 2,
         is_h_size = 32,
-
+        disc_nlayers=3,
+        disc_layer_size=32,
+        disc_dropout_rate = 0
     ):
         args = locals()
         args.pop("self")
