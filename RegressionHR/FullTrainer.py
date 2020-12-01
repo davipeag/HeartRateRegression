@@ -17,6 +17,8 @@ from RegressionHR import PceLstmModel
 from RegressionHR import TrainerJoint
 from RegressionHR import  UtilitiesData
 
+from Models import BaseModels
+
 import sklearn.metrics
 
 
@@ -353,6 +355,8 @@ class PceLstmDiscriminatorFullTrainerJointValidation2():
         
         ztransformer = self.transformers.ztransformer
         metrics_computer = PPG.TrainerIS.MetricsComputerIS(ztransformer)
+
+        # sample_step_ratio = ts_per_is//(period_s + step_s)
 
         transformers2 = RegressionHR.PceLstmDefaults.PamapPceDecoderPreprocessingTransformerGetter()(
             period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=10, ts_per_is=ts_per_is)
