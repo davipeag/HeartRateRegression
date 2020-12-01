@@ -377,8 +377,7 @@ class PceLstmDiscriminatorFullTrainerJointValidation2():
                 epoch_trainer, loader_tr1, loader_tr2, loader_val1, loader_val2,
                 loader_ts1, loader_ts2,
                 metrics_computer.mae,
-                #lambda y,p: criterion2(p, y).cpu().item()# torch.mean(torch.abs(y-p)).detach().cpu().item()
-                lambda y,p = sklearn.metrics.accuracy_score(y, p > 0.5)
+                lambda y,p: (torch.sum((p > 0.5)== y)/len(p)).detach().cpu().item() #criterion2(p, y).cpu().item()# torch.mean(torch.abs(y-p)).detach().cpu().item()
             )
             
             print("about to train:")
