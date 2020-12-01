@@ -17,6 +17,8 @@ from RegressionHR import PceLstmModel
 from RegressionHR import TrainerJoint
 from RegressionHR import  UtilitiesData
 
+import sklearn.metrics
+
 
 class PceLstmFullTrainer():
     def __init__(self, dfs, device, ts_sub, val_sub, nepoch = 40):
@@ -375,7 +377,8 @@ class PceLstmDiscriminatorFullTrainerJointValidation2():
                 epoch_trainer, loader_tr1, loader_tr2, loader_val1, loader_val2,
                 loader_ts1, loader_ts2,
                 metrics_computer.mae,
-                lambda y,p: criterion2(p, y).cpu().item()# torch.mean(torch.abs(y-p)).detach().cpu().item()
+                #lambda y,p: criterion2(p, y).cpu().item()# torch.mean(torch.abs(y-p)).detach().cpu().item()
+                lambda y,p = sklearn.metrics.accuracy_score(y, p > 0.5)
             )
             
             print("about to train:")
