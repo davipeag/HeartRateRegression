@@ -116,6 +116,9 @@ class PceLstmDiscriminatorFullTrainer():
         alpha = 0.8,
         period_s = 4,
         step_s = 2,
+        disc_nlayers=3,
+        disc_layer_size=32,
+        disc_dropout_rate = 0
     ):
         args = locals()
         args.pop("self")
@@ -154,8 +157,10 @@ class PceLstmDiscriminatorFullTrainer():
         ztransformer = self.transformers.ztransformer
         metrics_computer = PPG.TrainerIS.MetricsComputerIS(ztransformer)
 
+        sample_step_ratio = ts_per_samples[0]
+
         transformers2 = RegressionHR.PceLstmDefaults.PamapPceDecoderPreprocessingTransformerGetter()(
-            period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=10)
+            period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=sample_step_ratio)
         
         loader_tr2, loader_val2, loader_ts2 = RegressionHR.UtilitiesData.PceDiscriminatorDataLoaderFactory(
             transformers2, self.dfs, batch_size_tr=batch_size).make_loaders(ts_sub, val_sub)
@@ -170,11 +175,13 @@ class PceLstmDiscriminatorFullTrainer():
                 transformers_val=transformers_val, transformers_ts=transformers_ts, dataset_cls=PPG.UtilitiesDataXY.ISDataset
             ).make_loaders(ts_sub, val_sub)
 
+            accuracy = lambda y,p: (torch.sum((p > 0.5)== y)/len(p)).detach().cpu().item() 
+
             train_helper = RegressionHR.TrainerJoint.TrainHelperJoint(
                 epoch_trainer, loader_tr1, loader_tr2, loader_val1, loader_val2,
                 loader_ts1, loader_ts2,
                 metrics_computer.mae,
-                lambda y,p: torch.mean(torch.abs(y-p)).detach().cpu().item()
+                lambda y,p: (criterion2(p, y).cpu().item(), accuracy) # torch.mean(torch.abs(y-p)).detach().cpu().item()
             )
             
             print("about to train:")
@@ -214,8 +221,10 @@ class PceLstmDiscriminatorFullTrainerJointValidation():
         ts_per_samples = [40],
         alpha = 0.8,
         step_s=2,
-        period_s=4
-
+        period_s=4,
+        disc_nlayers=3,
+        disc_layer_size=32,
+        disc_dropout_rate = 0
     ):
         args = locals()
         args.pop("self")
@@ -243,14 +252,15 @@ class PceLstmDiscriminatorFullTrainerJointValidation():
                                      weight_decay=weight_decay)
 
         epoch_trainer = RegressionHR.TrainerJoint.EpochTrainerJoint(
-            pce_lstm, pce_discriminator, criterion1, criterion2, optimizer, alpha, self.device)
-        
+            pce_lstm, pce_discriminator, criterion1, criterion2, optimizer, alpha, self.device)        
         
         ztransformer = self.transformers.ztransformer
         metrics_computer = PPG.TrainerIS.MetricsComputerIS(ztransformer)
 
+        sample_step_ratio = ts_per_samples[0]
+
         transformers2 = RegressionHR.PceLstmDefaults.PamapPceDecoderPreprocessingTransformerGetter()(
-            period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=10)
+            period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=sample_step_ratio)
         
         loader_tr2, loader_val2, loader_ts2 = RegressionHR.UtilitiesData.PceDiscriminatorDataLoaderFactory(
             transformers2, self.dfs, batch_size_tr=batch_size).make_loaders(ts_sub, val_sub)
@@ -270,11 +280,13 @@ class PceLstmDiscriminatorFullTrainerJointValidation():
                 dataset_cls=PPG.UtilitiesDataXY.ISDataset
             ).make_loaders(ts_sub, 0.8)
 
+            accuracy = lambda y,p: (torch.sum((p > 0.5)== y)/len(p)).detach().cpu().item() 
+
             train_helper = RegressionHR.TrainerJoint.TrainHelperJoint(
                 epoch_trainer, loader_tr1, loader_tr2, loader_val1, loader_val2,
                 loader_ts1, loader_ts2,
                 metrics_computer.mae,
-                lambda y,p: torch.mean(torch.abs(y-p)).detach().cpu().item()
+                lambda y,p: (criterion2(p, y).cpu().item(), accuracy) # torch.mean(torch.abs(y-p)).detach().cpu().item()
             )
             
             print("about to train:")
@@ -356,10 +368,10 @@ class PceLstmDiscriminatorFullTrainerJointValidation2():
         ztransformer = self.transformers.ztransformer
         metrics_computer = PPG.TrainerIS.MetricsComputerIS(ztransformer)
 
-        # sample_step_ratio = ts_per_is//(period_s + step_s)
+        sample_step_ratio = ts_per_samples[0]
 
         transformers2 = RegressionHR.PceLstmDefaults.PamapPceDecoderPreprocessingTransformerGetter()(
-            period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=10, ts_per_is=ts_per_is)
+            period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=sample_step_ratio, ts_per_is=ts_per_is)
         
         loader_tr2, loader_val2, loader_ts2 = RegressionHR.UtilitiesData.PceDiscriminatorDataLoaderFactory(
             transformers2, self.dfs, batch_size_tr=batch_size).make_loaders(ts_sub, val_sub)
@@ -385,7 +397,7 @@ class PceLstmDiscriminatorFullTrainerJointValidation2():
                 epoch_trainer, loader_tr1, loader_tr2, loader_val1, loader_val2,
                 loader_ts1, loader_ts2,
                 metrics_computer.mae,
-                lambda y,p: criterion2(p, y).cpu().item() # torch.mean(torch.abs(y-p)).detach().cpu().item()
+                lambda y,p: (criterion2(p, y).cpu().item(), accuracy) # torch.mean(torch.abs(y-p)).detach().cpu().item()
             )
             
             print("about to train:")
