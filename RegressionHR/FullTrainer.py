@@ -181,7 +181,7 @@ class PceLstmDiscriminatorFullTrainer():
                 epoch_trainer, loader_tr1, loader_tr2, loader_val1, loader_val2,
                 loader_ts1, loader_ts2,
                 metrics_computer.mae,
-                lambda y,p: (criterion2(p, y).cpu().item(), accuracy) # torch.mean(torch.abs(y-p)).detach().cpu().item()
+                lambda y,p: (criterion2(p, y).cpu().item(), accuracy(y,p)) # torch.mean(torch.abs(y-p)).detach().cpu().item()
             )
             
             print("about to train:")
@@ -286,7 +286,7 @@ class PceLstmDiscriminatorFullTrainerJointValidation():
                 epoch_trainer, loader_tr1, loader_tr2, loader_val1, loader_val2,
                 loader_ts1, loader_ts2,
                 metrics_computer.mae,
-                lambda y,p: (criterion2(p, y).cpu().item(), accuracy) # torch.mean(torch.abs(y-p)).detach().cpu().item()
+                lambda y,p: (criterion2(p, y).cpu().item(), accuracy(y,p)) # torch.mean(torch.abs(y-p)).detach().cpu().item()
             )
             
             print("about to train:")
@@ -397,7 +397,7 @@ class PceLstmDiscriminatorFullTrainerJointValidation2():
                 epoch_trainer, loader_tr1, loader_tr2, loader_val1, loader_val2,
                 loader_ts1, loader_ts2,
                 metrics_computer.mae,
-                lambda y,p: (criterion2(p, y).cpu().item(), accuracy) # torch.mean(torch.abs(y-p)).detach().cpu().item()
+                lambda y,p: (criterion2(p, y).cpu().item(), accuracy(y,p)) # torch.mean(torch.abs(y-p)).detach().cpu().item()
             )
             
             print("about to train:")
