@@ -378,7 +378,7 @@ class PceLstmDiscriminatorFullTrainerJointValidation2():
 
         for ts_per_sample in ts_per_samples:
 
-            transformers_tr = self.transformers(period_s=period_s, step_s=step_s, frequency_hz=frequency_hz, ts_per_sample=ts_per_sample, ts_per_is=ts_per_is)
+            transformers_tr = self.transformers(period_s=period_s, step_s=step_s, frequency_hz=frequency_hz, ts_per_sample=ts_per_sample, ts_per_is=ts_per_is, sample_step_ratio=1)
 
             
             # loader_tr1, loader_val1, loader_ts1 = PPG.UtilitiesDataXY.DataLoaderFactory(
