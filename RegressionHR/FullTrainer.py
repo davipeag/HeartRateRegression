@@ -344,7 +344,7 @@ class PceLstmDiscriminatorFullTrainerJointValidation2():
         
         ldf = len(self.dfs[ts_sub])
         ts_per_sample_ts = int(ldf/(frequency_hz*step_s))-3
-        transformers_ts = self.transformers(period_s = period_s, step_s = step_s, frequency_hz = frequency_hz, ts_per_sample=ts_per_sample_ts, ts_per_is=ts_per_is)
+        transformers_ts = self.transformers(period_s = period_s, step_s = step_s, frequency_hz = frequency_hz, ts_per_sample=ts_per_sample_ts, ts_per_is=ts_per_is, sample_step_ratio=1)
 
         nets = list(map(lambda n: n.to(self.device), 
                                  RegressionHR.PceLstmModel.parametrized_encoder_make_pce_lstm_and_discriminator(**net_args)))
