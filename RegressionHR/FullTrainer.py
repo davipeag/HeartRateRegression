@@ -505,7 +505,7 @@ class DaliaPceLstmDiscriminatorFullTrainerJointValidation2():
                 dataset_cls=PPG.UtilitiesDataXY.ISDataset
             ).make_loaders(ts_sub, 0.8)
             
-            accuracy = lambda y,p: (torch.sum((p > 0.5)== y)/len(p)).detach().cpu().item() 
+            #accuracy = lambda y,p: (torch.sum((p > 0.5)== y)/len(p)).detach().cpu().item() 
 
             train_helper = RegressionHR.TrainerJoint.TrainHelperJoint(
                 epoch_trainer, loader_tr1, loader_tr2, loader_val1, loader_val2,
