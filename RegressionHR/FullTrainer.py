@@ -232,9 +232,9 @@ class PceLstmDiscriminatorFullTrainerJointValidation():
         [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size", "ts_per_samples", "alpha", "step_s", "period_s")]
         frequency_hz = 100
         
-        ldf = min(len(self.dfs[val_sub]), len(self.dfs[ts_sub]))
-        ts_per_sample_val = int(ldf/(frequency_hz*step_s))-3
-        transformers_val = self.transformers(period_s = period_s, step_s = step_s, frequency_hz = frequency_hz, ts_per_sample=ts_per_sample_val)
+        ldf = len(self.dfs[ts_sub])
+        ts_per_sample_ts = int(ldf/(frequency_hz*step_s))-3
+        transformers_ts = self.transformers(period_s = period_s, step_s = step_s, frequency_hz = frequency_hz, ts_per_sample=ts_per_sample_ts)
 
         nets = list(map(lambda n: n.to(self.device), 
                                  RegressionHR.PceLstmModel.make_pce_lstm_and_discriminator(**net_args)))
@@ -276,7 +276,7 @@ class PceLstmDiscriminatorFullTrainerJointValidation():
             # ).make_loaders(ts_sub, val_sub)
 
             loader_tr1, loader_val1, loader_ts1 = PPG.UtilitiesDataXY.JointTrValDataLoaderFactory(
-                transformers_tr, transformers_ts=transformers_val, dfs = self.dfs, batch_size_tr=batch_size,
+                transformers_tr, transformers_ts=transformers_ts, dfs = self.dfs, batch_size_tr=batch_size,
                 dataset_cls=PPG.UtilitiesDataXY.ISDataset
             ).make_loaders(ts_sub, 0.8)
 
@@ -342,9 +342,9 @@ class PceLstmDiscriminatorFullTrainerJointValidation2():
 
         net_args["sample_per_ts"] = int(frequency_hz*period_s)
         
-        ldf = min(len(self.dfs[val_sub]), len(self.dfs[ts_sub]))
-        ts_per_sample_val = int(ldf/(frequency_hz*step_s))-3
-        transformers_val = self.transformers(period_s = period_s, step_s = step_s, frequency_hz = frequency_hz, ts_per_sample=ts_per_sample_val, ts_per_is=ts_per_is)
+        ldf = len(self.dfs[ts_sub])
+        ts_per_sample_ts = int(ldf/(frequency_hz*step_s))-3
+        transformers_ts = self.transformers(period_s = period_s, step_s = step_s, frequency_hz = frequency_hz, ts_per_sample=ts_per_sample_ts, ts_per_is=ts_per_is)
 
         nets = list(map(lambda n: n.to(self.device), 
                                  RegressionHR.PceLstmModel.parametrized_encoder_make_pce_lstm_and_discriminator(**net_args)))
@@ -387,7 +387,7 @@ class PceLstmDiscriminatorFullTrainerJointValidation2():
             # ).make_loaders(ts_sub, val_sub)
 
             loader_tr1, loader_val1, loader_ts1 = PPG.UtilitiesDataXY.JointTrValDataLoaderFactory(
-                transformers_tr, transformers_ts=transformers_val, dfs = self.dfs, batch_size_tr=batch_size,
+                transformers_tr, transformers_ts=transformers_ts, dfs = self.dfs, batch_size_tr=batch_size,
                 dataset_cls=PPG.UtilitiesDataXY.ISDataset
             ).make_loaders(ts_sub, 0.8)
             
