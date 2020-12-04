@@ -66,6 +66,52 @@ class PamapPreprocessingTransformerGetter():
         )
 
 
+class DaliaPreprocessingTransformerGetter():
+    def __init__(self, use_fft = True):
+        self.ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
+                'wrist-BVP-0', 'wrist-EDA-0', 'wrist-TEMP-0', 'chest-ACC-0',
+                'chest-ACC-1', 'chest-ACC-2', 'chest-Resp-0'])
+
+    def __call__(self, ts_per_sample=30, ts_per_is=2, frequency_hz=100, period_s=4, step_s=2, sample_step_ratio = 0.5):
+        feature_columns = [
+            'heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
+            'chest-ACC-0','chest-ACC-1', 'chest-ACC-2'
+        ]
+
+        self.hr_lin_imputation = LinearImputation("heart_rate")
+
+        self.local_mean_imputer = LocalMeanReplacer() 
+
+        meansub = HZMeanSubstitute()
+
+        feature_label_splitter = FeatureLabelSplit(
+            label_column = "heart_rate",
+            feature_columns = feature_columns
+        )
+
+        recursive_hr_masker = RecursiveHrMasker(0)
+
+        sample_maker = SampleMaker(ts_per_sample, int(ts_per_sample*sample_step_ratio))
+
+        is_pred_split = NoDiffInitialStatePredictionSplit(ts_per_sample, ts_per_is)
+
+        ts_aggregator = TimeSnippetAggregator(size=int(frequency_hz*period_s),
+                                              step=int(frequency_hz*step_s))
+
+
+        return TransformerPipeline(
+            self.ztransformer,
+            # self.hr_lin_imputation,
+            # self.local_mean_imputer,
+            feature_label_splitter,
+            ts_aggregator,
+            meansub,
+            sample_maker,
+            is_pred_split,
+            recursive_hr_masker
+        )
+
+
 
 class PamapPceDecoderPreprocessingTransformerGetter():
     def __init__(self):
@@ -95,6 +141,47 @@ class PamapPceDecoderPreprocessingTransformerGetter():
         # self.hr_lin_imputation = LinearImputation("heart_rate")
 
         # self.local_mean_imputer = LocalMeanReplacer(mean_width=20) 
+
+        meansub = HZMeanSubstitute()
+
+        feature_label_splitter = FeatureLabelSplit(
+            label_column = "heart_rate",
+            feature_columns = feature_columns
+        )
+
+        sample_maker = SlidingWindow(ts_per_is, int(ts_per_is*sample_step_ratio))
+
+        ts_aggregator = TimeSnippetAggregator(size=int(frequency_hz*period_s),
+                                              step=int(frequency_hz*step_s))
+        reshape = ApplyTransformer(lambda v: (np.swapaxes(v[0].squeeze(2), 2,3), v[1])) 
+      
+        tpipe  = TransformerPipeline(
+            self.ztransformer,
+            # self.hr_lin_imputation,
+            # self.local_mean_imputer,
+            feature_label_splitter,
+            ts_aggregator,
+            meansub,
+            sample_maker,
+            reshape
+        )
+
+        return PceDecoderLoaderTransformer(tpipe)
+
+
+
+class DaliaPceDecoderPreprocessingTransformerGetter():
+    def __init__(self):
+        self.ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
+                'wrist-BVP-0', 'wrist-EDA-0', 'wrist-TEMP-0', 'chest-ACC-0',
+                'chest-ACC-1', 'chest-ACC-2', 'chest-Resp-0'], dataset='dalia')
+
+    def __call__(self, ts_per_is=2, frequency_hz=32, period_s=4, step_s=2, sample_step_ratio = 1):
+
+        feature_columns = [
+            'heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
+            'chest-ACC-0','chest-ACC-1', 'chest-ACC-2'
+        ]
 
         meansub = HZMeanSubstitute()
 
