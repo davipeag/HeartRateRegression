@@ -21,6 +21,9 @@ from Models import BaseModels
 
 import sklearn.metrics
 
+from torch.nn.functional import sigmoid
+
+accuracy = lambda y,p: (torch.sum((sigmoid(p) > 0.5)== y)/len(p)).detach().cpu().item() 
 
 class PceLstmFullTrainer():
     def __init__(self, dfs, device, ts_sub, val_sub, nepoch = 40):
@@ -175,7 +178,7 @@ class PceLstmDiscriminatorFullTrainer():
                 transformers_val=transformers_val, transformers_ts=transformers_ts, dataset_cls=PPG.UtilitiesDataXY.ISDataset
             ).make_loaders(ts_sub, val_sub)
 
-            accuracy = lambda y,p: (torch.sum((p > 0.5)== y)/len(p)).detach().cpu().item() 
+            #accuracy = lambda y,p: (torch.sum((sigmoid(p) > 0.5)== y)/len(p)).detach().cpu().item() 
 
             train_helper = RegressionHR.TrainerJoint.TrainHelperJoint(
                 epoch_trainer, loader_tr1, loader_tr2, loader_val1, loader_val2,
@@ -280,7 +283,7 @@ class PceLstmDiscriminatorFullTrainerJointValidation():
                 dataset_cls=PPG.UtilitiesDataXY.ISDataset
             ).make_loaders(ts_sub, 0.8)
 
-            accuracy = lambda y,p: (torch.sum((p > 0.5)== y)/len(p)).detach().cpu().item() 
+            
 
             train_helper = RegressionHR.TrainerJoint.TrainHelperJoint(
                 epoch_trainer, loader_tr1, loader_tr2, loader_val1, loader_val2,
@@ -391,7 +394,7 @@ class PceLstmDiscriminatorFullTrainerJointValidation2():
                 dataset_cls=PPG.UtilitiesDataXY.ISDataset
             ).make_loaders(ts_sub, 0.8)
             
-            accuracy = lambda y,p: (torch.sum((p > 0.5)== y)/len(p)).detach().cpu().item() 
+            #accuracy = lambda y,p: (torch.sum((p > 0.5)== y)/len(p)).detach().cpu().item() 
 
             train_helper = RegressionHR.TrainerJoint.TrainHelperJoint(
                 epoch_trainer, loader_tr1, loader_tr2, loader_val1, loader_val2,
