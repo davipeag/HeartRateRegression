@@ -393,7 +393,7 @@ class PceCosineSimilarity(torch.nn.Module):
 
     print(f"pce_shape: {pce0.shape}, {pce1.shape}")  
 
-    return self.discriminator(pce0, pce1)
+    return self.discriminator(pce0, pce1).unsqueeze(1)
 
     
 
