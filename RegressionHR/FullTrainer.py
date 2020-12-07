@@ -486,9 +486,12 @@ class DaliaPceLstmDiscriminatorFullTrainerJointValidation2():
 
         transformers2 = RegressionHR.PceLstmDefaults.DaliaPceDecoderPreprocessingTransformerGetter()(
             period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=sample_step_ratio, ts_per_is=ts_per_is)
-        
+
+        transformers2_val = RegressionHR.PceLstmDefaults.DaliaPceDecoderPreprocessingTransformerGetter()(
+            period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=sample_step_ratio//2, ts_per_is=ts_per_is)
+         
         loader_tr2, loader_val2, loader_ts2 = RegressionHR.UtilitiesData.PceDiscriminatorDataLoaderFactory(
-            transformers2, self.dfs, batch_size_tr=batch_size).make_loaders(ts_sub, val_sub)
+            transformers2, self.dfs, transformers_val=transformers2_val, transformers_ts=transformers2_val, batch_size_tr=batch_size).make_loaders(ts_sub, val_sub)
 
         for ts_per_sample in ts_per_samples:
 
