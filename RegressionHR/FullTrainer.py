@@ -21,7 +21,8 @@ from Models import BaseModels
 
 import sklearn.metrics
 
-from torch.nn.functional import sigmoid
+# from torch.nn.functional import sigmoid
+from torch import sigmoid
 
 accuracy = lambda y,p: (torch.sum((sigmoid(p) > 0.5)== y)/len(p)).detach().cpu().item() 
 
