@@ -364,6 +364,8 @@ class PceCosineSimilarity(torch.nn.Module):
     super(PceCosineSimilarity, self).__init__()
     self.ts_encoder = ts_encoder
     self.is_encoder = is_encoder
+
+    self.discriminator = torch.nn.CosineSimilarity(dim=1, eps=1e-6)
   
   def ts_encode(self, x):
     return torch.cat(
@@ -389,7 +391,7 @@ class PceCosineSimilarity(torch.nn.Module):
     pce0 = self.compute_pce(x0, hr0)
     pce1 = self.compute_pce(x1, hr1)
 
-    return torch.nn.CosineSimilarity(pce0, pce1)
+    return self.discriminator(pce0, pce1)
 
     
 
