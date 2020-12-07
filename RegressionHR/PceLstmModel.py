@@ -391,6 +391,8 @@ class PceCosineSimilarity(torch.nn.Module):
     pce0 = self.compute_pce(x0, hr0)
     pce1 = self.compute_pce(x1, hr1)
 
+    print(f"pce_shape: {pce0.shape}, {pce1.shape}")  
+
     return self.discriminator(pce0, pce1)
 
     
