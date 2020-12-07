@@ -777,12 +777,19 @@ class PceDecoderLoaderTransformer():
     lab_false = np.full([len(x1), 1], 0, np.float)
 
     rand_idx = np.random.permutation(len(x0))
+    rand_idx1 = np.random.permutation(len(x1))
 
-    x0n = np.concatenate([x0, x0])
-    hr0n = np.concatenate([hr0, hr0])
-    x1n = np.concatenate([x0[rand_idx], x1])
-    hr1n = np.concatenate([hr0[rand_idx], hr1])
-    labn = np.concatenate([lab_true, lab_false])
+    # x0n = np.concatenate([x0, x0])
+    # hr0n = np.concatenate([hr0, hr0])
+    # x1n = np.concatenate([x0[rand_idx], x1])
+    # hr1n = np.concatenate([hr0[rand_idx], hr1])
+    # labn = np.concatenate([lab_true, lab_false])
+
+    x0n = np.concatenate([x0, x0, x1, x1])
+    hr0n = np.concatenate([hr0, hr0, hr1, hr1])
+    x1n = np.concatenate([x0[rand_idx], x1, x1[rand_idx1], x0 ])
+    hr1n = np.concatenate([hr0[rand_idx], hr1, hr1[rand_idx1], hr0])
+    labn = np.concatenate([lab_true, lab_false, lab_true, lab_false])
 
     shuffle_idx = np.random.permutation(len(x0n))#[:len(x0)]
 
