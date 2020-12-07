@@ -359,6 +359,40 @@ class PceDiscriminatorAssembler2(torch.nn.Module):
     return self.discriminator(torch.cat([pce0, pce1], dim=1))
 
 
+class PceCosineSimilarity(torch.nn.Module):
+  def __init__(self, ts_encoder, is_encoder):
+    super(PceCosineSimilarity, self).__init__()
+    self.ts_encoder = ts_encoder
+    self.is_encoder = is_encoder
+  
+  def ts_encode(self, x):
+    return torch.cat(
+        [self.ts_encoder(b).transpose(0,2).transpose(1,2)
+          for b in x], dim=0).squeeze(-1)
+  
+  def is_encode(self, encx, y):
+        return self.is_encoder(torch.cat([encx, y], dim=2).transpose(2,1)).squeeze(-1)
+  
+  def compute_pce(self, x, y):
+    enc = self.ts_encode(x)
+    return self.is_encode(enc, y)
+        
+  def forward(self, x0, hr0, x1, hr1):
+    # x0enc = self.ts_encoder(x0.transpose(1,2).reshape(x0.shape[0], x0.shape[2],  -1))
+    # x1enc = self.ts_encoder(x1.transpose(1,2).reshape(x1.shape[0], x1.shape[2],  -1))
+
+    # pce0 = self.is_encoder(torch.cat([x0enc, hr0.transpose(2,1)], axis=1)).squeeze(2)
+    # pce1 = self.is_encoder(torch.cat([x1enc, hr1.transpose(2,1)], axis=1)).squeeze(2) 
+
+    #return self.discriminator(torch.cat([pce0, pce1], dim=1))
+
+    pce0 = self.compute_pce(x0, hr0)
+    pce1 = self.compute_pce(x1, hr1)
+
+    return torch.nn.CosineSimilarity(pce0, pce1)
+
+    
+
 
 def make_pce_lstm_and_discriminator(
     ts_h_size = 32,
@@ -395,4 +429,19 @@ def parametrized_encoder_make_pce_lstm_and_discriminator(
   discriminator = Discriminator(lstm_size*2, disc_nlayers, disc_layer_size, disc_dropout_rate)
 
   pce_discriminator = PceDiscriminatorAssembler2(pce_lstm.ts_encoder, pce_lstm.is_encoder, discriminator)
+  return pce_lstm, pce_discriminator
+
+def parametrized_encoder_make_pce_lstm_and_cossine_similarity(
+    sample_per_ts = 400,
+    ts_per_is = 2,
+    ts_h_size = 32,
+    is_h_size = 32,
+    lstm_size=32,
+    lstm_input = 128,
+    dropout_rate = 0,
+    nattrs=40
+    ):
+  pce_lstm = ParametrizedEncoderMakeOurConvLSTM(sample_per_ts, ts_per_is, ts_h_size, is_h_size, lstm_size, lstm_input, dropout_rate, nattrs)()
+  
+  pce_discriminator = PceCosineSimilarity(pce_lstm.ts_encoder, pce_lstm.is_encoder)
   return pce_lstm, pce_discriminator

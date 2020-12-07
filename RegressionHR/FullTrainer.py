@@ -531,3 +531,114 @@ class DaliaPceLstmDiscriminatorFullTrainerJointValidation2():
             "metric": metric,
             "run_class": self.__class__.__name__
         }
+
+
+class DaliaPceLstmCossineLimilarityFullTrainerJointValidation():
+    def __init__(self, dfs, device, nepoch = 40):
+        self.dfs = dfs
+        self.device = device
+        self.transformers = RegressionHR.PceLstmDefaults.DaliaPreprocessingTransformerGetter()
+        self.nepoch = nepoch
+    def train(
+        self,
+        ts_h_size = 32,
+        lstm_size=32,
+        lstm_input = 128,
+        dropout_rate = 0,
+        nattrs=7,
+        lr=0.001,
+        weight_decay=0.0001,
+        batch_size=128,
+        ts_sub=5,
+        val_sub=4,
+        ts_per_samples = [40],
+        alpha = 0.8,
+        step_s=2,
+        period_s=4,
+        ts_per_is = 2,
+        is_h_size = 32
+    ):
+        args = locals()
+        args.pop("self")
+        net_args = copy.deepcopy(args)
+        [net_args.pop(v) for v in ("ts_sub", "val_sub", "lr", "weight_decay", "batch_size", "ts_per_samples", "alpha", "step_s", "period_s")]
+        frequency_hz = 100
+
+        net_args["sample_per_ts"] = int(frequency_hz*period_s)
+        
+        ldf = len(self.dfs[ts_sub])
+        ts_per_sample_ts = int(ldf/(frequency_hz*step_s))-3
+        transformers_ts = self.transformers(period_s = period_s, step_s = step_s, frequency_hz = frequency_hz, ts_per_sample=ts_per_sample_ts, ts_per_is=ts_per_is)
+
+        nets = list(map(lambda n: n.to(self.device), 
+                                 RegressionHR.PceLstmModel.parametrized_encoder_make_pce_lstm_and_cossine_similarity(**net_args)))
+
+        pce_lstm, pce_discriminator = nets
+
+        [PPG.Models.initialize_weights(net) for net in nets]
+
+        criterion1 = torch.nn.L1Loss().to(self.device)
+        # criterion2 = torch.nn.BCELoss().to(self.device)
+        # criterion2 = torch.nn.BCEWithLogitsLoss().to(self.device)
+        criterion2 = torch.nn.L1Loss().to(self.device)
+
+        optimizer = torch.optim.Adam([{"params": pce_lstm.parameters()},
+                                      {"params": pce_discriminator.discriminator.parameters()}], lr=lr,
+                                     weight_decay=weight_decay)
+
+        epoch_trainer = RegressionHR.TrainerJoint.EpochTrainerJoint(
+            pce_lstm, pce_discriminator, criterion1, criterion2, optimizer, alpha, self.device)
+        
+        
+        ztransformer = self.transformers.ztransformer
+        metrics_computer = PPG.TrainerIS.MetricsComputerIS(ztransformer)
+
+        sample_step_ratio = ts_per_samples[0]
+
+        transformers2 = RegressionHR.PceLstmDefaults.DaliaPceDecoderPreprocessingTransformerGetter()(
+            period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=sample_step_ratio, ts_per_is=ts_per_is)
+
+        transformers2_val = RegressionHR.PceLstmDefaults.DaliaPceDecoderPreprocessingTransformerGetter()(
+            period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=sample_step_ratio//2, ts_per_is=ts_per_is)
+         
+        loader_tr2, loader_val2, loader_ts2 = RegressionHR.UtilitiesData.PceDiscriminatorDataLoaderFactory(
+            transformers2, self.dfs, transformers_val=transformers2_val, transformers_ts=transformers2_val, batch_size_tr=batch_size).make_loaders(ts_sub, val_sub)
+
+        for ts_per_sample in ts_per_samples:
+
+            transformers_tr = self.transformers(period_s=period_s, step_s=step_s, frequency_hz=frequency_hz, ts_per_sample=ts_per_sample, ts_per_is=ts_per_is, sample_step_ratio=1)
+
+            
+            # loader_tr1, loader_val1, loader_ts1 = PPG.UtilitiesDataXY.DataLoaderFactory(
+            #     transformers_tr, dfs= self.dfs, batch_size_tr=batch_size,
+            #     transformers_val=transformers_val, transformers_ts=transformers_val, dataset_cls=PPG.UtilitiesDataXY.ISDataset
+            # ).make_loaders(ts_sub, val_sub)
+
+            loader_tr1, loader_val1, loader_ts1 = PPG.UtilitiesDataXY.JointTrValDataLoaderFactory(
+                transformers_tr, transformers_ts=transformers_ts, dfs = self.dfs, batch_size_tr=batch_size,
+                dataset_cls=PPG.UtilitiesDataXY.ISDataset
+            ).make_loaders(ts_sub, 0.8)
+            
+            #accuracy = lambda y,p: (torch.sum((p > 0.5)== y)/len(p)).detach().cpu().item() 
+
+            train_helper = RegressionHR.TrainerJoint.TrainHelperJoint(
+                epoch_trainer, loader_tr1, loader_tr2, loader_val1, loader_val2,
+                loader_ts1, loader_ts2,
+                metrics_computer.mae,
+                lambda y,p: (criterion2(p, y).cpu().item()) # torch.mean(torch.abs(y-p)).detach().cpu().item()
+            )
+            
+            print("about to train:")
+            metric = train_helper.train(self.nepoch)
+
+        d0, d1 = epoch_trainer.evaluate(loader_ts1, loader_ts2) 
+
+        p = [metrics_computer.inverse_transform_label(v)
+             for v in d0[-2:]]
+
+        return {
+            "args": args,
+            "predictions": p,
+            "metric": metric,
+            "run_class": self.__class__.__name__
+        }
