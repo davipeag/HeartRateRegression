@@ -584,7 +584,8 @@ class DaliaPceLstmCossineLimilarityFullTrainerJointValidation():
         criterion2 = torch.nn.L1Loss().to(self.device)
 
         optimizer = torch.optim.Adam([{"params": pce_lstm.parameters()},
-                                      {"params": pce_discriminator.discriminator.parameters()}], lr=lr,
+                                      #{"params": pce_discriminator.discriminator.parameters()}
+                                      ], lr=lr,
                                      weight_decay=weight_decay)
 
         epoch_trainer = RegressionHR.TrainerJoint.EpochTrainerJoint(
