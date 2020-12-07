@@ -73,6 +73,15 @@ class BatchTraninerJoint():
 
     def validate(self, batch1, batch2):
         return [lc.validate(batch) for lc, batch in zip(self.loss_computers,[batch1,batch2]) ]
+    
+    def single_validate(self, batch, idx):
+        lc = self.loss_computers[idx]
+        return lc.validate(batch)
+    
+    def single_evaluate(self, batch, idx):
+        lc = self.loss_computers[idx]
+        return lc.evaluate(batch)
+
 
 
 class EpochTrainerJoint():
@@ -95,10 +104,20 @@ class EpochTrainerJoint():
         self.apply_to_batches(self.trainer.validate, loader1, loader2)
 
     def evaluate(self, loader1, loader2):
-        d1, d2 = zip(*self.apply_to_batches(self.trainer.evaluate, loader1, loader2))
-        v1 = [torch.cat(l) for l in zip(*d1)]
-        v2 = [torch.cat(l) for l in zip(*d2)]
-        return v1,v2
+        # d1, d2 = zip(*self.apply_to_batches(self.trainer.evaluate, loader1, loader2))
+        # v1 = [torch.cat(l) for l in zip(*d1)]
+        # v2 = [torch.cat(l) for l in zip(*d2)]
+        # return v1,v2
+        return self.single_evaluate(loader1, 0), self.single_evaluate(loader2, 1)
+    
+    def single_evaluate(self, loader, idx):
+        d = [self.trainer.single_evaluate(batch, idx) for batch in loader]
+        v = [torch.cat(l) for l in zip(*d)]
+        return v
+    
+    def single_validate(self, loader, idx):
+        return [self.trainer.single_validate(batch, idx) for batch in loader]
+     
 
 
 class MetricsComputerIS():
