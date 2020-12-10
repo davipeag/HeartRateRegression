@@ -938,6 +938,7 @@ class NoPceLstmPamap2FullTrainerJointValidation(SingleNetFullTrainerJointValidat
         ]):
         super(NoPceLstmPamap2FullTrainerJointValidation, self).__init__(
             dfs, device, nepoch, RegressionHR.PceLstmModel.make_par_enc_no_pce_lstm,
-            RegressionHR.Preprocessing.PceLstmTransformerGetter, "pamap2", feature_columns, 100, "nargs")
+            RegressionHR.Preprocessing.PceLstmTransformerGetter, "pamap2", feature_columns,
+             100, "nattrs")
 
     
