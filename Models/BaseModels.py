@@ -166,7 +166,7 @@ class SkipFullyConnected(nn.Module):
 
     
     def normalize_index(self, idx, size):
-        if (idx > 0) and (idx < size):
+        if (idx >= 0) and (idx < size):
             return idx
         if (idx < 0) and (idx >= -size):
             return size - idx
