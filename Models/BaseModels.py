@@ -118,7 +118,7 @@ class ConstantHiddenSizeHalvingFullyConvolutionalEncoder1D(nn.Module):
 class LinearCell(nn.Module):
 
     def __init__(self, input_size, output_size, dropout_rate, activation_function=nn.LeakyReLU()):
-        super(LinearCell, self).__init__():
+        super(LinearCell, self).__init__()
 
         self.cell = nn.Sequential(
             nn.Linear(input_size, output_size),
