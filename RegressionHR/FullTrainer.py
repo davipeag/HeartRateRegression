@@ -16,6 +16,7 @@ from RegressionHR import PceLstmDefaults
 from RegressionHR import PceLstmModel
 from RegressionHR import TrainerJoint
 from RegressionHR import  UtilitiesData
+from RegressionHR import Preprocessing
 
 import Models
 from Models import BaseModels
