@@ -284,7 +284,7 @@ class ParametrizedEncoderMakeOurConvLSTM():
 
 
 class NoPceParametrizedEncoderMakeOurConvLSTM():
-  def __init__(self, input_length=400, ts_per_is=2, ts_h_size = 32, is_h_size = 32, lstm_size=32, lstm_input = 128, dropout_rate = 0,
+  def __init__(self, input_length=400, ts_h_size = 32, lstm_size=32, lstm_input = 128, dropout_rate = 0,
                nattrs = 5):
     self.input_length = input_length
     self.ts_h_size = ts_h_size
@@ -356,7 +356,7 @@ def make_par_enc_no_pce_lstm(
     nattrs=40
     ):
   return NoPceParametrizedEncoderMakeOurConvLSTM(sample_per_ts, ts_h_size , lstm_size, lstm_input, dropout_rate, nattrs)()
-
+      
 
 class Discriminator(torch.nn.Module):
   def __init__(self, input_length, nlayers=3, layer_size=32, dropout_rate = 0, activation = torch.nn.LeakyReLU()):
