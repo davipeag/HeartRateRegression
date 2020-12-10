@@ -154,7 +154,7 @@ class SkipFullyConnected(nn.Module):
             self.layers.append(LinearCell(i,o, dropout_rate, activation_function))
         self.layers.append(LinearCell(imp_outs[-1][0], imp_outs[-1][1], 0, nn.Identity()))
 
-        self.concat_indices = [[i] for i in range(imp_layer_sizes)]
+        self.concat_indices = [[i] for i in range(len(imp_layer_sizes))]
         for src,dst in skip_mapping:
             self.concat_indices[dst].append(src)
 
