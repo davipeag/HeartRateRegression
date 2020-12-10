@@ -139,6 +139,8 @@ class SkipFullyConnected(nn.Module):
         skip_mapping List(Tuple(src, dst))
         """
 
+        super(SkipFullyConnected, self).__init__()
+
         imp_layer_sizes_tmp = [input_features, *layer_sizes]
         self.check_skip_mapping(skip_mapping, imp_layer_sizes_tmp)
         imp_layer_sizes = copy.deepcopy(imp_layer_sizes_tmp)
