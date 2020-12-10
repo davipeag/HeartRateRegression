@@ -839,3 +839,104 @@ class IteractiveFFNNFullTrainerJointValidation():
             "metric": metric,
             "run_class": self.__class__.__name__
         }
+
+
+class SingleNetFullTrainerJointValidationIS():
+    def __init__(
+        self,
+        dfs,
+        device,
+        nepoch,
+        net_builder_cls,
+        transformer_getter_cls,
+        dataset_name,
+        feature_columns,
+        frequency_hz,
+        input_features_parameter_name,
+        ):
+        self.dfs = dfs
+        self.device = device
+        self.transformers = transformer_getter_cls(feature_columns, dataset_name)
+        self.nepoch = nepoch
+        self.net_builder_cls = net_builder_cls
+        self.feature_columns = feature_columns
+        self.frequency_hz = frequency_hz
+        self.input_features_parameter_name = input_features_parameter_name
+    def train(
+        self,
+        lr,
+        weight_decay,
+        batch_size,
+        ts_sub,
+        ts_per_sample,
+        step_s,
+        period_s,
+        **net_args
+    ):
+        net_args[self.input_features_parameter_name] = len(self.feature_columns)
+        args = locals()
+        args.pop("self")
+        frequency_hz = self.frequency_hz
+        
+        ldf = len(self.dfs[ts_sub])
+        ts_per_sample_ts = int(ldf/(frequency_hz*step_s))-3
+        transformers_ts = self.transformers(
+            period_s = period_s, step_s = step_s, frequency_hz = frequency_hz,
+            ts_per_sample=ts_per_sample_ts)
+
+        net = self.net_builder_cls(**net_args).to(self.device)
+        PPG.Models.initialize_weights(net)
+
+        criterion = torch.nn.L1Loss().to(self.device)
+        
+        optimizer = torch.optim.Adam(net.parameters(), lr=lr,
+                                     weight_decay=weight_decay)
+
+        epoch_trainer = PPG.TrainerIS.EpochTrainerIS(
+            model = net, criterion = criterion, optimizer = optimizer, device = self.device
+        )  
+        
+        ztransformer = self.transformers.ztransformer
+        metrics_computer = PPG.TrainerIS.MetricsComputerIS(ztransformer)
+        
+        transformers_tr = self.transformers(period_s=period_s, step_s=step_s, frequency_hz=frequency_hz,
+                                            ts_per_sample=ts_per_sample)
+
+    
+        loader_tr, loader_val, loader_ts = PPG.UtilitiesDataXY.JointTrValDataLoaderFactory(
+            transformers_tr, transformers_ts=transformers_ts, dfs = self.dfs, batch_size_tr=batch_size,
+            dataset_cls=PPG.UtilitiesDataXY.ISDataset
+        ).make_loaders(ts_sub, 0.8)
+
+
+        train_helper = PPG.TrainerIS.TrainHelperIS(
+            epoch_trainer, loader_tr, loader_val, loader_ts, metrics_computer.mae
+        )         
+            
+        metric = train_helper.train(self.nepoch)
+
+        p = [metrics_computer.inverse_transform_label(v)
+             for v in  epoch_trainer.evaluate(loader_ts)[-2:]]
+
+        return {
+            "args": args,
+            "predictions": p,
+            "metric": metric,
+            "run_class": self.__class__.__name__
+        }
+
+class NoPceLstmPamap2FullTrainerJointValidation(SingleNetFullTrainerJointValidationIS):
+    def __init__(self, dfs, device, nepoch, feature_columns=[
+            'heart_rate', 'h_temperature', 'h_xacc16', 'h_yacc16', 'h_zacc16',
+            'h_xacc6', 'h_yacc6', 'h_zacc6', 'h_xgyr', 'h_ygyr', 'h_zgyr', 'h_xmag',
+            'h_ymag', 'h_zmag', 'c_temperature', 'c_xacc16', 'c_yacc16', 'c_zacc16',
+            'c_xacc6', 'c_yacc6', 'c_zacc6', 'c_xgyr', 'c_ygyr', 'c_zgyr', 'c_xmag',
+            'c_ymag', 'c_zmag', 'a_temperature', 'a_xacc16', 'a_yacc16', 'a_zacc16',
+            'a_xacc6', 'a_yacc6', 'a_zacc6', 'a_xgyr', 'a_ygyr', 'a_zgyr', 'a_xmag',
+            'a_ymag', 'a_zmag'
+        ]):
+        super(NoPceLstmPamap2FullTrainerJointValidation, self).__init__(
+            dfs, device, nepoch, RegressionHR.PceLstmModel.make_par_enc_no_pce_lstm,
+            RegressionHR.Preprocessing.PceLstmTransformerGetter, "pamap2", feature_columns, 100, "nargs")
+
+    

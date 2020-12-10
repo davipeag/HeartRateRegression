@@ -167,18 +167,26 @@ class ZTransformer2():
         self.column_names = column_names
         self.transformer = preprocessing.StandardScaler()
         if dataset == "dalia":
+            all_columns = ['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
+                'wrist-BVP-0', 'wrist-EDA-0', 'wrist-TEMP-0', 'chest-ACC-0',
+                'chest-ACC-1', 'chest-ACC-2', 'chest-Resp-0']
+            indices = [all_columns.index(v) for v in self.column_names]
             self.scale_ = np.array([1.61404494e+01, 2.89046779e-01, 5.98504973e-01, 3.70468804e-01,
                                     9.71599302e+01, 2.94258104e+00, 1.53193353e+00, 1.81969974e-01,
-                                    8.43355618e-02, 2.32176963e-01, 3.31247373e+00])
+                                    8.43355618e-02, 2.32176963e-01, 3.31247373e+00])[indices]
             self.mean_ = np.array([7.48239044e+01, -4.93290615e-01,  9.41466821e-02,  5.51646695e-01,
                                    1.79098550e-03,  5.45641965e+00,  3.26605447e+01,  8.30785312e-01,
-                                   -6.68258143e-02, -3.55140287e-01,  4.97225080e-02])
+                                   -6.68258143e-02, -3.55140287e-01,  4.97225080e-02])[indices]
 
         if dataset == "ieee_train":
+            all_columns = [
+                'heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
+                'wrist-BVP-0', 'wrist-BVP-1',]
+            indices = [all_columns.index(v) for v in self.column_names]
             self.mean_ = np.array([131.50313238,   0.40932383,   0.48126465,   0.49944447,
-                                   -0.49050205,   4.25747781])
+                                   -0.49050205,   4.25747781])[indices]
             self.scale_ = np.array([31.44549631,   0.57973198,   0.77571034,   0.73668427,
-                                    96.6846285, 162.71685669])
+                                    96.6846285, 162.71685669])[indices]
 
         if dataset == "pamap2":
             all_pamap2_columns = [

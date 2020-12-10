@@ -118,6 +118,36 @@ class HiddenInitializationConvLSTMAssembler2(torch.nn.Module):
         
         return ps  
 
+class NoPceConvLSTMAssembler(torch.nn.Module):
+    def __init__(self, ts_encoder,
+                 lstm, fc_net, predictor):
+        """
+        initial_points: number of datapoints in initial baseline (yi.shape[1])
+        """
+        super(NoPceConvLSTMAssembler, self).__init__()
+
+        self.ts_encoder = ts_encoder
+        self.lstm = lstm
+        self.fc_net = fc_net
+        self.predictor = predictor
+        
+      
+    def forward(self,xi, yi, xp):
+        encoded_xp= torch.cat(
+        [self.ts_encoder(b).transpose(0,2).transpose(1,2)
+          for b in xp], dim=0)
+
+        encoded_xi= torch.cat(
+        [self.ts_encoder(b).transpose(0,2).transpose(1,2)
+          for b in xi], dim=0)
+
+        _, (h,c) = self.lstm(encoded_xi)
+        hsf, _ = self.lstm(encoded_xp, (h,c))
+        ps = self.predictor(self.fc_net(hsf))
+        
+        return ps  
+
+
 
 class MakeOurConvLSTM():
   def __init__(self, ts_h_size = 32, lstm_size=32, lstm_input = 128, dropout_rate = 0,
@@ -253,6 +283,46 @@ class ParametrizedEncoderMakeOurConvLSTM():
     return net
 
 
+class NoPceParametrizedEncoderMakeOurConvLSTM():
+  def __init__(self, input_length=400, ts_per_is=2, ts_h_size = 32, is_h_size = 32, lstm_size=32, lstm_input = 128, dropout_rate = 0,
+               nattrs = 5):
+    self.input_length = input_length
+    self.ts_h_size = ts_h_size
+    self.lstm_size = lstm_size
+    self.lstm_input = lstm_input
+    self.dropout_rate = dropout_rate
+    self.nattrs = nattrs
+
+  def make_ts_encoder(self, input_channels, output_channels, nfilters):
+    return Models.BaseModels.ConstantHiddenSizeHalvingFullyConvolutionalEncoder1D(
+      self.input_length, input_channels, output_channels, self.ts_h_size, self.dropout_rate
+    )
+  
+  def make_fc_net(self):
+    return nn.Sequential(
+        nn.Linear(in_features=self.lstm_size, out_features=32, bias=True),
+        nn.Dropout(p=0.5, inplace=False),
+        nn.LeakyReLU(negative_slope=0.01),
+        nn.Linear(in_features=32, out_features=self.lstm_size, bias=True),
+        nn.Dropout(p=0, inplace=False),
+    )
+  
+  def make_hr_predictor(self):
+    return nn.Linear(in_features=self.lstm_size, out_features=1)
+  
+  def make_lstm(self):
+    return nn.LSTM(self.lstm_input, self.lstm_size, batch_first=True)
+  
+  def __call__(self):
+    net = NoPceConvLSTMAssembler(
+    ts_encoder= self.make_ts_encoder(self.nattrs, self.lstm_input, self.ts_h_size),
+    lstm= self.make_lstm(),
+    fc_net = self.make_fc_net(),
+    predictor = self.make_hr_predictor()
+    )
+    return net
+
+
 def make_pce_lstm(
     ts_h_size = 32,
     lstm_size=32,
@@ -277,6 +347,15 @@ def make_par_enc_pce_lstm(
   return ParametrizedEncoderMakeOurConvLSTM(sample_per_ts, ts_per_is, ts_h_size, is_h_size, lstm_size, lstm_input, dropout_rate, nattrs )()
    #ts_h_size, lstm_size, lstm_input, dropout_rate, nattrs)()
 
+def make_par_enc_no_pce_lstm(
+    sample_per_ts = 400,
+    ts_h_size = 32,
+    lstm_size=32,
+    lstm_input = 128,
+    dropout_rate = 0,
+    nattrs=40
+    ):
+  return NoPceParametrizedEncoderMakeOurConvLSTM(sample_per_ts, ts_h_size , lstm_size, lstm_input, dropout_rate, nattrs)()
 
 
 class Discriminator(torch.nn.Module):
