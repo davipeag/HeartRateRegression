@@ -17,6 +17,7 @@ from RegressionHR import PceLstmModel
 from RegressionHR import TrainerJoint
 from RegressionHR import  UtilitiesData
 
+import Models
 from Models import BaseModels
 
 import sklearn.metrics
@@ -746,6 +747,91 @@ class PceLstmCosineSimilarityFullTrainerJointValidation():
 
         p = [metrics_computer.inverse_transform_label(v)
              for v in d0[-2:]]
+
+        return {
+            "args": args,
+            "predictions": p,
+            "metric": metric,
+            "run_class": self.__class__.__name__
+        }
+
+
+
+class IteractiveFFNNFullTrainerJointValidation():
+    def __init__(
+        self,
+        dfs,
+        device,
+        nepoch = 40,
+        net_builder_cls = Models.BaseModels.IterativeSkipFFNN,
+        transformer_getter_cls = RegressionHR.Preprocessing.FFNNPreprocessingTransformerGetter,
+        dataset_name = "pamap2",
+        feature_columns = [
+            'heart_rate', 
+            'h_xacc16', 'h_yacc16', 'h_zacc16',
+            'h_xacc6', 'h_yacc6', 'h_zacc6'],
+        frequency_hz = 100,
+        ):
+        self.dfs = dfs
+        self.device = device
+        self.transformers = transformer_getter_cls(feature_columns, dataset_name)
+        self.nepoch = nepoch
+        self.net_builder_cls = net_builder_cls
+        self.feature_columns = feature_columns
+        self.frequency_hz = frequency_hz
+    def train(
+        self,
+        lr=0.001,
+        weight_decay=0.0001,
+        batch_size=128,
+        ts_sub=5,
+        ts_per_sample = 40,
+        step_s=2,
+        period_s=4,
+        **net_args
+    ):
+        args = locals()
+        args.pop("self")
+        net_args["input_features"] = len(self.feature_columns)
+        frequency_hz = self.frequency_hz
+        
+        ldf = len(self.dfs[ts_sub])
+        ts_per_sample_ts = int(ldf/(frequency_hz*step_s))-3
+        transformers_ts = self.transformers(period_s = period_s, step_s = step_s, frequency_hz = frequency_hz, ts_per_sample=ts_per_sample_ts)
+
+        net = self.net_builder_cls(**net_args).to(self.device)
+        PPG.Models.initialize_weights(net)
+
+        criterion = torch.nn.L1Loss().to(self.device)
+        
+        optimizer = torch.optim.Adam(net.parameters(), lr=lr,
+                                     weight_decay=weight_decay)
+
+        epoch_trainer = PPG.TrainerIS.EpochTrainerIS(
+            model = net, criterion = criterion, optimizer = optimizer, device = self.device
+        )  
+        
+        
+        ztransformer = self.transformers.ztransformer
+        metrics_computer = PPG.TrainerIS.MetricsComputerIS(ztransformer)
+        
+        transformers_tr = self.transformers(period_s=period_s, step_s=step_s, frequency_hz=frequency_hz, ts_per_sample=ts_per_sample)
+
+    
+        loader_tr, loader_val, loader_ts = PPG.UtilitiesDataXY.JointTrValDataLoaderFactory(
+            transformers_tr, transformers_ts=transformers_ts, dfs = self.dfs, batch_size_tr=batch_size,
+            dataset_cls=PPG.UtilitiesDataXY.ISDataset
+        ).make_loaders(ts_sub, 0.8)
+
+
+        train_helper = PPG.TrainerIS.TrainHelperIS(
+            epoch_trainer, loader_tr, loader_val, loader_ts, metrics_computer.mae
+        )         
+            
+        metric = train_helper.train(self.nepoch)
+
+        p = [metrics_computer.inverse_transform_label(v)
+             for v in  epoch_trainer.evaluate(loader_ts)[-2:]]
 
         return {
             "args": args,

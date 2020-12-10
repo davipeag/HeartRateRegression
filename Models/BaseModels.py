@@ -1,7 +1,10 @@
+# %%
+
 import torch
 from torch import nn
 from typing import List, Tuple, Sequence
 import copy
+
 
 class HalveConvolution1D(nn.Module):
     def __init__(self, input_length, input_channels, output_channels,
@@ -128,13 +131,12 @@ class LinearCell(nn.Module):
 
     def forward(self, x):
         return self.cell(x)
-    
 
 
 class SkipFullyConnected(nn.Module):
     def __init__(
-        self, input_features: int, output_features:int, layer_sizes: List[int], skip_mapping: List[Tuple[int, int]],
-        dropout_rate: float, activation_function = nn.LeakyReLU()):
+            self, input_features: int, output_features: int, layer_sizes: List[int], skip_mapping: List[Tuple[int, int]],
+            dropout_rate: float, activation_function=nn.LeakyReLU()):
         """
         skip_mapping List(Tuple(src, dst))
         """
@@ -144,29 +146,30 @@ class SkipFullyConnected(nn.Module):
         imp_layer_sizes_tmp = [input_features, *layer_sizes]
         self.check_skip_mapping(skip_mapping, imp_layer_sizes_tmp)
         imp_layer_sizes = copy.deepcopy(imp_layer_sizes_tmp)
-        for src,dst in skip_mapping:
+        for src, dst in skip_mapping:
             imp_layer_sizes[dst] = imp_layer_sizes[dst] + imp_layer_sizes[src]
         out_layer_sizes = [*imp_layer_sizes_tmp[1:], output_features]
 
         imp_outs = list(zip(imp_layer_sizes, out_layer_sizes))
         self.layers = nn.ModuleList()
-        for i,o in imp_outs[:-1]:
-            self.layers.append(LinearCell(i,o, dropout_rate, activation_function))
-        self.layers.append(LinearCell(imp_outs[-1][0], imp_outs[-1][1], 0, nn.Identity()))
+        for i, o in imp_outs[:-1]:
+            self.layers.append(LinearCell(
+                i, o, dropout_rate, activation_function))
+        self.layers.append(LinearCell(
+            imp_outs[-1][0], imp_outs[-1][1], 0, nn.Identity()))
 
         self.concat_indices = [[i] for i in range(len(imp_layer_sizes))]
-        for src,dst in skip_mapping:
+        for src, dst in skip_mapping:
             self.concat_indices[dst].append(src)
-
 
     def forward(self, x):
         imps = [None for _ in self.concat_indices]
-        for i,layer in enumerate(self.layers):
+        for i, layer in enumerate(self.layers):
             imps[i] = x
-            x = layer(torch.cat([imps[j] for j in self.concat_indices[i]], dim=-1))
+            x = layer(torch.cat([imps[j]
+                                 for j in self.concat_indices[i]], dim=-1))
         return x
 
-    
     def normalize_index(self, idx, size):
         if (idx >= 0) and (idx < size):
             return idx
@@ -178,13 +181,29 @@ class SkipFullyConnected(nn.Module):
     def check_skip_mapping(self, skip_mapping, inp_layer_sizes):
         size = len(inp_layer_sizes)
         for src, dst in skip_mapping:
-            dst = self.normalize_index(dst, size) #max(dst, len(inp_layer_sizes)-dst)
-            src = self.normalize_index(src, size) #max(src, len(inp_layer_sizes)-src)
-            if ((dst) < src + 1 ):
-                raise ValueError(f"dest({dst}) < src({src}) + 2")            
-            
-           
+            # max(dst, len(inp_layer_sizes)-dst)
+            dst = self.normalize_index(dst, size)
+            # max(src, len(inp_layer_sizes)-src)
+            src = self.normalize_index(src, size)
+            if ((dst) < src + 1):
+                raise ValueError(f"dest({dst}) < src({src}) + 2")
 
 
+class IterativeSkipFFNN(torch.nn.Module):
+    def __init__(self, input_features: int, layer_sizes: List[int], skip_mapping: List[Tuple[int, int]],
+                 dropout_rate: float, activation_function=nn.LeakyReLU()):
+        super(IterativeSkipFFNN, self).__init__()
+        self.net = SkipFullyConnected(
+            input_features, 1, layer_sizes, skip_mapping, dropout_rate, activation_function)
+
+    def forward(self, xi, yi, xr):
+        ys = list()
+        y = yi
+        for i in range(xr.shape[1]):
+            x = torch.cat([y, xr[:, i, 1:]], dim=-1)
+            y = self.net(x)
+            ys.append(y)
+        return torch.cat(ys, dim=1)
 
 
+# %%
