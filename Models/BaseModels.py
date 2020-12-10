@@ -140,7 +140,7 @@ class SkipFullyConnected(nn.Module):
         """
 
         imp_layer_sizes_tmp = [input_features, *layer_sizes]
-        self.check_skip_mapping(self, skip_mapping, imp_layer_sizes_tmp)
+        self.check_skip_mapping(skip_mapping, imp_layer_sizes_tmp)
         imp_layer_sizes = copy.deepcopy(imp_layer_sizes_tmp)
         for src,dst in skip_mapping:
             imp_layer_sizes[dst] = imp_layer_sizes[dst] + imp_layer_sizes[src]
