@@ -168,8 +168,8 @@ class SkipFullyConnected(nn.Module):
         for src, dst in skip_mapping:
             dst = max(dst, len(inp_layer_sizes)-dst)
             src = max(src, len(inp_layer_sizes)-src)
-            if (src >= (dst -1) ):
-                raise ValueError(f"dest({dst})-1 >= src({src})")            
+            if ((dst) < src + 1 ):
+                raise ValueError(f"dest({dst}) < src({src}) + 2")            
             
             if (src < 0):
                 raise ValueError("src indices must be greater than 0")
