@@ -164,19 +164,24 @@ class SkipFullyConnected(nn.Module):
             x = layer(torch.cat([imps[j] for j in self.concat_indices[i]], dim=-1))
         return x
 
+    
+    def normalize_index(self, idx, size):
+        if (idx > 0) and (idx < size):
+            return idx
+        if (idx < 0) and (idx >= -size):
+            return size - idx
+        else:
+            raise IndexError(f"Index ({idx}) out of Range({size})")
+
     def check_skip_mapping(self, skip_mapping, inp_layer_sizes):
+        size = len(inp_layer_sizes)
         for src, dst in skip_mapping:
-            dst = max(dst, len(inp_layer_sizes)-dst)
-            src = max(src, len(inp_layer_sizes)-src)
+            dst = self.normalize_index(dst, size) #max(dst, len(inp_layer_sizes)-dst)
+            src = self.normalize_index(src, size) #max(src, len(inp_layer_sizes)-src)
             if ((dst) < src + 1 ):
                 raise ValueError(f"dest({dst}) < src({src}) + 2")            
             
-            if (src < 0):
-                raise ValueError("src indices must be greater than 0")
-            
-            if (dst >= len(inp_layer_sizes)):
-                raise ValueError("dst index out of range")
-
+           
 
 
 
