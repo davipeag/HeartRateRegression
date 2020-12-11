@@ -882,7 +882,7 @@ class SingleNetFullTrainerJointValidationIS():
         **net_args
     ):
         net_args[self.input_features_parameter_name] = len(self.feature_columns)
-        net_args = {**net_args, self.additional_net_args}
+        net_args = {**net_args, **self.additional_net_args}
         args = locals()
         args = {**args, **self.additional_args}
         args.pop("self")
