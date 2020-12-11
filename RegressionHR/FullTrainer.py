@@ -870,6 +870,7 @@ class SingleNetFullTrainerJointValidationIS():
         batch_size,
         ts_sub,
         ts_per_sample,
+        ts_per_is,
         step_s,
         period_s,
         **net_args
@@ -883,7 +884,7 @@ class SingleNetFullTrainerJointValidationIS():
         ts_per_sample_ts = int(ldf/(frequency_hz*step_s))-3
         transformers_ts = self.transformers(
             period_s = period_s, step_s = step_s, frequency_hz = frequency_hz,
-            ts_per_sample=ts_per_sample_ts)
+            ts_per_sample=ts_per_sample_ts, ts_per_is=ts_per_is)
 
         net = self.net_builder_cls(**net_args).to(self.device)
         PPG.Models.initialize_weights(net)
@@ -901,7 +902,7 @@ class SingleNetFullTrainerJointValidationIS():
         metrics_computer = PPG.TrainerIS.MetricsComputerIS(ztransformer)
         
         transformers_tr = self.transformers(period_s=period_s, step_s=step_s, frequency_hz=frequency_hz,
-                                            ts_per_sample=ts_per_sample)
+                                            ts_per_sample=ts_per_sample, ts_per_is=ts_per_is)
 
     
         loader_tr, loader_val, loader_ts = PPG.UtilitiesDataXY.JointTrValDataLoaderFactory(
