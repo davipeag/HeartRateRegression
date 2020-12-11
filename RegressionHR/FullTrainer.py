@@ -943,3 +943,12 @@ class NoPceLstmPamap2FullTrainerJointValidation(SingleNetFullTrainerJointValidat
              100, "nattrs")
 
     
+class NoPceLstmDaliaFullTrainerJointValidation(SingleNetFullTrainerJointValidationIS):
+    def __init__(self, dfs, device, nepoch, feature_columns=[
+            'heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
+            'chest-ACC-0','chest-ACC-1', 'chest-ACC-2'
+        ]):
+        super(NoPceLstmDaliaFullTrainerJointValidation, self).__init__(
+            dfs, device, nepoch, RegressionHR.PceLstmModel.make_par_enc_no_pce_lstm,
+            RegressionHR.Preprocessing.PceLstmTransformerGetter, "dalia", feature_columns,
+             32, "nattrs")
