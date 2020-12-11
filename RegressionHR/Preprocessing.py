@@ -13,9 +13,10 @@ class FFNNPreprocessingTransformerGetter():
         self.ztransformer = ZTransformer2(
             self.feature_columns, dataset=dataset_name)
 
-    def __call__(self, ts_per_sample=30, frequency_hz=100, period_s=4, step_s=2, sample_step_ratio=1):
+    def __call__(self, ts_per_sample=30, frequency_hz=100, period_s=4, step_s=2, sample_step_ratio=1, ts_per_is = 1):
 
-        ts_per_is = 1
+        if ts_per_is != 1:
+            raise ValueError(f"Parameter ts per is needs to be 1, but {ts_per_is}")
 
         self.hr_lin_imputation = LinearImputation("heart_rate")
         self.local_mean_imputer = LocalMeanReplacer()

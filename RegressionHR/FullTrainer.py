@@ -772,6 +772,7 @@ class IteractiveFFNNFullTrainerJointValidation():
             'h_xacc16', 'h_yacc16', 'h_zacc16',
             'h_xacc6', 'h_yacc6', 'h_zacc6'],
         frequency_hz = 100,
+        
         ):
         self.dfs = dfs
         self.device = device
@@ -780,6 +781,7 @@ class IteractiveFFNNFullTrainerJointValidation():
         self.net_builder_cls = net_builder_cls
         self.feature_columns = feature_columns
         self.frequency_hz = frequency_hz
+        
     def train(
         self,
         lr=0.001,
@@ -854,6 +856,8 @@ class SingleNetFullTrainerJointValidationIS():
         feature_columns,
         frequency_hz,
         input_features_parameter_name,
+        additional_args = dict(),
+        additional_net_args = dict()
         ):
         self.dfs = dfs
         self.device = device
@@ -863,6 +867,8 @@ class SingleNetFullTrainerJointValidationIS():
         self.feature_columns = feature_columns
         self.frequency_hz = frequency_hz
         self.input_features_parameter_name = input_features_parameter_name
+        self.additional_args = additional_args
+        self.additional_net_args = additional_net_args
     def train(
         self,
         lr,
@@ -876,7 +882,9 @@ class SingleNetFullTrainerJointValidationIS():
         **net_args
     ):
         net_args[self.input_features_parameter_name] = len(self.feature_columns)
+        net_args = {**net_args, self.additional_net_args}
         args = locals()
+        args = {**args, **self.additional_args}
         args.pop("self")
         frequency_hz = self.frequency_hz
         
@@ -941,8 +949,7 @@ class NoPceLstmPamap2FullTrainerJointValidation(SingleNetFullTrainerJointValidat
             dfs, device, nepoch, RegressionHR.PceLstmModel.make_par_enc_no_pce_lstm,
             RegressionHR.Preprocessing.PceLstmTransformerGetter, "pamap2", feature_columns,
              100, "nattrs")
-
-    
+ 
 class NoPceLstmDaliaFullTrainerJointValidation(SingleNetFullTrainerJointValidationIS):
     def __init__(self, dfs, device, nepoch, feature_columns=[
             'heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
@@ -952,3 +959,13 @@ class NoPceLstmDaliaFullTrainerJointValidation(SingleNetFullTrainerJointValidati
             dfs, device, nepoch, RegressionHR.PceLstmModel.make_par_enc_no_pce_lstm,
             RegressionHR.Preprocessing.PceLstmTransformerGetter, "dalia", feature_columns,
              32, "nattrs")
+
+class IteractiveFFNNDaliaFullTrainerJointValidation(SingleNetFullTrainerJointValidationIS):
+        def __init__(self, dfs, device, nepoch, feature_columns=[
+                'heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
+                #'chest-ACC-0','chest-ACC-1', 'chest-ACC-2'
+            ]):
+            super(IteractiveFFNNDaliaFullTrainerJointValidation, self).__init__(
+                dfs, device, nepoch, Models.BaseModels.IterativeSkipFFNN,
+                RegressionHR.Preprocessing.FFNNPreprocessingTransformerGetter, "dalia", feature_columns,
+                32, "input_features")
