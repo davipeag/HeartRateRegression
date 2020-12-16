@@ -774,8 +774,10 @@ class ShuffleIS(BaseEstimator, TransformerMixin):
 
 
 class PceDecoderLoaderTransformer():
-  def __init__(self, transformers):
+  def __init__(self, transformers, true_label = 1, false_label=0):
     self.transformers = transformers
+    self.true_label = true_label
+    self.false_label = false_label
   
   def transform(self, df1, df2):
    
@@ -794,8 +796,8 @@ class PceDecoderLoaderTransformer():
     x0,hr0 = x0[ridx0], hr0[ridx0]
     x1,hr1 = x1[ridx1], hr1[ridx1]
 
-    lab_true =  np.full([len(x0), 1], 1, np.float) 
-    lab_false = np.full([len(x1), 1], 0, np.float)
+    lab_true =  np.full([len(x0), 1], self.true_label, np.float) 
+    lab_false = np.full([len(x1), 1], self.false_label, np.float)
 
     rand_idx = np.random.permutation(len(x0))
     rand_idx1 = np.random.permutation(len(x1))

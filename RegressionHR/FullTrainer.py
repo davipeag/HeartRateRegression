@@ -537,11 +537,12 @@ class DaliaPceLstmDiscriminatorFullTrainerJointValidation2():
 
 
 class DaliaPceLstmCossineLimilarityFullTrainerJointValidation():
-    def __init__(self, dfs, device, nepoch = 40):
+    def __init__(self, dfs, device, nepoch = 40, discriminator_false_label = 0):
         self.dfs = dfs
         self.device = device
         self.transformers = RegressionHR.PceLstmDefaults.DaliaPreprocessingTransformerGetter()
         self.nepoch = nepoch
+        self.discriminator_false_label = discriminator_false_label
     def train(
         self,
         ts_h_size = 32,
@@ -599,10 +600,10 @@ class DaliaPceLstmCossineLimilarityFullTrainerJointValidation():
 
         sample_step_ratio = ts_per_samples[0]
 
-        transformers2 = RegressionHR.PceLstmDefaults.DaliaPceDecoderPreprocessingTransformerGetter()(
+        transformers2 = RegressionHR.PceLstmDefaults.DaliaPceDecoderPreprocessingTransformerGetter(false_label=self.discriminator_false_label)(
             period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=sample_step_ratio, ts_per_is=ts_per_is)
 
-        transformers2_val = RegressionHR.PceLstmDefaults.DaliaPceDecoderPreprocessingTransformerGetter()(
+        transformers2_val = RegressionHR.PceLstmDefaults.DaliaPceDecoderPreprocessingTransformerGetter(self.discriminator_false_label)(
             period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=sample_step_ratio//2, ts_per_is=ts_per_is)
          
         loader_tr2, loader_val2, loader_ts2 = RegressionHR.UtilitiesData.PceDiscriminatorDataLoaderFactory(
@@ -649,11 +650,12 @@ class DaliaPceLstmCossineLimilarityFullTrainerJointValidation():
 
 
 class PceLstmCosineSimilarityFullTrainerJointValidation():
-    def __init__(self, dfs, device, nepoch = 40):
+    def __init__(self, dfs, device, nepoch = 40, discriminator_false_label=0):
         self.dfs = dfs
         self.device = device
         self.transformers = RegressionHR.PceLstmDefaults.PamapPreprocessingTransformerGetter()
         self.nepoch = nepoch
+        self.discriminator_false_label = discriminator_false_label
     def train(
         self,
         ts_h_size = 32,
@@ -711,7 +713,7 @@ class PceLstmCosineSimilarityFullTrainerJointValidation():
 
         sample_step_ratio = ts_per_samples[0]
 
-        transformers2 = RegressionHR.PceLstmDefaults.PamapPceDecoderPreprocessingTransformerGetter()(
+        transformers2 = RegressionHR.PceLstmDefaults.PamapPceDecoderPreprocessingTransformerGetter(false_label=self.discriminator_false_label)(
             period_s=period_s, step_s=step_s, frequency_hz = frequency_hz, sample_step_ratio=sample_step_ratio, ts_per_is=ts_per_is)
         
         loader_tr2, loader_val2, loader_ts2 = RegressionHR.UtilitiesData.PceDiscriminatorDataLoaderFactory(

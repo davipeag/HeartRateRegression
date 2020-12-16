@@ -114,7 +114,7 @@ class DaliaPreprocessingTransformerGetter():
 
 
 class PamapPceDecoderPreprocessingTransformerGetter():
-    def __init__(self):
+    def __init__(self, false_label = 0):
         self.ztransformer = ZTransformer2([
             'heart_rate', 'h_temperature', 'h_xacc16', 'h_yacc16', 'h_zacc16',
             'h_xacc6', 'h_yacc6', 'h_zacc6', 'h_xgyr', 'h_ygyr',
@@ -125,6 +125,7 @@ class PamapPceDecoderPreprocessingTransformerGetter():
             'a_zacc16', 'a_xacc6', 'a_yacc6', 'a_zacc6', 'a_xgyr',
             'a_ygyr', 'a_zgyr', 'a_xmag', 'a_ymag', 'a_zmag'
         ], dataset="pamap2")
+        self.false_label = false_label
 
     def __call__(self, ts_per_is=2, frequency_hz=100, period_s=4, step_s=2, sample_step_ratio = 1):
 
@@ -166,15 +167,17 @@ class PamapPceDecoderPreprocessingTransformerGetter():
             reshape
         )
 
-        return PceDecoderLoaderTransformer(tpipe)
+        return PceDecoderLoaderTransformer(tpipe, false_label = self.false_label)
 
 
 
 class DaliaPceDecoderPreprocessingTransformerGetter():
-    def __init__(self):
+    def __init__(self, false_label = 0):
         self.ztransformer = ZTransformer2(['heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
                 'wrist-BVP-0', 'wrist-EDA-0', 'wrist-TEMP-0', 'chest-ACC-0',
                 'chest-ACC-1', 'chest-ACC-2', 'chest-Resp-0'], dataset='dalia')
+        
+        self.false_label = false_label
 
     def __call__(self, ts_per_is=2, frequency_hz=32, period_s=4, step_s=2, sample_step_ratio = 1):
 
@@ -207,4 +210,4 @@ class DaliaPceDecoderPreprocessingTransformerGetter():
             reshape
         )
 
-        return PceDecoderLoaderTransformer(tpipe)
+        return PceDecoderLoaderTransformer(tpipe, false_label=self.false_label)
