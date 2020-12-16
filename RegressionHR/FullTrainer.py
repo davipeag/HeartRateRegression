@@ -969,3 +969,6 @@ class IteractiveFFNNDaliaFullTrainerJointValidation(SingleNetFullTrainerJointVal
                 dfs, device, nepoch, Models.BaseModels.IterativeSkipFFNN,
                 RegressionHR.Preprocessing.FFNNPreprocessingTransformerGetter, "dalia", feature_columns,
                 32, "input_features")
+
+
+# %%
