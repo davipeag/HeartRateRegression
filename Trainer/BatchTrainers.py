@@ -25,7 +25,7 @@ class SequentialTrainer(IBatchMultiTrainer):
     def train_batch(self, batches: Sequence) -> Tuple[float]:
         [model.train() for model in self.models]
         [model.zero_grad() for model in self.models]
-        loss = torch.sum([w*computer.computer_loss(b) for w, computer,
+        loss = torch.sum([w*computer.compute_loss(b) for w, computer,
                           b in zip(self._weights, self._computers, batches)])
         loss.backward()
         self._optimizer.step()
