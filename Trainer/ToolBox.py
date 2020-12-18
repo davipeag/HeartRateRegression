@@ -16,7 +16,7 @@ class MultiModelEpochTrainer():
     
     @property
     def models(self):
-        return self.batch_trainer.names
+        return self.batch_trainer.models
 
     def apply_to_batches(self, function, loaders):
         return [function(batches) for batches in zip(*loaders)]
