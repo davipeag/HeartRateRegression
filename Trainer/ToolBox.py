@@ -82,6 +82,7 @@ class MultiModelTrainHelper():
         for epoch in range(1, n_epoch+1):
             self.trainer.train_epoch(self.loaders_tr)
             loss_val = self.compute_metric(self.loaders_val)
+            print(loss_val)
             
             if loss_val[self.optimizing_model_index] < np.min([v[self.optimizing_model_index] for v in validation_metrics]):
                 print("best val epoch:", epoch)
