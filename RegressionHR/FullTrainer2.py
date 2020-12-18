@@ -20,7 +20,7 @@ from RegressionHR import Preprocessing
 
 import Trainer
 from Trainer import BatchTrainers
-from Trainer import BatchTrainers
+from Trainer import BatchComputers
 from Trainer import ToolBox
 
 from Trainer.BatchComputers import BatchComputerIS
