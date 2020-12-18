@@ -34,13 +34,13 @@ class SequentialTrainer(IBatchMultiTrainer):
     def evaluate_batch(self, batches: Sequence) -> Tuple[float]:
         [model.eval() for model in self.models]
         with torch.no_grad():
-            loss = [computer.computer_loss(b).cpu().item(
+            loss = [computer.compute_loss(b).cpu().item(
             ) for computer, b in zip(self._computers, batches)]
         return loss
 
     def compute_batch(self, batches: Sequence) -> Tuple[ModelOutput]:
         [model.eval() for model in self.models]
         with torch.no_grad():
-            outputs = [computer.computer_batch(b).to_numpy(
+            outputs = [computer.compute_batch(b).to_numpy(
             ) for computer, b in zip(self._computers, batches)]
         return outputs
