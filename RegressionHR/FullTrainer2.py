@@ -144,6 +144,6 @@ class NoPceLstmPamap2FullTrainerJointValidationImuOnly(SingleNetFullTrainerJoint
             'a_xacc6', 'a_yacc6', 'a_zacc6', 'a_xgyr', 'a_ygyr', 'a_zgyr'
         ]):
         super(NoPceLstmPamap2FullTrainerJointValidationImuOnly, self).__init__(
-            dfs, device, nepoch, RegressionHR.PceLstmModel.make_par_enc_no_pce_lstm,
+            dfs, device, nepoch, RegressionHR.PceLstmModel.make_par_enc_pce_lstm , 
             RegressionHR.Preprocessing.PceLstmTransformerGetter, "pamap2", feature_columns,
              100, "nattrs")
