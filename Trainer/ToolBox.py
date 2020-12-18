@@ -32,7 +32,6 @@ class MultiModelEpochTrainer():
     
     def compute_epoch(self, loaders) -> List[ModelOutput]:
         outputs = list(zip(*self.apply_to_batches(self.batch_trainer.compute_batch, loaders)))
-        print(outputs)
         labels = [np.concatenate([out.to_numpy().label for out in moutputs]) for moutputs in outputs]
         predictions = [np.concatenate([out.prediction for out in moutputs]) for moutputs in outputs]
         features = [[np.concatenate(f) for f in zip(*[out.features for out in moutputs])] for moutputs in outputs]
@@ -81,10 +80,8 @@ class MultiModelTrainHelper():
         validation_metrics = [self.compute_metric(self.loaders_val)]  
     
         for epoch in range(1, n_epoch+1):
-            ls = self.trainer.train_epoch(self.loaders_tr)
-            print(ls)
+            self.trainer.train_epoch(self.loaders_tr)
             loss_val = self.compute_metric(self.loaders_val)
-            print(loss_val)
             
             if loss_val[self.optimizing_model_index] < np.min([v[self.optimizing_model_index] for v in validation_metrics]):
                 print("best val epoch:", epoch)
