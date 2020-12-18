@@ -650,12 +650,17 @@ class DaliaPceLstmCossineLimilarityFullTrainerJointValidation():
 
 
 class PceLstmCosineSimilarityFullTrainerJointValidation():
-    def __init__(self, dfs, device, nepoch = 40, discriminator_false_label=0):
+    def __init__(self, dfs, device, nepoch = 40, discriminator_false_label=0,
+                 criterion1 = torch.nn.L1Loss(),
+                 criterion2 = torch.nn.L1Loss()
+                 ):
         self.dfs = dfs
         self.device = device
         self.transformers = RegressionHR.PceLstmDefaults.PamapPreprocessingTransformerGetter()
         self.nepoch = nepoch
         self.discriminator_false_label = discriminator_false_label
+        self.criterion1 = criterion1
+        self.criterion2 = criterion2 
     def train(
         self,
         ts_h_size = 32,
@@ -694,10 +699,10 @@ class PceLstmCosineSimilarityFullTrainerJointValidation():
 
         [PPG.Models.initialize_weights(net) for net in nets]
 
-        criterion1 = torch.nn.L1Loss().to(self.device)
+        criterion1 = self.criterion1 #torch.nn.L1Loss().to(self.device)
         # criterion2 = torch.nn.BCELoss().to(self.device)
         # criterion2 = torch.nn.BCEWithLogitsLoss().to(self.device)
-        criterion2 = torch.nn.L1Loss().to(self.device)
+        criterion2 = self.criterion2 #torch.nn.L1Loss().to(self.device)
 
         optimizer = torch.optim.Adam([{"params": pce_lstm.parameters()},
                                       #{"params": pce_discriminator.discriminator.parameters()}
