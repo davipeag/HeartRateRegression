@@ -21,9 +21,9 @@ class MultiModelEpochTrainer():
     def apply_to_batches(self, function, loaders):
         return [function(batches) for batches in zip(*loaders)]
 
-    def train_epoch(self, loaders: Sequence) -> List[Tuple[str, np.ndarray]]:
-        losses = zip(*self.apply_to_batches(self.batch_trainer.train_batch, loaders))
-        return zip(self.batch_trainer.names, losses)
+    def train_epoch(self, loaders: Sequence) -> List[np.ndarray]:
+        losses = self.apply_to_batches(self.batch_trainer.train_batch, loaders)
+        return losses #zip(self.batch_trainer.names, losses)
 
 
     def evaluate_epoch(self, loaders: Sequence) -> List[np.ndarray]:
