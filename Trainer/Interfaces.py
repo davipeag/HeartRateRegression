@@ -17,7 +17,7 @@ class ModelOutput:
             return self
         self.features = [f.detach().cpu().numpy() for f in self.features]
         if self.label is not None: self.label = self.label.detach().cpu().numpy()
-        self.prediction = self.prediction.detach().cpu().numpy
+        self.prediction = self.prediction.detach().cpu().numpy()
         return self
 
 
