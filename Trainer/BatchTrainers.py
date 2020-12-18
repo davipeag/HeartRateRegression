@@ -38,7 +38,7 @@ class SequentionTrainer(IBatchMultiTrainer):
             ) for computer, b in zip(self._computers, batches)]
         return loss
 
-    def compute_batch(self, batches: batches) -> Tuple[ModelOutput]:
+    def compute_batch(self, batches: Sequence) -> Tuple[ModelOutput]:
         [model.eval() for model in self.models]
         with torch.no_grad():
             outputs = [computer.computer_batch(b).to_numpy(
