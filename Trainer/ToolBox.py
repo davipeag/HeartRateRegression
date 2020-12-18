@@ -28,7 +28,7 @@ class MultiModelEpochTrainer():
 
     def evaluate_epoch(self, loaders: Sequence) -> List[np.ndarray]:
         losses = zip(*self.apply_to_batches(self.batch_trainer.evaluate_batch, loaders))
-        return losses
+        return list(losses)
     
     def compute_epoch(self, loaders) -> List[ModelOutput]:
         outputs = zip(*self.apply_to_batches(self.batch_trainer.compute_batch, loaders))
@@ -59,7 +59,7 @@ class MultiModelTrainHelper():
  
     def compute_metric(self, loaders):
         return [display_criterion(output) for output, display_criterion in zip(
-            self.trainer.evaluate_epoch(loaders), self.display_criterions)]
+            self.trainer.compute_epoch(loaders), self.display_criterions)]
     
     def compute_outputs(self, loaders):
         return self.trainer.evaluate_epoch(loaders)
