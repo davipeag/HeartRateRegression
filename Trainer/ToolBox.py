@@ -99,7 +99,7 @@ class MultiModelTrainHelper():
             final_output[name] = out       
       
         self.load_state_dicts(best_val_models)
-        print(f"Final: {loss_val}")
+        print(f"Final: {loss_ts}")
         return  final_output
 
     

@@ -126,7 +126,7 @@ class SingleNetFullTrainerJointValidationIS():
         )
             
         outputs = train_helper.train(self.nepoch)
-
+        outputs = list(outputs.values())[0]
         return {
             **{
             "args": args,
