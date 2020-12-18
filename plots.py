@@ -59,7 +59,7 @@ acc2 = np.array([
 ]).reshape(-1,1)
 
 import matplotlib.pyplot as plt
-from sklearn import linear_model
+from sklearn import linear_model, metrics
 
 m2 = linear_model.LinearRegression()
 m2.fit(acc2, diff2)
@@ -79,16 +79,18 @@ mj.fit(jacc, jdiff)
 
 jp = mj.predict(jacc)
 
+print(metrics.r2_score(jdiff, jp))
+
 
 
 plt.figure(figsize=[10,7])
-plt.plot(acc, diff, 'o', label="Dalia")
-plt.plot(acc2, diff2, '.', label="Pamap2")
-plt.plot(jacc, p2, '-')
-plt.plot(jacc, p, '-')
-plt.plot(jacc, jp, '-', label="Linear Regression")
+plt.plot(acc, -diff, 'o', label="Dalia")
+plt.plot(acc2, -diff2, '.', label="Pamap2")
+plt.plot(jacc, -p2, '-')
+plt.plot(jacc, -p, '-')
+plt.plot(jacc, -jp, '-', label="Linear Regression")
 plt.xlabel("PCE discrimination accuracy")
-plt.ylabel("MAE variation ratio")
+plt.ylabel("MAE relative reduction")
 plt.legend()
 plt.show()
 plt.figure()
