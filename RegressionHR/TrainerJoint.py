@@ -125,7 +125,10 @@ class MetricsComputerIS():
         self.ztransformer = ztransformer
 
     def inverse_transform_label(self, y):
-
+        
+        if not isinstance(y, np.ndarray):
+            y = y.detach().cpu().numpy()
+        
         ymean = self.ztransformer.mean_[0]
         ystd = self.ztransformer.scale_[0]
 
@@ -149,19 +152,14 @@ class MetricsComputerIS():
             plt.legend()
             plt.show()
 
-    def mae(self, yp, predictions):
-        # yi = yi.detach().cpu().numpy()
-        yp = yp.detach().cpu().numpy()
-        p = predictions.detach().cpu().numpy()
-
+    def mae(self, yp, p):
         yr = self.inverse_transform_label(yp)
         pr = self.inverse_transform_label(p)
-
         return np.abs(yr-pr).mean()
 
     def rmse(self, y, p):
-        yr = self.inverse_transform_label(y.detach().cpu().numpy())
-        pr = self.inverse_transform_label(p.detach().cpu().numpy())
+        yr = self.inverse_transform_label(y)
+        pr = self.inverse_transform_label(p)
 
         return (((yr-pr)**2).mean())**0.5
 
