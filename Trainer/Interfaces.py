@@ -62,7 +62,7 @@ class IBatchMultiTrainer(ABC):
         pass
     
     @abstractmethod
-    def compute_batch(self, batches: batches) -> Tuple[ModelOutput]:
+    def compute_batch(self, batches: Sequence) -> Tuple[ModelOutput]:
         pass
 
 
