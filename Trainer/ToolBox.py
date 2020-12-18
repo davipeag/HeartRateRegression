@@ -80,7 +80,8 @@ class MultiModelTrainHelper():
         validation_metrics = [self.compute_metric(self.loaders_val)]  
     
         for epoch in range(1, n_epoch+1):
-            self.trainer.train_epoch(self.loaders_tr)
+            ls = self.trainer.train_epoch(self.loaders_tr)
+            print(ls)
             loss_val = self.compute_metric(self.loaders_val)
             print(loss_val)
             
