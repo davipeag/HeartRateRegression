@@ -63,7 +63,7 @@ class MultiModelTrainHelper():
             self.trainer.compute_epoch(loaders), self.display_criterions)]
     
     def compute_outputs(self, loaders):
-        return self.trainer.evaluate_epoch(loaders)
+        return self.trainer.compute_epoch(loaders)
     
     def get_models(self):
         return self.trainer.models
@@ -91,7 +91,7 @@ class MultiModelTrainHelper():
                 loss_tr = self.compute_metric(self.loaders_tr)
                 outputs_ts = self.compute_outputs(self.loaders_ts)
                 loss_ts = [display_criterion(output) for output, display_criterion in zip(
-                                outputs_ts, self.display_criterions)] 
+                        outputs_ts, self.display_criterions)]
                 best_val_models = self.get_state_dicts()
                 print(f'[{epoch}/{n_epoch}]: loss_train: {loss_tr} loss_val {loss_val} loss_ts {loss_ts}' )
             validation_metrics.append(loss_val)
