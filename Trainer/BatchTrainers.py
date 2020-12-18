@@ -3,7 +3,7 @@ from typing import Sequence, Tuple, List
 import torch
 
 
-class SequentionTrainer(IBatchMultiTrainer):
+class SequentialTrainer(IBatchMultiTrainer):
 
     def __init__(self, computers: Sequence[IBatchMultiTrainer], optimizer, weights: Sequence[float] = None):
         self._computers = computers
