@@ -55,7 +55,7 @@ class BatchComputerTripletLoss(IBatchComputer):
     
     @property
     def criterion(self):
-        return self.criterion
+        return self._criterion
     
     @property
     def name(self):
