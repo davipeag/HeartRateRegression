@@ -29,7 +29,7 @@ class TripletPceDiscriminatorDataset(torch.utils.data.Dataset):
         self.hrn = hrn
 
     def __len__(self):
-        return len(self.x0)
+        return len(self.xa)
   
     def __getitem__(self, idx):
         return (torch.Tensor(self.xa[idx]), torch.tensor(self.hra[idx]).type(torch.FloatTensor),
