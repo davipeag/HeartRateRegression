@@ -277,8 +277,8 @@ class PceLstmPamap2TripletDiscriminator(PceLstmTripletDiscriminator):
             dataset_name = "pamap2",
             frequency_hz = 100,
             input_features_parameter_name = "nattrs",
-            additional_args = dict(),
-            additional_net_args = dict(),
+            additional_args = additional_args,
+            additional_net_args = additional_net_args,
             )
 
 
