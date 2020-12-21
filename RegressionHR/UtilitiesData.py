@@ -18,6 +18,26 @@ class PceDiscriminatorDataset(torch.utils.data.Dataset):
                 torch.Tensor(self.x1[idx]), torch.tensor(self.hr1[idx]).type(torch.FloatTensor),
                 torch.tensor(self.label[idx]).type(torch.FloatTensor))
 
+
+class TripletPceDiscriminatorDataset(torch.utils.data.Dataset):
+    def __init__(self, xa, hra, xp, hrp, xn, hrn):
+        self.xa = xa
+        self.hra = hra
+        self.xp = xp
+        self.hrp = hrp
+        self.xn = xn
+        self.hrn = hrn
+
+    def __len__(self):
+        return len(self.x0)
+  
+    def __getitem__(self, idx):
+        return (torch.Tensor(self.xa[idx]), torch.tensor(self.hra[idx]).type(torch.FloatTensor),
+                torch.Tensor(self.xp[idx]), torch.tensor(self.hrp[idx]).type(torch.FloatTensor),
+                torch.Tensor(self.xn[idx]), torch.tensor(self.hrn[idx]).type(torch.FloatTensor))
+
+        
+
 class PceDiscriminatorDataLoaderFactory():
     
     def __init__(self, transformers, dfs, transformers_val=None, transformers_ts=None, batch_size_tr=128, batch_size_ts=10**3, dataset_cls=PceDiscriminatorDataset):

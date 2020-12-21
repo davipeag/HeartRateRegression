@@ -474,7 +474,31 @@ class PceCosineSimilarity(torch.nn.Module):
 
     return self.discriminator(pce0, pce1).unsqueeze(1)
 
-    
+
+class PceEncoderAssembler(torch.nn.Module):
+  def __init__(self, ts_encoder, is_encoder):
+    super(PceEncoderAssembler, self).__init__()
+    self.ts_encoder = ts_encoder
+    self.is_encoder = is_encoder
+
+  
+  def ts_encode(self, x):
+    return torch.cat(
+        [self.ts_encoder(b).transpose(0,2).transpose(1,2)
+          for b in x], dim=0).squeeze(-1)
+  
+  def is_encode(self, encx, y):
+        return self.is_encoder(torch.cat([encx, y], dim=2).transpose(2,1)).squeeze(-1)
+  
+  def compute_pce(self, x, y):
+    enc = self.ts_encode(x)
+    return self.is_encode(enc, y)
+        
+  def forward(self, x, hr):
+        
+    return self.compute_pce(x, hr)
+
+
 
 
 def make_pce_lstm_and_discriminator(

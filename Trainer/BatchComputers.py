@@ -33,3 +33,51 @@ class BatchComputerIS(IBatchComputer):
         p = self.model(xi,yi,xr)
         return ModelOutput((xi, yi, xr), yr, p)  
 
+from Trainer.Interfaces import IBatchComputer, ModelOutput
+import torch
+
+class BatchComputerTripletLoss(IBatchComputer):
+    
+    def __init__(self, model, device, criterion, name = None):
+        self._model = model
+        self.device = device
+        self._criterion = criterion 
+        if name is None:
+            self._name =  model.__class__.__name__
+        else:
+            self._name = name
+        
+       
+    @property
+    def model(self):
+        return self._model
+
+    
+    @property
+    def criterion(self):
+        return self.criterion
+    
+    @property
+    def name(self):
+        return self._name
+        
+    def compute_loss(self, batch) -> torch.tensor:
+        xia, yia, xip, yip, xin, yin  = map(lambda v: v.to(self.device), batch)
+        
+        xa = self.model(xia, yia) #anchor
+        xp = self.model(xip, yip) #positive
+        xn = self.model(xin, yin) #negative
+
+        return self.criterion(xa, xp, xn)
+
+    def compute_batch(self, batch) -> ModelOutput:
+        xia, yia, xip, yip, xin, yin  = map(lambda v: v.to(self.device), batch)
+        
+        xa = self.model(xia, yia) #anchor
+        xp = self.model(xip, yip) #positive
+        xn = self.model(xin, yin) #negative
+
+        x = torch.stack([xp,xn], 1)
+
+        return ModelOutput((xia, yia, xip, yip, xin, yin), xa, x)  
+

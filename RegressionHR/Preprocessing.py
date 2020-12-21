@@ -4,7 +4,7 @@ from preprocessing_utils import (
     TimeSnippetAggregator, FeatureLabelSplit,
     TransformerPipeline, SampleMaker, NoDiffInitialStatePredictionSplit,
     RecursiveHrMasker, Downsampler, IdentityTransformer, LocalMeanReplacer, LinearImputation,
-    ApplyTransformer, PceDecoderLoaderTransformer, SlidingWindow)
+    ApplyTransformer, PceDecoderLoaderTransformer, SlidingWindow, TripletPCELoaderTransformer)
 
 
 class FFNNPreprocessingTransformerGetter():
@@ -89,4 +89,42 @@ class PceLstmTransformerGetter():
             is_pred_split,
             recursive_hr_masker
         )
+
+
+class PceLstmDecoderTripletLossTransformerGetter():
+    def __init__(self, feature_columns, dataset, frequency_hz, label_column = "heart_rate"):
+        self.ztransformer = ZTransformer2(feature_columns, dataset=dataset)
+        self.feature_columns = feature_columns
+        self.label_column = label_column
+        self.frequency_hz = frequency_hz
+
+    def __call__(self, ts_per_is=2, period_s=4, step_s=2, sample_step_ratio = 1):
+
+        feature_columns = self.feature_columns
+        frequency_hz = self.frequency_hz
+
+        meansub = HZMeanSubstitute()
+
+        feature_label_splitter = FeatureLabelSplit(
+            label_column = self.label_column,
+            feature_columns = feature_columns
+        )
+
+        sample_maker = SlidingWindow(ts_per_is, int(ts_per_is*sample_step_ratio))
+
+        ts_aggregator = TimeSnippetAggregator(size=int(frequency_hz*period_s),
+                                              step=int(frequency_hz*step_s))
+        reshape = ApplyTransformer(lambda v: (np.swapaxes(v[0].squeeze(2), 2,3), v[1])) 
+      
+        transformer  = TransformerPipeline(
+            self.ztransformer,
+            feature_label_splitter,
+            ts_aggregator,
+            meansub,
+            sample_maker,
+            reshape
+        )
+
+        return TripletPCELoaderTransformer(transformer)
+
 

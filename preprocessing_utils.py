@@ -818,6 +818,32 @@ class PceDecoderLoaderTransformer():
 
     return [v[shuffle_idx] for v in (x0n, hr0n, x1n, hr1n, labn)]
 
+class TripletPCELoaderTransformer():
+  def __init__(self, transformers):
+    self.transformers = transformers
+  
+  def transform(self, df1, df2):
+   
+
+    x0,hr0 = self.transformers.transform(df1)
+    x1,hr1 = self.transformers.transform(df2)
+
+    min_size = min(len(x0),len(x1))
+
+    ridx0 = np.random.permutation(len(x0))[:min_size]
+    ridx1 = np.random.permutation(len(x1))[:min_size]
+
+    xa,hra = x0[ridx0], hr0[ridx0]
+    xn,hrn = x1[ridx1], hr1[ridx1]
+
+    ridxp = np.random.permutation(len(xa))
+
+    xp = xa[ridxp]
+    hrp = hra[ridxp]
+
+    return xa, hra, xp, hrp, xn, hrn
+
+
 
 class ApplyTransformer():
     def __init__(self, function):
