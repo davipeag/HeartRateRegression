@@ -248,6 +248,8 @@ class PceLstmTripletDiscriminator:
         )
             
         outputs = train_helper.train(self.nepoch)
+        outputs["PceLstm"]["labels"] = metrics_computer_lstm.inverse_transform_label(outputs["PceLstm"]['labels'])
+        outputs["PceLstm"]["predictions"] = metrics_computer_lstm.inverse_transform_label(outputs["PceLstm"]['predictions'])
         return {
             **{
             "args": args,
