@@ -258,6 +258,39 @@ class PceLstmTripletDiscriminator:
         }
 
 
+ 
+class PceLstmBatchComputerMaker:
+    def __init__(
+        self, lstm_builder_cls, device, input_features_parameter_name, feature_count,
+        additional_net_args = dict(),
+        criterion = torch.nn.L1Loss()
+        ):
+        self.device = device
+        self.lstm_builder_cls = lstm_builder_cls
+        self.input_features_parameter_name = input_features_parameter_name
+        self.additional_net_args = additional_net_args
+        self.criterion = criterion
+        self.feature_count = feature_count
+    
+    def train(
+        self,
+        **net_args
+    ):
+        net_args[self.input_features_parameter_name] = self.feature_count
+        net_args = {**net_args, **self.additional_net_args}
+        
+        
+        lstm = self.lstm_builder_cls(**net_args).to(self.device)
+        PPG.Models.initialize_weights(lstm)        
+        
+        return BatchComputerIS(lstm, self.criterion, self.device, "PceLstm")
+        
+
+
+
+
+
+
 
 class PceLstmPamap2TripletDiscriminator(PceLstmTripletDiscriminator):
     def __init__(self, dfs, device, nepoch, additional_args = dict(), additional_net_args = dict()):
@@ -284,6 +317,25 @@ class PceLstmPamap2TripletDiscriminator(PceLstmTripletDiscriminator):
             )
 
 
+class PceLstmDaliaTripletDiscriminator(PceLstmTripletDiscriminator):
+    def __init__(self, dfs, device, nepoch,
+                 feature_columns = [
+                    'heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
+                    'chest-ACC-0','chest-ACC-1', 'chest-ACC-2'
+                 ], additional_args = dict(), additional_net_args = dict()):
+
+        super().__init__(
+            dfs = dfs,
+            device = device,
+            nepoch = nepoch,
+            lstm_builder_cls = RegressionHR.PceLstmModel.make_par_enc_pce_lstm,
+            feature_columns = feature_columns,
+            dataset_name = "dalia",
+            frequency_hz = 32,
+            input_features_parameter_name = "nattrs",
+            additional_args = additional_args,
+            additional_net_args = additional_net_args,
+            )
 
 
 class PceLstmPamap2FullTrainerJointValidation(SingleNetFullTrainerJointValidationIS):

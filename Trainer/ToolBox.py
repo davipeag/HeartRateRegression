@@ -77,20 +77,21 @@ class MultiModelTrainHelper():
     def train(self, n_epoch):
         best_val_models  = self.get_state_dicts()
         
-        validation_metrics = [self.compute_metric(self.loaders_val)]  
+        validation_metrics = [self.trainer.evaluate_epoch(self.loaders_val)] #self.compute_metric(self.loaders_val)]  
     
         for epoch in range(1, n_epoch+1):
             self.trainer.train_epoch(self.loaders_tr)
-            loss_val = self.compute_metric(self.loaders_val)
+            loss_val = self.trainer.evaluate_epoch(self.loaders_val)# self.compute_metric(self.loaders_val)
             
             if loss_val[self.optimizing_model_index] < np.min([v[self.optimizing_model_index] for v in validation_metrics]):
                 print("best val epoch:", epoch)
                 loss_tr = self.compute_metric(self.loaders_tr)
+                loss_val_ptr = self.compute_metric(self.loaders_val)
                 outputs_ts = self.compute_outputs(self.loaders_ts)
                 loss_ts = [display_criterion(output) for output, display_criterion in zip(
                         outputs_ts, self.display_criterions)]
                 best_val_models = self.get_state_dicts()
-                print(f'[{epoch}/{n_epoch}]: loss_train: {loss_tr} loss_val {loss_val} loss_ts {loss_ts}' )
+                print(f'[{epoch}/{n_epoch}]: loss_train: {loss_tr} loss_val {loss_val_ptr} loss_ts {loss_ts}' )
             validation_metrics.append(loss_val)
         
         final_output = dict()
@@ -103,3 +104,4 @@ class MultiModelTrainHelper():
         return  final_output
 
     
+
