@@ -12,6 +12,14 @@ class ModelOutput:
         self.label = label
         self.prediction = prediction
     
+    def detach(self):
+        if isinstance(self.prediction, np.ndarray):
+            return self
+        self.features = [f.detach().cpu() for f in self.features]
+        if self.label is not None: self.label = self.label.detach().cpu()
+        self.prediction = self.prediction.detach().cpu()
+        return self
+    
     def to_numpy(self):
         if isinstance(self.prediction, np.ndarray):
             return self
