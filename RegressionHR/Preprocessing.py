@@ -54,10 +54,10 @@ class FFNNPreprocessingTransformerGetter():
 
 
 class PceLstmTransformerGetter():
-    def __init__(self, feature_columns, dataset_name):
+    def __init__(self, feature_columns, dataset_name, same_hr=False):
         self.feature_columns = feature_columns
         self.ztransformer = ZTransformer2(
-            self.feature_columns, dataset=dataset_name)
+            self.feature_columns, dataset=dataset_name, same_hr=same_hr)
 
     def __call__(self, ts_per_sample=30, ts_per_is=2, frequency_hz=100, period_s=4, step_s=2, sample_step_ratio = 1):
 
@@ -92,8 +92,8 @@ class PceLstmTransformerGetter():
 
 
 class PceLstmDecoderTripletLossTransformerGetter():
-    def __init__(self, feature_columns, dataset, frequency_hz, label_column = "heart_rate"):
-        self.ztransformer = ZTransformer2(feature_columns, dataset=dataset)
+    def __init__(self, feature_columns, dataset, frequency_hz, label_column = "heart_rate", same_hr=False):
+        self.ztransformer = ZTransformer2(feature_columns, dataset=dataset, same_hr=same_hr)
         self.feature_columns = feature_columns
         self.label_column = label_column
         self.frequency_hz = frequency_hz
