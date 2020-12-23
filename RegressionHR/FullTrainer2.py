@@ -451,7 +451,7 @@ class DoubleDatasetPceLstmTripletDiscriminatorFullTrainer:
         loaders_lstm1 = self.lstm_loader_maker1.make(batch_size, self.ts_sub1, ts_per_sample, ts_per_is, step_s, period_s)
         loaders_discriminator1 = self.discriminator_loaders_maker1.make(batch_size, self.ts_sub1, self.val_sub1, ts_per_sample, ts_per_is, step_s, period_s)
 
-        loaders_lstm2 = self.lstm_loader_maker2.make(batch_size, ts_sub2, ts_per_sample, ts_per_is, step_s, period_s)
+        loaders_lstm2 = self.lstm_loader_maker2.make(batch_size, self.ts_sub2, ts_per_sample, ts_per_is, step_s, period_s)
         loaders_discriminator2 = self.discriminator_loaders_maker2.make(batch_size, self.ts_sub2, self.val_sub2, ts_per_sample, ts_per_is, step_s, period_s)
 
 
