@@ -287,6 +287,34 @@ class PceLstmBatchComputerMaker:
         
         return BatchComputerIS(lstm, self.criterion, self.device, self.name)
         
+class NoPceLstmBatchComputerMaker:
+    def __init__(
+        self, lstm_builder_cls, device, input_features_parameter_name, feature_count,
+        additional_net_args = dict(),
+        criterion = torch.nn.L1Loss(),
+        name = "PceLstm"
+        ):
+        self.device = device
+        self.lstm_builder_cls = lstm_builder_cls
+        self.input_features_parameter_name = input_features_parameter_name
+        self.additional_net_args = additional_net_args
+        self.criterion = criterion
+        self.feature_count = feature_count
+        self.name = name
+    
+    def make(self, sample_per_ts, **net_args):
+        net_args[self.input_features_parameter_name] = self.feature_count
+        net_args["sample_per_ts"] = sample_per_ts
+        net_args["ts_per_is"] = ts_per_is
+        net_args = {**net_args, **self.additional_net_args}
+        
+        
+        lstm = self.lstm_builder_cls(**net_args).to(self.device)
+        PPG.Models.initialize_weights(lstm)        
+        
+        return BatchComputerIS(lstm, self.criterion, self.device, self.name)
+
+
 
 class TripletDiscriminatorBatchComputerMaker:
     def __init__(self, device, name = "PceDiscriminator"):
@@ -445,6 +473,16 @@ class DoubleDatasetPceLstmTripletDiscriminatorFullTrainer:
         lstm_batch_computer1 = self.lstm_computer_maker1.make(period_s*self.frequency_hz1, ts_per_is, **net_args)
         lstm_batch_computer2 = self.lstm_computer_maker2.make(period_s*self.frequency_hz2, ts_per_is, **net_args)
         
+        lstm1 = lstm_batch_computer1.model
+        lstm2 = lstm_batch_computer2.model
+
+        lstm2.is_encodder = lstm1.is_encoder
+        lstm2.h0_fc_net = lstm1.h0_fc_net
+        lstm2.c0_fc_net = lstm1.c0_fc_net
+        lstm2.lstm = lstm1.lstm
+        lstm2.fc_net = lstm1.fc_net
+        lstm2.predictor = lstm1.predictor
+
         discriminator_batch_computer1 = self.discriminator_computer_maker1.make( lstm_batch_computer1.model, margin)
         discriminator_batch_computer2 = self.discriminator_computer_maker2.make( lstm_batch_computer2.model, margin)
 
@@ -457,7 +495,7 @@ class DoubleDatasetPceLstmTripletDiscriminatorFullTrainer:
 
         optimizer = torch.optim.Adam(
             [{'params': lstm_batch_computer1.model.parameters()},
-             {'params': lstm_batch_computer2.model.parameters()}],
+             {'params': lstm2.ts_encoder.parameters()}],
              lr=lr, weight_decay=weight_decay)
         
         metrics_computer_lstm = RegressionHR.TrainerJoint.MetricsComputerIS(self.label_ztransformer)
@@ -493,6 +531,180 @@ class DoubleDatasetPceLstmTripletDiscriminatorFullTrainer:
 
 
 
+class DoubleDatasetNoPceLstmFullTrainer:
+    def __init__(
+        self,
+        dfs_ds1,
+        dfs_ds2,
+        dataset1_name,
+        dataset1_feature_columns,
+        dataset2_name,
+        dataset2_feature_columns,
+        dataset1_frequency_hz,
+        dataset2_frequency_hz,
+        device,
+        nepoch,
+        input_features_parameter_name,
+        ts_sub1,
+        ts_sub2,
+        val_sub1,
+        val_sub2,
+        main_index,
+        lstm_builder_cls = RegressionHR.PceLstmModel.make_par_enc_no_pce_lstm,
+        additional_net_args1 = dict(),
+        additional_net_args2 = dict(),
+        ):
+        self.dfs1 = dfs_ds1
+        self.dfs2 = dfs_ds2
+
+        self.lstm_loader_maker1 = PceLstmLoadersMaker(dfs_ds1, dataset1_feature_columns, dataset1_name, dataset1_frequency_hz, same_hr=True)
+        self.lstm_loader_maker2 = PceLstmLoadersMaker(dfs_ds2, dataset2_feature_columns, dataset2_name, dataset2_frequency_hz, same_hr=True)
+
+        self.lstm_name1 = dataset1_name + "PceLstm"
+        self.lstm_name2 = dataset2_name + "PceLstm"
+    
+
+        self.lstm_computer_maker1 = PceLstmBatchComputerMaker(lstm_builder_cls, device, input_features_parameter_name, len(dataset1_feature_columns), additional_net_args1, name = self.lstm_name1)
+        self.lstm_computer_maker2 = PceLstmBatchComputerMaker(lstm_builder_cls, device, input_features_parameter_name, len(dataset2_feature_columns), additional_net_args2, name = self.lstm_name2)
+
+        self.device = device
+        self.nepoch = nepoch
+
+        self.frequency_hz1 = dataset1_frequency_hz
+        self.frequency_hz2 = dataset2_frequency_hz
+
+        self.additional_net_args1 = additional_net_args1
+        self.additional_net_args2 = additional_net_args2
+
+        self.label_ztransformer = self.lstm_loader_maker1.ztransformer
+
+        self.ts_sub1 = ts_sub1
+        self.ts_sub2 = ts_sub2
+        self.val_sub1 = val_sub1
+        self.val_sub2 = val_sub2
+
+        self.main_index = main_index
+
+    
+    def train(
+            self,
+            lr,
+            weight_decay,
+            batch_size,
+            ts_per_sample,
+            ts_per_is,
+            step_s,
+            period_s,
+            alpha,
+            margin,
+            **net_args
+        ):
+        args = locals()
+        args.pop("self")
+        args["ts_sub1"] = self.ts_sub1
+        args["ts_sub2"] = self.ts_sub2
+        args["val_sub1"] = self.val_sub1
+        args["val_sub2"] = self.val_sub2
+        args["main_index"] = self.main_index
+
+        lstm_batch_computer1 = self.lstm_computer_maker1.make(period_s*self.frequency_hz1, ts_per_is, **net_args)
+        lstm_batch_computer2 = self.lstm_computer_maker2.make(period_s*self.frequency_hz2, ts_per_is, **net_args)
+        
+        loaders_lstm1 = self.lstm_loader_maker1.make(batch_size, self.ts_sub1, ts_per_sample, ts_per_is, step_s, period_s)
+        
+        loaders_lstm2 = self.lstm_loader_maker2.make(batch_size, self.ts_sub2, ts_per_sample, ts_per_is, step_s, period_s)
+        
+        optimizer = torch.optim.Adam(
+            [{'params': lstm_batch_computer1.model.parameters()},
+             {'params': lstm_batch_computer2.model.parameters()}],
+             lr=lr, weight_decay=weight_decay)
+        
+        metrics_computer_lstm = RegressionHR.TrainerJoint.MetricsComputerIS(self.label_ztransformer)
+        
+        model_output_mae = lambda o: metrics_computer_lstm.mae(o.label, o.prediction)        
+        
+        loaders_tr, loaders_val, loaders_ts = zip(loaders_lstm1, loaders_lstm2)
+        batch_computers = [lstm_batch_computer1, lstm_batch_computer2]
+        weights = [alpha, alpha]
+        weights = [w/np.sum(weights) for w in weights]
+        display_metrics = [model_output_mae, model_output_mae]
+
+        batch_trainer = SequentialTrainer(batch_computers, optimizer, weights) # ([batch_computer_lstm, ], optimizer)
+        epoch_trainer = ToolBox.MultiModelEpochTrainer(batch_trainer)
+
+        train_helper = ToolBox.MultiModelTrainHelper(
+            epoch_trainer, loaders_tr, loaders_val, loaders_ts,
+            display_metrics, self.main_index
+        )
+            
+        outputs = train_helper.train(self.nepoch)
+        for train_name in [self.lstm_name1, self.lstm_name2]:
+            outputs[train_name]["labels"] = metrics_computer_lstm.inverse_transform_label(outputs[train_name]['labels'])
+            outputs[train_name]["predictions"] = metrics_computer_lstm.inverse_transform_label(outputs[train_name]['predictions'])
+        return {
+            **{
+            "args": args,
+            "run_class": self.__class__.__name__
+            }, **outputs
+        }
+
+
+class NoPceLstmPamap2DaliaJointTraining(DoubleDatasetNoPceLstmFullTrainer):
+    def __init__(
+        self,
+        dfs_ds1,
+        dfs_ds2,
+        device,
+        nepoch,
+        ts_sub1,
+        ts_sub2,
+        val_sub1,
+        val_sub2,
+        main_index,
+        dataset1_name = "pamap2",
+        dataset1_feature_columns = [
+            'heart_rate', 'h_temperature', 'h_xacc16', 'h_yacc16', 'h_zacc16',
+            'h_xacc6', 'h_yacc6', 'h_zacc6', 'h_xgyr', 'h_ygyr', 'h_zgyr', 'h_xmag',
+            'h_ymag', 'h_zmag', 'c_temperature', 'c_xacc16', 'c_yacc16', 'c_zacc16',
+            'c_xacc6', 'c_yacc6', 'c_zacc6', 'c_xgyr', 'c_ygyr', 'c_zgyr', 'c_xmag',
+            'c_ymag', 'c_zmag', 'a_temperature', 'a_xacc16', 'a_yacc16', 'a_zacc16',
+            'a_xacc6', 'a_yacc6', 'a_zacc6', 'a_xgyr', 'a_ygyr', 'a_zgyr', 'a_xmag',
+            'a_ymag', 'a_zmag'
+        ],
+        dataset2_name = "dalia",
+        dataset2_feature_columns = [
+            'heart_rate', 'wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2',
+            'chest-ACC-0','chest-ACC-1', 'chest-ACC-2'
+        ],
+        dataset1_frequency_hz = 100,
+        dataset2_frequency_hz = 32,
+        input_features_parameter_name = "nattrs",
+        lstm_builder_cls = RegressionHR.PceLstmModel.make_par_enc_no_pce_lstm,
+        additional_net_args1 = dict(),
+        additional_net_args2 = dict(),
+        ):
+
+        super().__init__(
+            dfs_ds1 = dfs_ds1,
+            dfs_ds2 = dfs_ds2,
+            dataset1_name = dataset1_name,
+            dataset1_feature_columns = dataset1_feature_columns,
+            dataset2_name = dataset2_name,
+            dataset2_feature_columns = dataset2_feature_columns,
+            dataset1_frequency_hz = dataset1_frequency_hz,
+            dataset2_frequency_hz = dataset2_frequency_hz,
+            device = device,
+            nepoch = nepoch,
+            input_features_parameter_name = input_features_parameter_name,
+            ts_sub1 = ts_sub1,
+            ts_sub2 = ts_sub2,
+            val_sub1 = val_sub1,
+            val_sub2 = val_sub2,
+            main_index = main_index,
+            lstm_builder_cls = lstm_builder_cls,
+            additional_net_args1 = additional_net_args1,
+            additional_net_args2 = additional_net_args2,
+        )
 
 class PceLstmTripletDiscriminatorPamap2DaliaJointTraining(DoubleDatasetPceLstmTripletDiscriminatorFullTrainer):
     def __init__(
