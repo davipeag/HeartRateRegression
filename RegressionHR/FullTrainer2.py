@@ -465,7 +465,7 @@ class DoubleDatasetPceLstmTripletDiscriminatorFullTrainer:
 
         model_output_mae = lambda o: metrics_computer_lstm.mae(o.label, o.prediction)        
         
-        loaders_tr, loaders_ts, loaders_val = zip(loaders_lstm1, loaders_lstm2, loaders_discriminator1, loaders_discriminator2)
+        loaders_tr, loaders_val, loaders_ts = zip(loaders_lstm1, loaders_lstm2, loaders_discriminator1, loaders_discriminator2)
         batch_computers = [lstm_batch_computer1, lstm_batch_computer2, discriminator_batch_computer1, discriminator_batch_computer2]
         weights = [alpha, alpha, 1-alpha, 1-alpha]
         weights = [w/np.sum(weights) for w in weights]
