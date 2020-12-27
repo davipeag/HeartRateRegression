@@ -58,7 +58,7 @@ class SingleNoHrPpgPceLstmFullTrainer(FullTrainers.SingleNetFullTrainerJointVali
         transformer_getter_cls = TransformerGetters.PpgPceLstmTransformerGetter ,
         input_features_parameter_name = "nattrs",
         additional_args = dict(),
-        args_to_net_args_mapping = {"ts_per_is": "ts_per_is", "period_seconds": "period_s", "ts_per_window": "ts_per_window",
+        args_to_net_args_mapping = {"ts_per_is": "ts_per_is", "period_s": "period_s", "ts_per_window": "ts_per_window",
                                     "sample_per_ts": "sample_per_ts"},
         args_function_mapping = {"sample_per_ts": lambda a: a["frequency_hz"]*a["period_s"]}
         ):
