@@ -119,7 +119,7 @@ class PpgPceLstmTransformerGetter():
             self.feature_columns, dataset=dataset_name, same_hr=same_hr)
         self.bvp_idx = bvp_idx
 
-    def __call__(self, ts_per_sample, ts_per_is, frequency_hz, period_s, step_s, sample_step_ratio):
+    def __call__(self, ts_per_window, ts_per_is, frequency_hz, period_s, step_s, sample_step_ratio):
 
         feature_columns = self.feature_columns 
 
@@ -134,9 +134,9 @@ class PpgPceLstmTransformerGetter():
 
         recursive_hr_masker = RecursiveHrMasker(0)
 
-        sample_maker = SampleMaker(ts_per_sample, int(ts_per_sample*sample_step_ratio))
+        sample_maker = SampleMaker(ts_per_window, int(ts_per_window*sample_step_ratio))
 
-        is_pred_split = NoDiffInitialStatePredictionSplit(ts_per_sample, ts_per_is)
+        is_pred_split = NoDiffInitialStatePredictionSplit(ts_per_window, ts_per_is)
 
         ts_aggregator = TimeSnippetAggregator(size=int(frequency_hz*period_s),
                                               step=int(frequency_hz*step_s))
