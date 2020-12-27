@@ -576,6 +576,42 @@ class RecursiveHrMasker(BaseEstimator, TransformerMixin):
         xr[:, :, 0, :] = self.mask_value
         return xi, yi, xr, yr
 
+class XYMasker():
+    def __init__(self, mask_value, start_index, time_axis = 2, value_axis=3):
+        self.mask_value = mask_value
+        self.start_index = start_index
+        self.time_axis = time_axis
+        self.value_axis = value_axis
+    
+    def _swap_axis(self, x, axis, desirable_axis):
+        if axis != desirable_axis:
+            return np.swapaxes(x, axis, desirable_axis)
+        else:
+            return x
+    
+    def swap_axis(self, x):
+        x = self._swap_axis(x, self.time_axis, 2)
+        if self.value_axis == 2:
+            x = self._swap_axis(x, self.time_axis, 3)
+        else:
+            x = self._swap_axis(x, self.value_axis, 3)
+        return x
+
+    def reverse_swap_axis(self, x):
+        x = self._swap_axis(x, 3, self.value_axis)
+        if self.value_axis == 2:
+            x = self._swap_axis(x, 3, self.time_axis)
+        else:
+            x = self._swap_axis(x, 2, self.time_axis)
+        return x
+        
+    def transform(self, xy):
+        x, y = xy
+        x = self.swap_axis(x)
+        x[:, :, self.start_index:, self.value_axis] = self.mask_value
+        self.reverse_swap_axis(x)
+        return x, y
+
 
 class OurConvLstmToCnnImuFormat(BaseEstimator, TransformerMixin):
     def __init__(self):
