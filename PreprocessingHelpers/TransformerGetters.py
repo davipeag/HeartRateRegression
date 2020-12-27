@@ -44,7 +44,7 @@ class DeepConvLstmTransformerGetter():
 
         ts_aggregator = TimeSnippetAggregator(size=sample_per_ts, step=sample_per_ts)
 
-        reshape = ApplyTransformer(lambda v:  (v[0].reshape([-1, 1, ts_per_window*sample_per_ts, feature_count]), v[1])) 
+        reshape = ApplyTransformer(lambda v:  (v[0].reshape([-1, 1, ts_per_window*sample_per_ts, feature_count]), v[1][ts_per_is:])) 
 
         return TransformerPipeline(
             downsampler,
