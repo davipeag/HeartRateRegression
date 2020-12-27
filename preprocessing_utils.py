@@ -608,7 +608,6 @@ class XYMasker():
         
     def transform(self, xy):
         x, y = xy
-        print(f"x:{x.shape}")
         x = self.swap_axis(x)
         x[:, :, self.start_index:, self.value_index] = self.mask_value
         self.reverse_swap_axis(x)
