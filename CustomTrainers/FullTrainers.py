@@ -70,7 +70,7 @@ class SingleNetFullTrainerJointValidationXY():
         self.add_to_net_args_mapping = args_to_net_args_mapping
         self.args_function_mapping = args_function_mapping
         self.model_name = None
-        self.frequency_hz_in = DatasetMapping.FrequencyMapping
+        self.frequency_hz_in = DatasetMapping.FrequencyMapping[dataset_name]
     
     def train(
         self,
