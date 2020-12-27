@@ -124,7 +124,7 @@ class SingleNetFullTrainerJointValidationXY():
     
         loader_tr, loader_val, loader_ts = PPG.UtilitiesDataXY.JointTrValDataLoaderFactory(
             transformers_tr, transformers_ts=transformers_ts, dfs = self.dfs, batch_size_tr=batch_size,
-            dataset_cls=PPG.UtilitiesDataXY.XYDataset
+            dataset_cls=PPG.UtilitiesDataXY.XYDataset2
         ).make_loaders(ts_sub, 0.8)
 
         epoch_trainer = ToolBox.MultiModelEpochTrainer(batch_trainer)

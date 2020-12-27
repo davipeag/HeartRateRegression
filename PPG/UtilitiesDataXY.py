@@ -15,6 +15,20 @@ class XYDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         return (torch.Tensor(self.x[idx]), torch.tensor([self.y[idx]]).type(torch.FloatTensor))
 
+
+class XYDataset2(torch.utils.data.Dataset):
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def __len__(self):
+        return len(self.y)
+
+    def __getitem__(self, idx):
+        return (torch.tensor(self.x[idx], dtype=torch.float), torch.tensor(self.y[idx], dtype=torch.float))
+
+
+
 class ISDataset(torch.utils.data.Dataset):
     def __init__(self, xi, yi, xr, yr):
         self.xis = xi
