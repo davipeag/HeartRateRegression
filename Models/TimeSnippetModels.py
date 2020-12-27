@@ -9,6 +9,8 @@ class DeepConvLSTM(nn.Module):
         super().__init__()
 
         samples_per_ts = frequency_hz * period_seconds
+        self.samples_per_ts = samples_per_ts
+        self.ts_per_is = ts_per_is
         recursive_size = ts_per_window - ts_per_is
         #last sample of each time snippet in the prediction segment (recursive size)
         self.mask = [samples_per_ts*ts_per_is + (i+1) * samples_per_ts - 1 
@@ -36,6 +38,9 @@ class DeepConvLSTM(nn.Module):
         )
 
     def forward(self, x):
+        self.mask = [self.samples_per_ts*self.ts_per_is + (i+1) * self.samples_per_ts - 1 
+                     for i in range(int(x.shape[2]//self.samples_per_ts - self.ts_per_is))]
+
         l = self.lstm(torch.flatten(
             self.conv(x).transpose(2, 1), start_dim=2))[0]
         return self.lin(l[:, self.mask, :])
