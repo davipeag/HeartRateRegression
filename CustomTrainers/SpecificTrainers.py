@@ -18,7 +18,8 @@ class DeepConvLstmFullTrainer(FullTrainers.SingleNetFullTrainerJointValidationXY
         frequency_hz = 100/3,
         input_features_parameter_name = "feature_count",
         additional_args = dict(),
-        args_to_net_args_mapping = {"ts_per_is": "ts_per_is", "period_seconds": "period_s", "ts_per_window": "ts_per_is"},
+        args_to_net_args_mapping = {"ts_per_is": "ts_per_is", "period_seconds": "period_s", "ts_per_window": "ts_per_is",
+                                    "frequency_hz": "frequency_hz"},
         args_function_mapping = dict()
         ):
         feature_columns = DatasetMapping.NoPpgFeatureColumns[dataset_name]
