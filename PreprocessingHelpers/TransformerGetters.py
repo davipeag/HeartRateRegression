@@ -38,7 +38,7 @@ class DeepConvLstmTransformerGetter():
         )
 
 
-        recursive_hr_masker = XYMasker(0, ts_per_is)
+        recursive_hr_masker = XYMasker(0, ts_per_is*sample_per_ts)
 
         sample_maker = SampleMaker(ts_per_window, int(ts_per_window*sample_step_ratio))
 
