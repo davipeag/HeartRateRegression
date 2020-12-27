@@ -136,6 +136,9 @@ class SingleNetFullTrainerJointValidationXY():
             
         outputs = train_helper.train(self.nepoch)
         outputs = list(outputs.values())[0]
+
+        outputs["labels"] = metrics_computer.inverse_transform_label(outputs['labels'])
+        outputs["predictions"] = metrics_computer.inverse_transform_label(outputs['predictions'])
         return {
             **{
             "args": args,
