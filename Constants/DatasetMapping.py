@@ -20,3 +20,8 @@ NoPpgFeatureColumns = {
         ]
 }
 
+PpgFeatureColumns = {
+    "dalia": ['heart_rate','wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2', 'wrist-BVP-0'],
+    "wesad": ['heart_rate','wrist-ACC-0', 'wrist-ACC-1', 'wrist-ACC-2', 'wrist-BVP-0']
+}
+

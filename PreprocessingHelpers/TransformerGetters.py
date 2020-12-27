@@ -19,7 +19,10 @@ class DeepConvLstmTransformerGetter():
         self.label_column = "heart_rate"
         self.frequency_hz_in = DatasetMapping.FrequencyMapping[dataset_name]
 
-    def __call__(self, ts_per_window, ts_per_is, period_s, frequency_hz, sample_step_ratio = 1):
+    def __call__(self, ts_per_window, ts_per_is, period_s, frequency_hz, sample_step_ratio = 1, step_s = None):
+
+        if step_s is None:
+            step_s = period_s
 
         if self.frequency_hz_in < 2*frequency_hz:
             downsampler = IdentityTransformer()
@@ -42,7 +45,7 @@ class DeepConvLstmTransformerGetter():
 
         sample_maker = SampleMaker(ts_per_window, int(ts_per_window*sample_step_ratio))
 
-        ts_aggregator = TimeSnippetAggregator(size=sample_per_ts, step=sample_per_ts)
+        ts_aggregator = TimeSnippetAggregator(size=sample_per_ts, step=frequency_hz*step_s)
 
         reshape = ApplyTransformer(lambda v:  (v[0].reshape([-1, 1, ts_per_window*sample_per_ts, feature_count]),
                                                np.expand_dims(v[1][:, ts_per_is:], 2))) 
@@ -106,5 +109,47 @@ class PceLstmTransformerGetter():
             sample_maker,
             is_pred_split,
             recursive_hr_masker
+        )
+
+
+class PpgPceLstmTransformerGetter():
+    def __init__(self, feature_columns, dataset_name, same_hr=False, bvp_idx = 4):
+        self.feature_columns = feature_columns
+        self.ztransformer = ZTransformer2(
+            self.feature_columns, dataset=dataset_name, same_hr=same_hr)
+        self.bvp_idx = bvp_idx
+
+    def __call__(self, ts_per_sample, ts_per_is, frequency_hz, period_s, step_s, sample_step_ratio):
+
+        feature_columns = self.feature_columns 
+
+        meansub = HZMeanSubstitute()
+
+        fft = FFT(self.bvp_idx)
+
+        feature_label_splitter = FeatureLabelSplit(
+            label_column = "heart_rate",
+            feature_columns = feature_columns
+        )
+
+        recursive_hr_masker = RecursiveHrMasker(0)
+
+        sample_maker = SampleMaker(ts_per_sample, int(ts_per_sample*sample_step_ratio))
+
+        is_pred_split = NoDiffInitialStatePredictionSplit(ts_per_sample, ts_per_is)
+
+        ts_aggregator = TimeSnippetAggregator(size=int(frequency_hz*period_s),
+                                              step=int(frequency_hz*step_s))
+
+
+        return TransformerPipeline(
+            self.ztransformer,
+            feature_label_splitter,
+            ts_aggregator,
+            meansub,
+            sample_maker,
+            is_pred_split,
+            recursive_hr_masker,
+            fft
         )
 

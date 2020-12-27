@@ -344,8 +344,8 @@ def make_par_enc_pce_lstm(
     dropout_rate = 0,
     nattrs=40
     ):
-  print(f"ts_per_is: {ts_per_is}")
-  print(f"sample_per_ts: {sample_per_ts}")
+  #print(f"ts_per_is: {ts_per_is}")
+  #print(f"sample_per_ts: {sample_per_ts}")
   return ParametrizedEncoderMakeOurConvLSTM(sample_per_ts, ts_per_is, ts_h_size, is_h_size, lstm_size, lstm_input, dropout_rate, nattrs )()
    #ts_h_size, lstm_size, lstm_input, dropout_rate, nattrs)()
 

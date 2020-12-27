@@ -81,8 +81,11 @@ class SingleNetFullTrainerJointValidationXY():
         ts_per_window,
         ts_per_is,
         period_s,
+        step_s = None,
         **net_args
-    ):
+        ):
+        if step_s is None:
+            step_s = period_s
         frequency_hz = self.frequency_hz
         args = locals()
         for k,func in self.args_function_mapping.items():
@@ -99,7 +102,8 @@ class SingleNetFullTrainerJointValidationXY():
         ts_per_window_ts = int(ldf/(self.frequency_hz_in*period_s))-3
         transformers_ts = self.transformers(
             period_s = period_s, frequency_hz = frequency_hz,
-            ts_per_window=ts_per_window_ts, ts_per_is=ts_per_is)
+            ts_per_window=ts_per_window_ts, ts_per_is=ts_per_is,
+            step_s = step_s, sample_step_ratio = 1)
 
         # print(net_args)
         net = self.net_builder_cls(**net_args).to(self.device)
@@ -119,7 +123,7 @@ class SingleNetFullTrainerJointValidationXY():
         metrics_computer = RegressionHR.TrainerJoint.MetricsComputerIS(ztransformer)
         
         transformers_tr = self.transformers(period_s=period_s, ts_per_window = ts_per_window, frequency_hz=frequency_hz,
-                                            ts_per_is=ts_per_is)
+                                            ts_per_is=ts_per_is, sample_step_ratio=1)
 
     
         loader_tr, loader_val, loader_ts = PPG.UtilitiesDataXY.JointTrValDataLoaderFactory(
