@@ -19,6 +19,8 @@ from RegressionHR import TrainerJoint
 from RegressionHR import  UtilitiesData
 from RegressionHR import Preprocessing
 
+from Constants import DatasetMapping
+
 import Trainer
 from Trainer import BatchTrainers
 from Trainer import BatchComputers
@@ -68,6 +70,7 @@ class SingleNetFullTrainerJointValidationXY():
         self.add_to_net_args_mapping = args_to_net_args_mapping
         self.args_function_mapping = args_function_mapping
         self.model_name = None
+        self.frequency_hz_in = DatasetMapping.FrequencyMapping
     
     def train(
         self,
@@ -93,7 +96,7 @@ class SingleNetFullTrainerJointValidationXY():
         
         
         ldf = len(self.dfs[ts_sub])
-        ts_per_window_ts = int(ldf/(frequency_hz))-3
+        ts_per_window_ts = int(ldf/(self.frequency_hz_in))-3
         transformers_ts = self.transformers(
             period_s = period_s, frequency_hz = frequency_hz,
             ts_per_window=ts_per_window_ts, ts_per_is=ts_per_is)
