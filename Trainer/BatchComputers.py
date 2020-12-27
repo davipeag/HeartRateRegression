@@ -26,7 +26,10 @@ class BatchComputerXY(IBatchComputer):
     
     def compute_loss(self, batch) -> torch.tensor:
         output = self.compute_batch(batch)
-        return self._criterion(output.prediction, output.label)
+        y = output.label
+        p = output.prediction
+        print(f"y:{y.shape}, p:{p.shape}")
+        return self._criterion(p, y)
 
     def compute_batch(self, batch) -> ModelOutput:
         x,y = map(lambda v: v.to(self.device), batch)
