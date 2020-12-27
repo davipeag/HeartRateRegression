@@ -4,6 +4,7 @@ from torch import nn
 
 class DeepConvLSTM(nn.Module):
     def __init__(self, ts_per_is, feature_count, ts_per_window, frequency_hz, period_seconds):
+        print(self, type(self))
         super(DeepConvLSTM, self).__init__()
 
         samples_per_ts = frequency_hz * period_seconds
