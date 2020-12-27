@@ -34,7 +34,7 @@ class BatchComputerXY(IBatchComputer):
     def compute_batch(self, batch) -> ModelOutput:
         x,y = map(lambda v: v.to(self.device), batch)
         p = self.model(x)
-        # print(f"x: {x.shape}, y:{y.shape}, p:{p.shape}")
+        print(f"x: {x.shape}, y:{y.shape}, p:{p.shape}")
         return ModelOutput((x), y, p)  
 
 
