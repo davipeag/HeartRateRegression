@@ -19,7 +19,7 @@ class DeepConvLstmFullTrainer(FullTrainers.SingleNetFullTrainerJointValidationXY
         input_features_parameter_name = "feature_count",
         additional_args = dict(),
         args_to_net_args_mapping = {"ts_per_is": "ts_per_is", "period_seconds": "period_s", "ts_per_window": "ts_per_is"},
-        args_to_function_mapping = dict()
+        args_function_mapping = dict()
         ):
         feature_columns = DatasetMapping.NoPpgFeatureColumns[dataset_name]
 
@@ -36,6 +36,6 @@ class DeepConvLstmFullTrainer(FullTrainers.SingleNetFullTrainerJointValidationXY
             input_features_parameter_name = input_features_parameter_name,
             additional_args = additional_args,
             args_to_net_args_mapping = args_to_net_args_mapping,
-            args_to_function_mapping = args_to_function_mapping,
+            args_function_mapping = args_function_mapping,
             model_name = model_name
         )
