@@ -46,7 +46,7 @@ class DeepConvLstmFullTrainer(FullTrainers.SingleNetFullTrainerJointValidationXY
         )
 
 
-class SingleNoHrPpgPceLstmFullTrainer(FullTrainers.SingleNetFullTrainerJointValidationXY):
+class SingleNoHrPpgPceLstmFullTrainer(FullTrainers.SingleNetFullTrainerJointValidationIS):
     def __init__(
         self,
         dfs,
