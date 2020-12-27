@@ -98,6 +98,7 @@ class SingleNetFullTrainerJointValidationXY():
             period_s = period_s, frequency_hz = frequency_hz,
             ts_per_window=ts_per_window_ts, ts_per_is=ts_per_is)
 
+        print(net_args)
         net = self.net_builder_cls(**net_args).to(self.device)
         PPG.Models.initialize_weights(net)
 
