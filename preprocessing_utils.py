@@ -577,11 +577,12 @@ class RecursiveHrMasker(BaseEstimator, TransformerMixin):
         return xi, yi, xr, yr
 
 class XYMasker():
-    def __init__(self, mask_value, start_index, time_axis = 2, value_axis=3):
+    def __init__(self, mask_value, start_index, value_index=0, time_axis = 2, value_axis=3):
         self.mask_value = mask_value
         self.start_index = start_index
         self.time_axis = time_axis
         self.value_axis = value_axis
+        self.value_index = value_index
     
     def _swap_axis(self, x, axis, desirable_axis):
         if axis != desirable_axis:
@@ -608,7 +609,7 @@ class XYMasker():
     def transform(self, xy):
         x, y = xy
         x = self.swap_axis(x)
-        x[:, :, self.start_index:, self.value_axis] = self.mask_value
+        x[:, :, self.start_index:, self.value_index] = self.mask_value
         self.reverse_swap_axis(x)
         return x, y
 
