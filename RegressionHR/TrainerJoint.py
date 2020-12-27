@@ -156,6 +156,7 @@ class MetricsComputerIS():
         yr = self.inverse_transform_label(yp)
         pr = self.inverse_transform_label(p)
         return np.abs(yr-pr).mean()
+        print(f"y:{yp.shape}, p:{p.shape}")
 
     def rmse(self, y, p):
         yr = self.inverse_transform_label(y)
