@@ -44,6 +44,9 @@ class HiddenInitializationConvLSTMAssembler(torch.nn.Module):
 
     def forward(self, xi, yi, xp):
 
+        xi[:,:,0,:] = 0
+        xp[:,:,0,:] = 0
+        
         xi_bvp = xi[:, :, self.bvp_idx: self.bvp_idx+1, :]
         xp_bvp = xp[:, :, self.bvp_idx: self.bvp_idx+1, :]
 
