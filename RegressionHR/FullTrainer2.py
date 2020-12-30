@@ -843,3 +843,16 @@ class NoPceLstmPamap2FullTrainerJointValidation(SingleNetFullTrainerJointValidat
             dfs, device, nepoch, RegressionHR.PceLstmModel.make_par_enc_no_pce_lstm , 
             RegressionHR.Preprocessing.PceLstmTransformerGetter, "pamap2", feature_columns,
              100, "nattrs", additional_args, additional_net_args, model_name)
+
+
+class PceLstmPamap2FullTrainerJointValidationHandChestAccelerometers(SingleNetFullTrainerJointValidationIS):
+    def __init__(self, dfs, device, nepoch, feature_columns=[
+            'heart_rate', 'h_xacc16', 'h_yacc16', 'h_zacc16',
+            'h_xacc6', 'h_yacc6', 'h_zacc6', 'c_xacc16', 'c_yacc16', 'c_zacc16',
+            'c_xacc6', 'c_yacc6', 'c_zacc6'
+        ], additional_args = dict(), additional_net_args = dict(), model_name = None):
+        super().__init__(
+            dfs, device, nepoch, RegressionHR.PceLstmModel.make_par_enc_pce_lstm , 
+            RegressionHR.Preprocessing.PceLstmTransformerGetter, "pamap2", feature_columns,
+             100, "nattrs", additional_args, additional_net_args, model_name)
+
