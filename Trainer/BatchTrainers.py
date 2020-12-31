@@ -44,8 +44,8 @@ class SequentialTrainer(IBatchMultiTrainer):
     def compute_batch(self, batches: Sequence) -> Tuple[ModelOutput]:
         [model.eval() for model in self.models]
         with torch.no_grad():
-            outputs = [computer.compute_batch(b).detach()(
-            ) for computer, b in zip(self._computers, batches)]
+            outputs = [computer.compute_batch(b).detach()
+             for computer, b in zip(self._computers, batches)]
         return outputs
     
     def single_compute_batch(self, batch, idx) -> ModelOutput:
