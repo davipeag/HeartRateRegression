@@ -1,6 +1,8 @@
 
 from Trainer.Interfaces import *
-
+from typing import List, Sequence, Callable
+import numpy as np
+import itertools
 
 class MultiModelEpochTrainer():    
     
@@ -37,7 +39,62 @@ class MultiModelEpochTrainer():
         features = [[np.concatenate(f) for f in zip(*[out.features for out in moutputs])] for moutputs in outputs]
         return [ModelOutput(f, l, p) for f,l,p in zip(features, labels, predictions)]
 
-      
+
+class MultiModelSequentialEpochTrainer():    
+    
+    def __init__(self, epoch_trainers: List[MultiModelEpochTrainer]):
+        self.epoch_trainers = epoch_trainers
+    
+
+    @property
+    def batch_trainers(self):
+        batch_trainers = list()
+        for epoch_trainer in self.epoch_trainers:
+            try:
+                batch_trainers.append(epoch_trainer.batch_trainer)
+            except :
+                batch_trainers = [*batch_trainers, *epoch_trainer.batch_trainers]
+        return batch_trainers
+
+    @property
+    def names(self):
+        return list(itertools.chain.from_iterable([batch_trainer.names for batch_trainer in self.batch_trainers]))
+    
+    @property
+    def models(self):
+        return list(itertools.chain.from_iterable([batch_trainer.models for batch_trainer in self.batch_trainers]))
+
+    def required_loader_count(self):
+        return np.sum([len(batch_trainer.names) for batch_trainer in self.batch_trainers])
+    
+    
+    def _loaders_split(self, loaders):
+        split_loaders = list()
+        for epoch_trainer in self.epoch_trainers:
+            count = epoch_trainer.required_loader_count()
+            split_loaders.append(loaders[0:count])
+            loaders = loaders[count:]
+        return split_loaders
+    
+    def _apply_loaders_to_epoch_trainers_function(self, function_name, loaders):
+        results = [ getattr(trainer, function_name)(split_loaders)
+                   for trainer, split_loaders in zip(self.epoch_trainers, self._loaders_split(loaders))]
+        return list(itertools.chain.from_iterable(results))
+
+
+    def train_epoch(self, loaders: Sequence) -> List[np.ndarray]:
+        return self._apply_loaders_to_epoch_trainers_function("train_epoch", loaders)
+        
+
+    def evaluate_epoch(self, loaders: Sequence) -> List[np.ndarray]:
+        return self._apply_loaders_to_epoch_trainers_function("evaluate_epoch", loaders)
+
+    
+    def compute_epoch(self, loaders) -> List[ModelOutput]:
+        return self._apply_loaders_to_epoch_trainers_function("compute_epoch", loaders)
+
+
+
 class MultiModelTrainHelper():
     def __init__(
             self, trainer: MultiModelEpochTrainer,
@@ -103,5 +160,5 @@ class MultiModelTrainHelper():
         print(f"Final: {loss_ts}")
         return  final_output
 
-    
+
 

@@ -11,22 +11,27 @@ class ModelOutput:
         self.features = features
         self.label = label
         self.prediction = prediction
-    
+
     def detach(self):
         if isinstance(self.prediction, np.ndarray):
             return self
         self.features = [f.detach().cpu() for f in self.features]
-        if self.label is not None: self.label = self.label.detach().cpu()
+        if self.label is not None:
+            self.label = self.label.detach().cpu()
         self.prediction = self.prediction.detach().cpu()
         return self
-    
+
     def to_numpy(self):
         if isinstance(self.prediction, np.ndarray):
             return self
         self.features = [f.detach().cpu().numpy() for f in self.features]
-        if self.label is not None: self.label = self.label.detach().cpu().numpy()
+        if self.label is not None:
+            self.label = self.label.detach().cpu().numpy()
         self.prediction = self.prediction.detach().cpu().numpy()
         return self
+
+
+DisplayCriterion = Callable[ModelOutput, float]
 
 
 class IBatchComputer(ABC):
@@ -35,12 +40,12 @@ class IBatchComputer(ABC):
     @abstractmethod
     def model(self):
         pass
-    
+
     @property
     @abstractmethod
     def name(self):
         pass
-    
+
     @abstractmethod
     def compute_loss(self, batch) -> torch.float:
         pass
@@ -68,10 +73,7 @@ class IBatchMultiTrainer(ABC):
     @abstractmethod
     def evaluate_batch(self, batches: Sequence) -> Tuple[float]:
         pass
-    
+
     @abstractmethod
     def compute_batch(self, batches: Sequence) -> Tuple[ModelOutput]:
         pass
-
-
-    

@@ -47,3 +47,23 @@ class SequentialTrainer(IBatchMultiTrainer):
             outputs = [computer.compute_batch(b).to_numpy(
             ) for computer, b in zip(self._computers, batches)]
         return outputs
+    
+    def single_compute_batch(self, batch, idx) -> ModelOutput:
+        return self._computers[idx].compute_batch(batch)
+    
+    def single_evaluate_batch(self, batch, idx) -> float:
+        self.models[idx].eval()
+        with torch.no_grad():
+            return self._computers[idx].compute_loss(batch)
+    
+    def single_train_batch(self, batch, idx) -> float:
+        model = self.models[idx]
+        computer = self._computers[idx]
+        weight = self._weights[idx]
+        model.train()
+        model.zero_grad()
+        loss  = weight*computer.compute_loss(batch)
+        loss.backward()
+        self._optimizer.step()
+        return loss.cpu().item()
+

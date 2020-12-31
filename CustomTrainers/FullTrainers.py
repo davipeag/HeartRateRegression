@@ -355,7 +355,9 @@ class PceDeepDiscriminatorAndLstmFullTrainerJointValidationIS():
             step_s = step_s, window_step_ratio = 1)
 
         print(net_args)
-        lstm, discriminator = self.nets_builder_cls(**net_args).to(self.device)
+        nets = self.nets_builder_cls(**net_args)
+        [n.to(self.device) for n in nets]
+        lstm, discriminator = nets
         PPG.Models.initialize_weights(lstm)
         PPG.Models.initialize_weights(discriminator)
 
