@@ -43,7 +43,8 @@ class DeepConvLstmTransformerGetter():
 
         sample_maker = SampleMaker(
             ts_per_window, int(ts_per_window*sample_step_ratio))
-
+        
+        print(sample_per_ts, frequency_hz, step_s)
         ts_aggregator = TimeSnippetAggregator(
             size=int(sample_per_ts), step=int(frequency_hz*step_s))
 
