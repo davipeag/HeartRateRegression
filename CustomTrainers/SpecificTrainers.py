@@ -105,6 +105,7 @@ class SinglePceLstmFullTrainerHandChestAccelerometers(FullTrainers.SingleNetFull
             'c_xacc6', 'c_yacc6', 'c_zacc6']
         else:
             feature_columns = DatasetMapping.PpgFeatureColumns[dataset_name]
+        feature_columns = DatasetMapping.PpgFeatureColumns[dataset_name]
         frequency_hz = DatasetMapping.FrequencyMapping[dataset_name]
 
         print(f"frequency_hz: {frequency_hz}")
