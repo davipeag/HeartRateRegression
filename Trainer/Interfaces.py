@@ -31,7 +31,7 @@ class ModelOutput:
         return self
 
 
-DisplayCriterion = Callable[ModelOutput, float]
+DisplayCriterion = Callable[[ModelOutput], float]
 
 
 class IBatchComputer(ABC):
