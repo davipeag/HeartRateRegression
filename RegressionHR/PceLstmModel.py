@@ -345,7 +345,7 @@ def make_par_enc_pce_lstm(
     nattrs=40
     ):
   #print(f"ts_per_is: {ts_per_is}")
-  #print(f"sample_per_ts: {sample_per_ts}")
+  print(f"sample_per_ts: {sample_per_ts}")
   return ParametrizedEncoderMakeOurConvLSTM(sample_per_ts, ts_per_is, ts_h_size, is_h_size, lstm_size, lstm_input, dropout_rate, nattrs )()
    #ts_h_size, lstm_size, lstm_input, dropout_rate, nattrs)()
 
@@ -520,6 +520,19 @@ def make_pce_lstm_and_discriminator(
   pce_discriminator = PceDiscriminatorAssembler(pce_lstm.ts_encoder, pce_lstm.is_encoder, discriminator)
   return pce_lstm, pce_discriminator
 
+
+def make_pce_discriminator(
+    ts_encoder,
+    is_encoder,
+    pce_size,
+    disc_nlayers=3,
+    disc_layer_size=32,
+    disc_dropout_rate = 0
+    ):
+  discriminator = Discriminator(pce_size*2, disc_nlayers, disc_layer_size, disc_dropout_rate)
+
+  pce_discriminator = PceDiscriminatorAssembler(ts_encoder, is_encoder, discriminator)
+  return pce_discriminator
 
 def parametrized_encoder_make_pce_lstm_and_discriminator(
     sample_per_ts = 400,
