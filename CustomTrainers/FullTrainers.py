@@ -403,7 +403,8 @@ class PceDeepDiscriminatorAndLstmFullTrainerJointValidationIS():
         def sigmoid(x): return 1 / (1 + np.exp(-x))
         
         # def accuracy(o): (np.sum((sigmoid(o.prediction) > 0.5)== o.label)/len(o.prediction)) 
-        def accuracy(o): (torch.sum((torch.sigmoid(o.prediction) > 0.5)== o.label)/len(o.prediction))
+        def accuracy(o):
+            return (torch.sum((torch.sigmoid(o.prediction) > 0.5)== o.label)/len(o.prediction))
 
         train_helper = ToolBox.MultiModelTrainHelper(
             epoch_trainer, [loader_tr1, loader_tr2], [loader_val1, loader_val2], [loader_ts1, loader_ts2],
