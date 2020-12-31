@@ -34,7 +34,7 @@ class MultiModelEpochTrainer():
     
     def compute_epoch(self, loaders) -> List[ModelOutput]:
         outputs = list(zip(*self.apply_to_batches(self.batch_trainer.compute_batch, loaders)))
-        labels = [np.concatenate([out.to_numpy().label for out in moutputs]) for moutputs in outputs]
+        labels = [np.concatenate([out.detach().label for out in moutputs]) for moutputs in outputs]
         predictions = [np.concatenate([out.prediction for out in moutputs]) for moutputs in outputs]
         features = [[np.concatenate(f) for f in zip(*[out.features for out in moutputs])] for moutputs in outputs]
         return [ModelOutput(f, l, p) for f,l,p in zip(features, labels, predictions)]
