@@ -231,7 +231,7 @@ class SingleNetFullTrainerJointValidationIS():
             ts_per_window=ts_per_window_ts, ts_per_is=ts_per_is,
             step_s = step_s, window_step_ratio = 1)
 
-        # print(net_args)
+        print(net_args)
         net = self.net_builder_cls(**net_args).to(self.device)
         PPG.Models.initialize_weights(net)
 
