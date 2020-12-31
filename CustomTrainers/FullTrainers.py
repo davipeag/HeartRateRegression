@@ -369,7 +369,7 @@ class PceDeepDiscriminatorAndLstmFullTrainerJointValidationIS():
                                      weight_decay=weight_decay)
         
         batch_computer1 = BatchComputerIS(lstm, criterion1, self.device, self.model_name + "_LSTM")
-        batch_computer2 = BatchComputerIS(discriminator, criterion2, self.device, self.model_name + "_Discriminator")
+        batch_computer2 = BatchComputerPceDiscriminator(discriminator, criterion2, self.device, self.model_name + "_Discriminator")
         batch_trainer = SequentialTrainer([batch_computer1, batch_computer2], optimizer, weights=[alpha, 1-alpha])
 
         
