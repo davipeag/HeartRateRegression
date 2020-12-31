@@ -205,9 +205,14 @@ class PceDiscriminatorTransformerGetter():
         self.ztransformer = ZTransformer2(
             self.feature_columns, dataset=dataset_name, same_hr=same_hr)
         self.false_label = false_label
+        self.dataset_frequency = DatasetMapping.FrequencyMapping[dataset_name]
 
     def __call__(self, ts_per_is, frequency_hz, period_s, step_s, sample_step_ratio=1):
-
+        if frequency_hz > self.dataset_frequency:
+            downsampler = Downsampler(frequency_hz/self.dataset_frequency)
+        else:
+            downsampler = IdentityTransformer()
+            
         feature_columns = self.feature_columns
 
         meansub = HZMeanSubstitute()
@@ -226,6 +231,7 @@ class PceDiscriminatorTransformerGetter():
             np.swapaxes(v[0].squeeze(2), 2, 3), v[1]))
 
         inner_pipeline = TransformerPipeline(
+            downsampler,
             self.ztransformer,
             feature_label_splitter,
             ts_aggregator,

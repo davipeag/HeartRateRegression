@@ -129,7 +129,7 @@ class SinglePceLstmFullTrainerHandChestAccelerometers(FullTrainers.SingleNetFull
             model_name = model_name
         )
 
-class PceDeepDiscriminatorLstmFullTrainerHandChestAccelerometers(FullTrainers.SingleNetFullTrainerJointValidationIS):
+class PceDeepDiscriminatorLstmFullTrainerHandChestAccelerometers(FullTrainers.PceDeepDiscriminatorAndLstmFullTrainerJointValidationIS):
     def __init__(
         self,
         dfs,
