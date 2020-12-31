@@ -249,7 +249,7 @@ class SingleNetFullTrainerJointValidationIS():
         metrics_computer = RegressionHR.TrainerJoint.MetricsComputerIS(ztransformer)
         
         transformers_tr = self.transformers(period_s=period_s, ts_per_window = ts_per_window, frequency_hz=frequency_hz,
-                                            ts_per_is=ts_per_is, sample_step_ratio=1, step_s = step_s)
+                                            ts_per_is=ts_per_is, window_step_ratio=1, step_s = step_s)
 
     
         loader_tr, loader_val, loader_ts = PPG.UtilitiesDataXY.JointTrValDataLoaderFactory(
