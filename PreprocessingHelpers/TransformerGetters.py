@@ -130,7 +130,7 @@ class PceLstmTransformerGetterRenamed():
         recursive_hr_masker = RecursiveHrMasker(0)
 
         sample_maker = SampleMaker(
-            ts_per_sample, int(ts_per_window*window_step_ratio))
+            ts_per_window, int(ts_per_window*window_step_ratio))
 
         is_pred_split = NoDiffInitialStatePredictionSplit(
             ts_per_window, ts_per_is)
