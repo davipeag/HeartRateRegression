@@ -45,7 +45,7 @@ class DeepConvLstmTransformerGetter():
             ts_per_window, int(ts_per_window*sample_step_ratio))
 
         ts_aggregator = TimeSnippetAggregator(
-            size=sample_per_ts, step=frequency_hz*step_s)
+            size=int(sample_per_ts), step=int(frequency_hz*step_s))
 
         reshape = ApplyTransformer(lambda v:  (v[0].reshape([-1, 1, ts_per_window*sample_per_ts, feature_count]),
                                                np.expand_dims(v[1][:, ts_per_is:], 2)))
@@ -212,7 +212,7 @@ class PceDiscriminatorTransformerGetter():
             downsampler = Downsampler(frequency_hz/self.dataset_frequency)
         else:
             downsampler = IdentityTransformer()
-            
+
         feature_columns = self.feature_columns
 
         meansub = HZMeanSubstitute()
