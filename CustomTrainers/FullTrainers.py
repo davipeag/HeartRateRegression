@@ -400,7 +400,7 @@ class PceDeepDiscriminatorAndLstmFullTrainerJointValidationIS():
 
 
         epoch_trainer = ToolBox.MultiModelEpochTrainer(batch_trainer)
-        def sigmoid(x): return 1 / (1 + math.exp(-x))
+        def sigmoid(x): return 1 / (1 + np.exp(-x))
         
         def accuracy(o): (np.sum((sigmoid(o.prediction) > 0.5)== o.label)/len(o.prediction)) 
 
