@@ -329,7 +329,8 @@ class PceDeepDiscriminatorAndLstmFullTrainerJointValidationIS():
         ts_per_window,
         ts_per_is,
         period_s,
-        step_s = None,
+        step_s,
+        alpha,
         **net_args
         ):
         if step_s is None:
@@ -367,7 +368,7 @@ class PceDeepDiscriminatorAndLstmFullTrainerJointValidationIS():
         
         batch_computer1 = BatchComputerIS(lstm, criterion1, self.device, self.model_name + "_LSTM")
         batch_computer2 = BatchComputerIS(discriminator, criterion2, self.device, self.model_name + "_Discriminator")
-        batch_trainer = SequentialTrainer([batch_computer1, batch_computer2], optimizer)
+        batch_trainer = SequentialTrainer([batch_computer1, batch_computer2], optimizer, weights=[alpha, 1-alpha])
 
         
         
