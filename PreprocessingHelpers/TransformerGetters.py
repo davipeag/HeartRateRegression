@@ -155,7 +155,7 @@ class PpgPceLstmTransformerGetter():
             self.feature_columns, dataset=dataset_name, same_hr=same_hr)
         self.bvp_idx = bvp_idx
 
-    def __call__(self, ts_per_window, ts_per_is, frequency_hz, period_s, step_s, sample_step_ratio):
+    def __call__(self, ts_per_window, ts_per_is, frequency_hz, period_s, step_s, window_step_ratio):
 
         feature_columns = self.feature_columns
 
@@ -171,7 +171,7 @@ class PpgPceLstmTransformerGetter():
         recursive_hr_masker = RecursiveHrMasker(0)
 
         sample_maker = SampleMaker(
-            ts_per_window, int(ts_per_window*sample_step_ratio))
+            ts_per_window, int(ts_per_window*window_step_ratio))
 
         is_pred_split = NoDiffInitialStatePredictionSplit(
             ts_per_window, ts_per_is)
