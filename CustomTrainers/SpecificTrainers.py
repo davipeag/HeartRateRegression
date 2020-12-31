@@ -142,7 +142,7 @@ class SingleNoPceLstmFullTrainerHandChestAccelerometers(FullTrainers.SingleNetFu
         transformer_getter_cls = TransformerGetters.PceLstmTransformerGetterRenamed,
         input_features_parameter_name = "nattrs",
         additional_args = dict(),
-        args_to_net_args_mapping = {"ts_per_is": "ts_per_is", "sample_per_ts": "sample_per_ts"},
+        args_to_net_args_mapping = {"sample_per_ts": "sample_per_ts"},
         args_function_mapping = {"sample_per_ts": lambda a: a["frequency_hz"]*a["period_s"]}
         ):
         if dataset_name == "pamap2":
