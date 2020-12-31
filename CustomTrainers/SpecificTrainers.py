@@ -92,7 +92,7 @@ class SinglePceLstmFullTrainerHandChestAccelerometers(FullTrainers.SingleNetFull
         dataset_name,
         model_name = None,
         net_builder_cls = PceLstmModel.make_par_enc_pce_lstm,
-        transformer_getter_cls = TransformerGetters.PceLstmTransformerGetter,
+        transformer_getter_cls = TransformerGetters.PceLstmTransformerGetterRenamed,
         input_features_parameter_name = "nattrs",
         additional_args = dict(),
         args_to_net_args_mapping = {"ts_per_is": "ts_per_is", "sample_per_ts": "sample_per_ts"},
