@@ -402,7 +402,8 @@ class PceDeepDiscriminatorAndLstmFullTrainerJointValidationIS():
         epoch_trainer = ToolBox.MultiModelEpochTrainer(batch_trainer)
         def sigmoid(x): return 1 / (1 + np.exp(-x))
         
-        def accuracy(o): (np.sum((sigmoid(o.prediction) > 0.5)== o.label)/len(o.prediction)) 
+        # def accuracy(o): (np.sum((sigmoid(o.prediction) > 0.5)== o.label)/len(o.prediction)) 
+        def accuracy(o): (torch.sum((torch.sigmoid(o.prediction) > 0.5)== o.label)/len(o.prediction))
 
         train_helper = ToolBox.MultiModelTrainHelper(
             epoch_trainer, [loader_tr1, loader_tr2], [loader_val1, loader_val2], [loader_ts1, loader_ts2],
@@ -411,9 +412,9 @@ class PceDeepDiscriminatorAndLstmFullTrainerJointValidationIS():
             
         outputs = train_helper.train(self.nepoch)
         # outputs = list(outputs.values())[0]
-
-        # outputs["labels"] = metrics_computer.inverse_transform_label(outputs['labels'])
-        # outputs["predictions"] = metrics_computer.inverse_transform_label(outputs['predictions'])
+        for k in outputs.keys():
+            outputs[k]["labels"] = metrics_computer.inverse_transform_label(outputs[k]['labels'])
+            outputs[k]["predictions"] = metrics_computer.inverse_transform_label(outputs[k]['predictions'])
         return {
             **{
             "args": args,
