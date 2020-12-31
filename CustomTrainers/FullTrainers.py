@@ -28,7 +28,7 @@ from Trainer import BatchComputers
 from Trainer import ToolBox
 from Trainer import DisplayCriterion
 
-from Trainer.BatchComputers import BatchComputerXY, BatchComputerIS, BatchComputerTripletLoss
+from Trainer.BatchComputers import BatchComputerPceDiscriminator, BatchComputerXY, BatchComputerIS, BatchComputerTripletLoss
 from Trainer.BatchTrainers import SequentialTrainer
 
 import Models
