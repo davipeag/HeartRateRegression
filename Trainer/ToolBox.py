@@ -140,7 +140,7 @@ class MultiModelTrainHelper():
             self.trainer.train_epoch(self.loaders_tr)
             loss_val = self.trainer.evaluate_epoch(self.loaders_val)# self.compute_metric(self.loaders_val)
             
-            if loss_val[self.optimizing_model_index] < torch.min([v[self.optimizing_model_index] for v in validation_metrics]):
+            if loss_val[self.optimizing_model_index] < np.min([v[self.optimizing_model_index] for v in validation_metrics]):
                 print("best val epoch:", epoch)
                 loss_tr = self.compute_metric(self.loaders_tr)
                 loss_val_ptr = self.compute_metric(self.loaders_val)
