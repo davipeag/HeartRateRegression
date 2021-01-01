@@ -23,7 +23,7 @@ class DeepConvLstmTransformerGetter():
         if step_s is None:
             step_s = period_s
 
-        if self.frequency_hz_in < 2*frequency_hz:
+        if self.frequency_hz_in > frequency_hz:
             downsampler = IdentityTransformer()
         else:
             downsampler = Downsampler(frequency_hz/self.frequency_hz_in)
@@ -122,7 +122,7 @@ class PceLstmTransformerGetterRenamed():
 
     def __call__(self, ts_per_window, ts_per_is, frequency_hz, period_s, step_s, window_step_ratio=1):
         
-        if frequency_hz > self.dataset_frequency:
+        if frequency_hz < self.dataset_frequency:
             downsampler = Downsampler(frequency_hz/self.dataset_frequency)
         else:
             downsampler = IdentityTransformer()
@@ -210,7 +210,7 @@ class PceDiscriminatorTransformerGetter():
         self.dataset_frequency = DatasetMapping.FrequencyMapping[dataset_name]
 
     def __call__(self, ts_per_is, frequency_hz, period_s, step_s, sample_step_ratio=1):
-        if frequency_hz > self.dataset_frequency:
+        if frequency_hz < self.dataset_frequency:
             downsampler = Downsampler(frequency_hz/self.dataset_frequency)
         else:
             downsampler = IdentityTransformer()
