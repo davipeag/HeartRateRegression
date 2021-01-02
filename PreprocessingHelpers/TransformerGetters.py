@@ -24,9 +24,9 @@ class DeepConvLstmTransformerGetter():
             step_s = period_s
 
         if self.frequency_hz_in > frequency_hz:
-            downsampler = IdentityTransformer()
-        else:
             downsampler = Downsampler(frequency_hz/self.frequency_hz_in)
+        else:
+            downsampler = IdentityTransformer()
 
         feature_columns = self.feature_columns
         feature_count = len(self.feature_columns)
