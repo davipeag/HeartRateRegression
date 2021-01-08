@@ -5,10 +5,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
-path = "executions/pamap2results.pkl"
+path = "executions/dalia2results.pkl"
 
 with open(path, "rb") as f:
     results = pickle.load(f)
+
+with open("executions/dalia_results_with_discriminator.pkl", "rb") as f:
+    results["PCE-LSTM discriminator"] = pickle.load(f)
+
 
 #%%
 results.keys()
@@ -18,12 +22,11 @@ nodisc = results['PCE-LSTM discriminator']
 d_metrics = dict()
 for idx in nodisc.keys():
     ind = nodisc[idx]    
-    d_metrics[idx + 1] = [v["_Discriminator"]["metric"].item() for v in ind.values()]
+    d_metrics[idx + 1] = [v["metric"][1][1] for v in ind.values()]
     
 d_metrics
 
 #%%
-
 
 def get_mae(p,y): return np.mean(np.abs(p-y))
 
@@ -53,12 +56,11 @@ for k in results.keys():
         if "_LSTM" in first.keys():
 
             first = first["_LSTM"]
-            for k1,v1 in ind.items():
-                ind[k1] = v1["_LSTM"]
+            for k,v in ind.items():
+                ind[k] = v["_LSTM"]
 
         if "labels" not in first.keys():
 
-            print("here")
             # first["labels"] = first["predictions"][0]
             # first["predictions"] = first["predictions"][1]
             for k1,v in ind.items():
@@ -81,26 +83,47 @@ for k in results.keys():
 dmodel = model_processed["PCE-LSTM discriminator"]
 
 ndmodel = model_processed["PCE-LSTM NO discriminator"]
+ndmodel = model_processed["NOPCE-LSTM"]
 
 
 def get_ind_mae(dmodel):
     r_metrics = dict()
     for k,ind in dmodel.items():
-        mae = np.mean(np.abs(ind["prediction"] - ind["label"]),axis=1)
+        mae = np.mean(np.abs(ind["prediction"] - ind["label"]), axis=1)
         r_metrics[k] = np.array(mae)
     return r_metrics
 
 dr_metrics = get_ind_mae(dmodel)
 ndr_metrics = get_ind_mae(ndmodel)
 
-r_metrics[1], d_metrics[1]
+
 
 import matplotlib.pyplot as plt
+rds = list()
+ps = list()
 for i in d_metrics.keys():
-    r = 
-    plt.figure()
-    plt.plot(d_metrics[i], dr_metrics[i]/ndr_metrics[i], '.')
-    plt.show()
+    rd = dr_metrics[i]/np.mean(ndr_metrics[i])
+    p = d_metrics[i]
+    rds.append(rd) 
+    ps.append(p)
+    # plt.figure()
+    # plt.plot(d_metrics[i], rd, '.')
+    # plt.show()
+
+rds = np.concatenate(rds)
+ps = np.concatenate(ps)
+
+plt.figure()
+plt.plot(ps, rds,'.')
+plt.show()
+
+#%%
+v = [(np.mean(d_metrics[i]), np.mean(dr_metrics[i])/np.mean(ndr_metrics[i])) for i in sorted(d_metrics.keys())]
+
+p,r = zip(*v)
+plt.figure()
+plt.plot(p,r, '.')
+plt.show()
 
 #%%
 
@@ -137,9 +160,9 @@ for ind, row in df.iterrows():
 
 
 # inds = [1,3,5,7]
-inds = [1,2,3,4,5]
+inds = [1,4,8,12,15]
 
-fig, axs = plt.subplots(len(inds), sharey=True,figsize=(10,len(inds)*5))
+fig, axs = plt.subplots(len(inds), sharey=False,figsize=(10,len(inds)*5))
 for idx, ind in enumerate(inds):
     ax = axs[idx]
     ax.set_title(f"Subject {ind}")    
@@ -166,9 +189,7 @@ for idx, ind in enumerate(inds):
     axs[idx].legend()
 axs[idx].set_xlabel("Time [seconds]")
 
-fig.savefig("figures/pamap2_samples.pdf")
-
-
+fig.savefig("figures/dalia_samples.pdf")
 
 
 #%%
@@ -186,9 +207,9 @@ mae_mean = df.applymap(get_mean_mae)
 mae_ensemble = df.applymap(get_ensemble_mae)
 
 # df_mae_str = df_filtered.applymap(lambda x: f"{x[0]: .2f} vert {x[1]:.1f}")
-df_mae = mae_ensemble.sort_index().transpose()
+df_mae = mae_mean.sort_index().transpose()
 df_mae["average"] = df_mae.mean(axis = 1)
-df_mae_str = df_mae.applymap(lambda x: f"{x:.2f}")
+df_mae_str = df_mae.applymap(lambda x: f"{x:.1f}")
 # print(df_mae_str.sort_index().transpose().to_latex().replace("vert", "$\\vert$"))
 print(df_mae_str.to_latex())
 

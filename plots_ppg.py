@@ -5,25 +5,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
-path = "executions/pamap2results.pkl"
+path = "executions/ppg_results.pkl"
 
 with open(path, "rb") as f:
     results = pickle.load(f)
 
 #%%
 results.keys()
-
-#%%
-nodisc = results['PCE-LSTM discriminator']
-d_metrics = dict()
-for idx in nodisc.keys():
-    ind = nodisc[idx]    
-    d_metrics[idx + 1] = [v["_Discriminator"]["metric"].item() for v in ind.values()]
-    
-d_metrics
-
-#%%
-
 
 def get_mae(p,y): return np.mean(np.abs(p-y))
 
@@ -77,34 +65,11 @@ for k in results.keys():
         }
         model_processed[k] = processed
 
-#%%
-dmodel = model_processed["PCE-LSTM discriminator"]
-
-ndmodel = model_processed["PCE-LSTM NO discriminator"]
-
-
-def get_ind_mae(dmodel):
-    r_metrics = dict()
-    for k,ind in dmodel.items():
-        mae = np.mean(np.abs(ind["prediction"] - ind["label"]),axis=1)
-        r_metrics[k] = np.array(mae)
-    return r_metrics
-
-dr_metrics = get_ind_mae(dmodel)
-ndr_metrics = get_ind_mae(ndmodel)
-
-r_metrics[1], d_metrics[1]
-
-import matplotlib.pyplot as plt
-for i in d_metrics.keys():
-    r = 
-    plt.figure()
-    plt.plot(d_metrics[i], dr_metrics[i]/ndr_metrics[i], '.')
-    plt.show()
-
-#%%
 
 df =pd.DataFrame.from_dict(model_processed)
+
+#%%
+
 
 from collections import defaultdict
 mae_dict = defaultdict(dict)
@@ -137,7 +102,7 @@ for ind, row in df.iterrows():
 
 
 # inds = [1,3,5,7]
-inds = [1,2,3,4,5]
+inds = [2,4,6,8]
 
 fig, axs = plt.subplots(len(inds), sharey=True,figsize=(10,len(inds)*5))
 for idx, ind in enumerate(inds):
@@ -145,7 +110,7 @@ for idx, ind in enumerate(inds):
     ax.set_title(f"Subject {ind}")    
     dcl = df["NOPCE-LSTM"].loc[ind]
     label = df["NOPCE-LSTM"].loc[ind]["label"]
-    t = np.linspace(22, 2*len(label) + 22, len(label))
+    t = np.linspace(0, 2*len(label), len(label))
 
     axs[idx].plot(t, label, label="label")
 
@@ -155,11 +120,7 @@ for idx, ind in enumerate(inds):
                         ("PCE-LSTM discriminator", "PCE-LSTM")): 
         data  = df[model].loc[ind]
         e = get_ensemble(data["prediction"])
-        if model != "FFNN":
-            t = np.linspace(22, 2*len(label) + 22, len(e))
-        else:
-            t = np.linspace(0, 2*len(label), len(e)) 
-        
+        t = np.linspace(0, 2*len(label), len(e))
         axs[idx].plot(t,e, label = legend) 
     
     axs[idx].set_ylabel("Heart Rate [bpm]")
@@ -167,8 +128,6 @@ for idx, ind in enumerate(inds):
 axs[idx].set_xlabel("Time [seconds]")
 
 fig.savefig("figures/pamap2_samples.pdf")
-
-
 
 
 #%%

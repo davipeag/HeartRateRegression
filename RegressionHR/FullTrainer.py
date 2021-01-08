@@ -809,7 +809,7 @@ class IteractiveFFNNFullTrainerJointValidation():
         frequency_hz = self.frequency_hz
         
         ldf = len(self.dfs[ts_sub])
-        ts_per_sample_ts = int(ldf/(frequency_hz*step_s))-3
+        ts_per_sample_ts = int(ldf/(frequency_hz*step_s))-int(period_s/step_s + 1)
         transformers_ts = self.transformers(period_s = period_s, step_s = step_s, frequency_hz = frequency_hz, ts_per_sample=ts_per_sample_ts)
 
         net = self.net_builder_cls(**net_args).to(self.device)
