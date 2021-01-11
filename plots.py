@@ -139,7 +139,7 @@ for ind, row in df.iterrows():
 # inds = [1,3,5,7]
 inds = [1,2,3,4,5]
 
-fig, axs = plt.subplots(len(inds), sharey=True,figsize=(10,len(inds)*5))
+fig, axs = plt.subplots(len(inds), sharey=False, sharex=False, figsize=(10,len(inds)*5))
 for idx, ind in enumerate(inds):
     ax = axs[idx]
     ax.set_title(f"Subject {ind}")    
@@ -166,6 +166,7 @@ for idx, ind in enumerate(inds):
     axs[idx].legend()
 axs[idx].set_xlabel("Time [seconds]")
 
+plt.tight_layout()
 fig.savefig("figures/pamap2_samples.pdf")
 
 

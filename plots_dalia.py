@@ -189,6 +189,7 @@ for idx, ind in enumerate(inds):
     axs[idx].legend()
 axs[idx].set_xlabel("Time [seconds]")
 
+plt.tight_layout()
 fig.savefig("figures/dalia_samples.pdf")
 
 
