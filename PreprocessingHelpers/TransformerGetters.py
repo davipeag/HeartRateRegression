@@ -200,6 +200,49 @@ class PpgPceLstmTransformerGetter():
             fft
         )
 
+class PpgPceLstmTransformerGetterFftKeep():
+    def __init__(self, feature_columns, dataset_name, same_hr=False, bvp_idx=4):
+        self.feature_columns = feature_columns
+        self.ztransformer = ZTransformer2(
+            self.feature_columns, dataset=dataset_name, same_hr=same_hr)
+        self.bvp_idx = bvp_idx
+
+    def __call__(self, ts_per_window, ts_per_is, frequency_hz, period_s, step_s, window_step_ratio):
+
+        feature_columns = self.feature_columns
+
+        meansub = HZMeanSubstitute()
+
+        fft = FFT_KEEP(self.bvp_idx)
+
+        feature_label_splitter = FeatureLabelSplit(
+            label_column="heart_rate",
+            feature_columns=feature_columns
+        )
+
+        recursive_hr_masker = RecursiveHrMasker(0)
+
+        sample_maker = SampleMaker(
+            ts_per_window, int(ts_per_window*window_step_ratio))
+
+        is_pred_split = NoDiffInitialStatePredictionSplit(
+            ts_per_window, ts_per_is)
+
+        ts_aggregator = TimeSnippetAggregator(size=int(frequency_hz*period_s),
+                                              step=int(frequency_hz*step_s))
+
+        return TransformerPipeline(
+            self.ztransformer,
+            feature_label_splitter,
+            ts_aggregator,
+            meansub,
+            sample_maker,
+            is_pred_split,
+            recursive_hr_masker,
+            fft
+        )
+
+
 
 class PceDiscriminatorTransformerGetter():
     def __init__(self, feature_columns, dataset_name, same_hr=False, false_label=0):
