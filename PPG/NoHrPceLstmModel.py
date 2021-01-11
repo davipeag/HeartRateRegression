@@ -266,7 +266,7 @@ class PpgParametrizedEncoderMakeOurConvLSTMSeparateBVP(PpgParametrizedEncoderMak
                nattrs=5, bvp_count=12):
     
       super().__init__(input_length=input_length, ts_per_is=ts_per_is, ts_h_size=ts_h_size, is_h_size=is_h_size, lstm_size=lstm_size, lstm_input=lstm_size, dropout_rate=dropout_rate,
-               nattrs=nattrs, bvp_count=bvp_count
+               nattrs=nattrs, bvp_count=bvp_count)
 
   def __call__(self):
     net = HiddenInitializationConvLSTMAssemblerSeparateBVP(
