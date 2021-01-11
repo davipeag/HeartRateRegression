@@ -265,7 +265,7 @@ class PpgParametrizedEncoderMakeOurConvLSTMSeparateBVP(PpgParametrizedEncoderMak
   def __init__(self, input_length=400, ts_per_is=2, ts_h_size=32, is_h_size=32, lstm_size=32, lstm_input=128, dropout_rate=0,
                nattrs=5, bvp_count=12):
     
-      super().__init__(input_length=input_length, ts_per_is=ts_per_is, ts_h_size=ts_h_size, is_h_size=is_h_size=, lstm_size=lstm_size, lstm_input=lstm_size, dropout_rate=dropout_rate,
+      super().__init__(input_length=input_length, ts_per_is=ts_per_is, ts_h_size=ts_h_size, is_h_size=is_h_size, lstm_size=lstm_size, lstm_input=lstm_size, dropout_rate=dropout_rate,
                nattrs=nattrs, bvp_count=bvp_count
 
   def __call__(self):
