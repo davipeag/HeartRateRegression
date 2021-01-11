@@ -231,7 +231,7 @@ class SingleNetFullTrainerJointValidationIS():
         
         
         ldf = len(self.dfs[ts_sub])
-        ts_per_window_ts = int(ldf/(self.frequency_hz_in*step_s)) - 3
+        ts_per_window_ts = int(ldf/(self.frequency_hz_in*step_s)) - int(period_s/step_s + 1)
         transformers_ts = self.transformers(
             period_s = period_s, frequency_hz = frequency_hz,
             ts_per_window=ts_per_window_ts, ts_per_is=ts_per_is,
