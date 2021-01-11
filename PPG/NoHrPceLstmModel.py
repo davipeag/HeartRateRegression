@@ -84,7 +84,7 @@ class HiddenInitializationConvLSTMAssemblerSeparateBVP(torch.nn.Module):
         """
         initial_points: number of datapoints in initial baseline (yi.shape[1])
         """
-        super(HiddenInitializationConvLSTMAssembler, self).__init__()
+        super(HiddenInitializationConvLSTMAssemblerSeparateBVP, self).__init__()
 
         self.ts_encoder = ts_encoder
         self.ts_encoder_bvp = ts_encoder_bvp
@@ -154,6 +154,53 @@ class HiddenInitializationConvLSTMAssemblerSeparateBVP(torch.nn.Module):
 
         return ps
 
+# class HiddenInitializationConvLSTMAssemblerAddedFFT(HiddenInitializationConvLSTMAssembler):
+#     def __init__(self, ts_encoder, ts_encoder_bvp, is_encoder, h0_fc_net, c0_fc_net,
+#                  lstm, fc_net, predictor, bvp_idx=4):
+        
+#         kargs = locals()
+#         kargs.pop(self)
+#         super().__init__(**kargs)
+    
+#     def forward(self, xi, yi, xp):
+
+#         xi[:,:,0,:] = 0
+#         xp[:,:,0,:] = 0
+        
+#         xi_bvp = xi[:, :, self.bvp_idx: self.bvp_idx+1, :]
+#         xp_bvp = xp[:, :, self.bvp_idx: self.bvp_idx+1, :]
+
+#         xi_imu = xi[:, :, :self.bvp_idx, :]
+#         xp_imu = xp[:, :, :self.bvp_idx, :]
+        
+#         encoded_xp_imu = torch.cat(
+#             [self.ts_encoder(b).transpose(0, 2).transpose(1, 2)
+#              for b in xp_imu], dim=0)
+
+#         encoded_xp_bvp = torch.cat(
+#             [self.ts_encoder_bvp(b).transpose(0, 2).transpose(1, 2)
+#              for b in xp_bvp], dim=0)
+
+#         encoded_xp = torch.cat((encoded_xp_bvp, encoded_xp_imu), axis=-1)
+
+#         xin = xi_imu.transpose(1, 2).reshape(xi_imu.shape[0], xi_imu.shape[2],  -1)
+#         xin_bvp = xi_bvp.transpose(1, 2).reshape(
+#             xi_bvp.shape[0], xi_bvp.shape[2],  -1)
+
+#         encoded_xi = self.ts_encoder(xin)
+#         encoded_xi_bvp = self.ts_encoder_bvp(xin_bvp)
+
+#         ie = torch.cat([encoded_xi, encoded_xi_bvp], axis=1)
+
+#         i_enc = self.is_encoder(ie).reshape(xi_imu.shape[0], -1)
+#         h = self.h0_fc_net(i_enc)
+#         c = self.c0_fc_net(i_enc)
+#         hsf, _ = self.lstm(encoded_xp, (h.unsqueeze(0), c.unsqueeze(0)))
+#         ps = self.predictor(self.fc_net(hsf))
+
+#         return ps
+
+    
 
 class PpgParametrizedEncoderMakeOurConvLSTM():
   def __init__(self, input_length=400, ts_per_is=2, ts_h_size=32, is_h_size=32, lstm_size=32, lstm_input=128, dropout_rate=0,
