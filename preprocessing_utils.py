@@ -576,6 +576,21 @@ class RecursiveHrMasker(BaseEstimator, TransformerMixin):
         xr[:, :, 0, :] = self.mask_value
         return xi, yi, xr, yr
 
+
+class AllHrMasker(BaseEstimator, TransformerMixin):
+    def __init__(self, mask_constant=0):
+        self.mask_value = mask_constant
+
+    def fit(self, df, y=None):
+        return self
+
+    def transform(self, xy):
+        xi, yi, xr, yr = xy
+        xr[:, :, 0, :] = self.mask_value
+        xi[:, :, 0, :] = self.mask_value
+        return xi, yi, xr, yr
+
+
 class XYMasker():
     def __init__(self, mask_value, start_index, value_index=0, time_axis = 2, value_axis=3):
         self.mask_value = mask_value
