@@ -4,7 +4,8 @@ from preprocessing_utils import (
     TimeSnippetAggregator, FeatureLabelSplit,
     TransformerPipeline, SampleMaker, NoDiffInitialStatePredictionSplit,
     RecursiveHrMasker, Downsampler, IdentityTransformer, LocalMeanReplacer, LinearImputation,
-    ApplyTransformer, PceDecoderLoaderTransformer, SlidingWindow, TripletPCELoaderTransformer, XYMasker)
+    ApplyTransformer, PceDecoderLoaderTransformer, SlidingWindow, TripletPCELoaderTransformer, XYMasker,
+    AllHrMasker)
 
 from Constants import DatasetMapping
 
@@ -156,6 +157,53 @@ class PceLstmTransformerGetterRenamed():
             sample_maker,
             is_pred_split,
             recursive_hr_masker
+        )
+
+
+class NoHrPceLstmTransformerGetterRenamed():
+    def __init__(self, feature_columns, dataset_name, same_hr=False):
+        self.feature_columns = feature_columns
+        self.ztransformer = ZTransformer2(
+            self.feature_columns, dataset=dataset_name, same_hr=same_hr)
+        
+        self.dataset_frequency = DatasetMapping.FrequencyMapping[dataset_name]
+
+    def __call__(self, ts_per_window, ts_per_is, frequency_hz, period_s, step_s, window_step_ratio=1):
+        
+        if frequency_hz < self.dataset_frequency:
+            downsampler = Downsampler(frequency_hz/self.dataset_frequency)
+        else:
+            downsampler = IdentityTransformer()
+
+        feature_columns = self.feature_columns
+
+        meansub = HZMeanSubstitute()
+
+        feature_label_splitter = FeatureLabelSplit(
+            label_column="heart_rate",
+            feature_columns=feature_columns
+        )
+
+        hr_masker = AllHrMasker(0)
+
+        sample_maker = SampleMaker(
+            ts_per_window, int(ts_per_window*window_step_ratio))
+
+        is_pred_split = NoDiffInitialStatePredictionSplit(
+            ts_per_window, ts_per_is)
+
+        ts_aggregator = TimeSnippetAggregator(size=int(frequency_hz*period_s),
+                                              step=int(frequency_hz*step_s))
+
+        return TransformerPipeline(
+            downsampler,
+            self.ztransformer,
+            feature_label_splitter,
+            ts_aggregator,
+            meansub,
+            sample_maker,
+            is_pred_split,
+            hr_masker
         )
 
 class PpgPceLstmTransformerGetter():
